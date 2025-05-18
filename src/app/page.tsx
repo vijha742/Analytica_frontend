@@ -1,246 +1,107 @@
-'use client';
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { FiGithub, FiUsers, FiAward, FiActivity } from 'react-icons/fi';
 
-import { useState, useEffect } from 'react';
-import { fetchUser, searchUsers, getSuggestedUsers, suggestUser } from '@/lib/api';
-import UserCard from '@/components/UserCard';
-import { GithubUser } from '@/types/github';
-import Image from 'next/image';
-
-export default function Home() {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [users, setUsers] = useState<GithubUser[]>([]);
-  const [selectedUser, setSelectedUser] = useState<GithubUser | null>(null);
-  const [suggestedUsers, setSuggestedUsers] = useState<GithubUser[]>([]);
-  const [suggestUsername, setSuggestUsername] = useState('');
-  const [suggestedBy, setSuggestedBy] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [refreshingUsers, setRefreshingUsers] = useState<Record<string, boolean>>({});
-
-  useEffect(() => {
-    loadSuggestedUsers();
-  }, []);
-
-  const loadSuggestedUsers = async () => {
-    try {
-      setLoading(true);
-      const users = await getSuggestedUsers();
-      setSuggestedUsers(users);
-      setError(null);
-    } catch {
-      setError('Failed to load suggested users');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleSearch = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setError(null);
-
-    try {
-      if (!searchQuery.trim()) {
-        setError('Please enter a search query');
-        return;
-      }
-      const searchResults = await searchUsers(searchQuery);
-      setUsers(searchResults);
-      if (searchResults.length === 0) {
-        setError('No users found matching your search');
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to search users. Please try again.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleUserSelect = async (username: string) => {
-    setLoading(true);
-    setError(null);
-
-    try {
-      const userData = await fetchUser(username);
-      setSelectedUser(userData);
-    } catch {
-      setError('Failed to fetch user data. Please try again.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleSuggestUser = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setError(null);
-
-    try {
-      await suggestUser(suggestUsername, suggestedBy);
-      setSuggestUsername('');
-      setSuggestedBy('');
-      await loadSuggestedUsers();
-    } catch {
-      setError('Failed to suggest user. Please try again.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleUserRefresh = (username: string, refreshedUser: GithubUser) => {
-    // Update the user in the suggested users list
-    setSuggestedUsers(prevUsers => 
-      prevUsers.map(u => u.githubUsername === username ? refreshedUser : u)
-    );
-
-    // If this is also the selected user, update that too
-    if (selectedUser && selectedUser.githubUsername === username) {
-      setSelectedUser(refreshedUser);
-    }
-
-    // Remove from refreshing state
-    setRefreshingUsers(prev => ({
-      ...prev,
-      [username]: false
-    }));
-  };
-
+export default function LandingPage() {
   return (
-    <main className="min-h-screen bg-gray-100 dark:bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-7xl mx-auto">
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
-            GitHub Analytics
+    <div className="min-h-screen bg-gradient-to-b from-white to-gray-50 dark:from-gray-900 dark:to-gray-950">
+      <div className="container mx-auto px-4 py-16">
+        {/* Hero Section */}
+        <div className="text-center space-y-8 mb-16">
+          <h1 className="text-5xl md:text-7xl font-bold bg-gradient-to-r from-blue-600 via-blue-500 to-blue-400 dark:from-blue-400 dark:via-blue-300 dark:to-blue-200 bg-clip-text text-transparent">
+            Analytica Github
           </h1>
-          <p className="text-lg text-gray-600 dark:text-gray-300">
-            Track and analyze GitHub activity of your peers
+          <p className="text-xl md:text-2xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
+            Discover, track, and analyze GitHub activity of your peers. Find experts, track contributions, and unlock collaboration opportunities.
           </p>
-        </div>
-
-        {/* Search Form */}
-        <form onSubmit={handleSearch} className="mb-8">
-          <div className="flex flex-col sm:flex-row gap-4">
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search for peers..."
-              className="flex-1 px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-              required
-            />
-            <button
-              type="submit"
-              disabled={loading}
-              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
-            >
-              {loading ? 'Loading...' : 'Search'}
-            </button>
-          </div>
-        </form>
-
-        {/* Suggest User Form */}
-        <form onSubmit={handleSuggestUser} className="mb-8">
-          <div className="flex flex-col sm:flex-row gap-4">
-            <input
-              type="text"
-              value={suggestUsername}
-              onChange={(e) => setSuggestUsername(e.target.value)}
-              placeholder="GitHub username to suggest..."
-              className="flex-1 px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-              required
-            />
-            <input
-              type="text"
-              value={suggestedBy}
-              onChange={(e) => setSuggestedBy(e.target.value)}
-              placeholder="Your name..."
-              className="flex-1 px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-              required
-            />
-            <button
-              type="submit"
-              disabled={loading}
-              className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 disabled:opacity-50"
-            >
-              Suggest User
-            </button>
-          </div>
-        </form>
-
-        {error && (
-          <div className="mb-8 p-4 bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-100 rounded-lg">
-            {error}
-          </div>
-        )}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Search Results */}
-          <div className="lg:col-span-1">
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Search Results</h2>
-            <div className="space-y-4">
-              {users.map((user) => (
-                <div
-                  key={user.id}
-                  onClick={() => handleUserSelect(user.githubUsername)}
-                  className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 cursor-pointer hover:shadow-lg transition-shadow"
-                >
-                  <div className="flex items-center space-x-4">
-                    {user.avatarUrl && (
-                      <Image
-                        src={user.avatarUrl}
-                        alt={`${user.name}'s avatar`}
-                        width={48}
-                        height={48}
-                        className="w-12 h-12 rounded-full"
-                      />
-                    )}
-                    <div>
-                      <h3 className="font-semibold text-gray-900 dark:text-white">{user.name}</h3>
-                      <p className="text-sm text-gray-600 dark:text-gray-300">@{user.githubUsername}</p>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Selected User Details */}
-          <div className="lg:col-span-2">
-            {selectedUser ? (
-              <UserCard 
-                user={selectedUser} 
-                onRefresh={(refreshedUser) => handleUserRefresh(selectedUser.githubUsername, refreshedUser)}
-                isRefreshing={refreshingUsers[selectedUser.githubUsername]}
-              />
-            ) : (
-              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 text-center">
-                <p className="text-gray-600 dark:text-gray-300">
-                  Select a user to view their details
-                </p>
-              </div>
-            )}
+          <div className="flex justify-center gap-4">
+            <Link href="/home">
+              <Button size="lg" className="text-lg px-8 bg-blue-600 hover:bg-blue-700">
+                Get Started
+              </Button>
+            </Link>
+            <a href="https://github.com" target="_blank" rel="noopener noreferrer">
+              <Button size="lg" variant="outline" className="text-lg px-8 border-blue-600 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950">
+                <FiGithub className="mr-2 h-5 w-5" />
+                GitHub
+              </Button>
+            </a>
           </div>
         </div>
-        
-        {/* Suggested Users Section */}
-        {suggestedUsers.length > 0 && (
-          <div className="my-12">
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Suggested Users</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {suggestedUsers.map((user) => (
-                <div key={user.id} className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-3">
-                  <UserCard 
-                    user={user} 
-                    onRefresh={(refreshedUser) => handleUserRefresh(user.githubUsername, refreshedUser)}
-                    isRefreshing={refreshingUsers[user.githubUsername]}
-                  />
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
 
-        
+        {/* Features Section */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-16">
+          <Card className="border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-800 hover:shadow-lg transition-shadow">
+            <CardContent className="p-6">
+              <FiUsers className="h-8 w-8 text-blue-600 dark:text-blue-400 mb-4" />
+              <h3 className="text-xl font-semibold mb-2 text-gray-900 dark:text-white">User Tracking</h3>
+              <p className="text-gray-600 dark:text-gray-300">Track contributions and activity metrics of your peers in real-time.</p>
+            </CardContent>
+          </Card>
+
+          <Card className="border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-800 hover:shadow-lg transition-shadow">
+            <CardContent className="p-6">
+              <FiAward className="h-8 w-8 text-blue-600 dark:text-blue-400 mb-4" />
+              <h3 className="text-xl font-semibold mb-2 text-gray-900 dark:text-white">Achievements</h3>
+              <p className="text-gray-600 dark:text-gray-300">Earn badges for your contributions and showcase your expertise.</p>
+            </CardContent>
+          </Card>
+
+          <Card className="border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-800 hover:shadow-lg transition-shadow">
+            <CardContent className="p-6">
+              <FiActivity className="h-8 w-8 text-blue-600 dark:text-blue-400 mb-4" />
+              <h3 className="text-xl font-semibold mb-2 text-gray-900 dark:text-white">Analytics</h3>
+              <p className="text-gray-600 dark:text-gray-300">Get detailed insights into coding patterns and collaboration metrics.</p>
+            </CardContent>
+          </Card>
+
+          <Card className="border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-800 hover:shadow-lg transition-shadow">
+            <CardContent className="p-6">
+              <FiGithub className="h-8 w-8 text-blue-600 dark:text-blue-400 mb-4" />
+              <h3 className="text-xl font-semibold mb-2 text-gray-900 dark:text-white">Integration</h3>
+              <p className="text-gray-600 dark:text-gray-300">Seamlessly connect with GitHub and track your open source journey.</p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Stats Section */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
+          <Card className="border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-800">
+            <CardContent className="p-6 text-center">
+              <h3 className="text-4xl font-bold text-blue-600 dark:text-blue-400 mb-2">10K+</h3>
+              <p className="text-gray-600 dark:text-gray-300">Active Users</p>
+            </CardContent>
+          </Card>
+
+          <Card className="border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-800">
+            <CardContent className="p-6 text-center">
+              <h3 className="text-4xl font-bold text-blue-600 dark:text-blue-400 mb-2">50K+</h3>
+              <p className="text-gray-600 dark:text-gray-300">Contributions Tracked</p>
+            </CardContent>
+          </Card>
+
+          <Card className="border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-800">
+            <CardContent className="p-6 text-center">
+              <h3 className="text-4xl font-bold text-blue-600 dark:text-blue-400 mb-2">100+</h3>
+              <p className="text-gray-600 dark:text-gray-300">Daily Collaborations</p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* CTA Section */}
+        <div className="text-center">
+          <h2 className="text-3xl font-bold mb-4 text-gray-900 dark:text-white">Ready to Get Started?</h2>
+          <p className="text-gray-600 dark:text-gray-300 mb-8 max-w-2xl mx-auto">
+            Join thousands of developers who are already using Analytica Github to enhance their GitHub experience.
+          </p>
+          <Link href="/home">
+            <Button size="lg" className="text-lg px-8 bg-blue-600 hover:bg-blue-700">
+              Start Tracking Now
+            </Button>
+          </Link>
+        </div>
       </div>
-    </main>
+    </div>
   );
 }

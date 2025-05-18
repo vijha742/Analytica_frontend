@@ -1,36 +1,140 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Analytica Github
 
-## Getting Started
+A platform that helps developers track and analyze GitHub activity of their peers, making it easier to find experts, track contributions, and discover collaboration opportunities.
 
-First, run the development server:
+## Core Features
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+### User Data Tracking
+- Total contributions and activity metrics
+- GitHub achievements and custom achievements
+- Technology stack and language expertise
+- Profile information (picture, name, followers/following)
+- Recent activity and contribution patterns
+- Advanced metrics:
+  - Code Review Participation Rate
+  - Documentation Quality Score
+  - Community Engagement metrics
+  - Project Maintenance Score
+  - Code Quality Indicators
+  - Collaboration Score
+  - Open Source Contribution Impact
+  - Technical Writing Score
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Custom Achievements
+- Fast Shipping: Quick PR merges
+- Documentation Champion: Comprehensive READMEs and docs
+- Code Quality Guardian: High-quality PR reviews
+- Community Builder: Active in discussions
+- Bug Hunter: Effective issue reporting
+- Code Mentor: Helpful code reviews
+- Consistency King: Regular contribution patterns
+- Language Polyglot: Contributions in multiple languages
+- Open Source Advocate: Active in open source projects
+- Code Cleaner: Improving code quality in existing projects
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Tech Stack
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Frontend
+- Next.js with TypeScript
+- Tailwind CSS for styling
+- Light/Dark mode support
+- Responsive design for all devices
 
-## Learn More
+### Backend
+- Spring Boot
+- Supabase for database and authentication
+- GitHub GraphQL API for data fetching
+- Rate limiting and caching implementation
 
-To learn more about Next.js, take a look at the following resources:
+### Authentication
+- GitHub OAuth
+- Gmail
+- Email/Password
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### Deployment
+- Frontend: Vercel (free tier)
+- Backend: Railway.app/Render.com (free tier with GitHub Student Pack)
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Execution Plan
 
-## Deploy on Vercel
+### V0 - Foundation (Week 1-2)
+- [x] Set up project structure
+- [ ] Implement basic GitHub data fetching
+- [ ] Create user addition system
+- [ ] Design and implement basic desktop UI
+- [ ] Set up authentication system
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### V1 - Basic UI (Week 3-4)
+- [ ] Develop landing page
+- [ ] Create about page
+- [x] Implement mobile UI
+- [ ] Set up basic routing
+- [ ] Implement light/dark mode
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### V2 - User Interface Enhancement (Week 5-6)
+- [ ] Create users display page
+- [ ] Implement responsive design
+- [ ] Revamp desktop UI
+- [ ] Add basic user profiles
+- [ ] Implement data refresh system
+
+### V3 - Core Features (Week 7-8)
+- [ ] Develop homepage
+- [ ] Enhance about page
+- [ ] Implement achievement system
+- [ ] Add basic metrics tracking
+- [ ] Set up data caching
+
+### V4 - Data Management (Week 9-10)
+- [ ] Implement Supabase integration
+- [ ] Create daily/weekly rankings
+- [ ] Add weighted scoring system
+- [ ] Implement data refresh intervals
+- [ ] Set up rate limiting
+
+### V5 - Analytics & Dashboard (Week 11-12)
+- [ ] Create user dashboard
+- [ ] Implement analytics page
+- [ ] Add user registration system
+- [ ] Develop private repository access
+- [ ] Create recommendation system
+
+## Technical Considerations
+
+### Rate Limiting
+- Implement caching for frequently accessed data
+- Use webhooks for real-time updates
+- Batch requests where possible
+- Implement exponential backoff for retries
+- Store data locally and update incrementally
+
+### Data Refresh Strategy
+- 10-minute interval for regular users
+- Admin privileges for manual refresh
+- Queue system for updates
+- Prioritize active users' data
+- Incremental updates
+
+### Dashboard Features
+- Activity Overview
+  - Daily commit graph
+  - Commit patterns
+  - Language distribution
+- Code Quality
+  - Commit message quality
+  - PR review participation
+  - Documentation contributions
+- Community
+  - Connection recommendations
+  - Language-based peer matching
+  - Collaboration opportunities
+- Personal Stats
+  - Basic profile information
+  - Achievement showcase
+  - Contribution trends
+
+## Contributing
+[To be added]
+
+## License
+[To be added]

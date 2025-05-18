@@ -9,6 +9,8 @@ export interface GithubUser {
   followingCount: number;
   publicReposCount: number;
   totalContributions: number;
+  totalPullRequestContributions: number;
+  totalIssueContributions: number;
   lastUpdated: Date;
   lastRefreshed: Date;
   repositories: Repository[];
@@ -20,7 +22,7 @@ export interface Repository {
   name: string;
   description: string | null;
   stargazerCount: number;
-  forks: number;
+  forkCount: number;
   language: string | null;
   updatedAt: string;
 }
@@ -62,6 +64,8 @@ export enum TimeFrame {
 
 export interface TimeSeriesDataPoint {
   date: string;
+  readableDate?: string;
+  chartDate?: string;
   count: number;
 }
 
@@ -70,4 +74,6 @@ export interface ContributionTimeSeries {
   totalCount: number;
   periodStart: string;
   periodEnd: string;
+  readablePeriodStart?: string;
+  readablePeriodEnd?: string;
 }

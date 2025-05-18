@@ -4,7 +4,7 @@ import * as Dialog from '@radix-ui/react-dialog';
 import { Line } from 'react-chartjs-2';
 import { Chart as ChartJS, LineElement, PointElement, LinearScale, Title, Tooltip, Legend, CategoryScale } from 'chart.js';
 import { FiUsers, FiGitBranch, FiStar, FiGitPullRequest, FiGitCommit, FiAlertCircle, FiEye, FiRefreshCw, FiChevronRight, FiCalendar } from 'react-icons/fi';
-import { useMemo, useState, useEffect } from 'react';
+import { useMemo, useState, useEffect, useCallback } from 'react';
 import { refreshUser, fetchContributionTimeSeries } from '@/lib/api';
 
 ChartJS.register(LineElement, PointElement, LinearScale, Title, Tooltip, Legend, CategoryScale);
@@ -15,7 +15,7 @@ interface UserCardProps {
   isRefreshing?: boolean;
 }
 
-function formatDate(dateStr: string) {
+function formatDate(dateStr: string | Date | null | undefined) {
   if (!dateStr) return '';
   const date = new Date(dateStr);
   if (isNaN(date.getTime())) return '';
@@ -28,23 +28,62 @@ export default function UserCard({ user, onRefresh, isRefreshing: externalIsRefr
   const [timeSeriesData, setTimeSeriesData] = useState<ContributionTimeSeries | null>(null);
   const [selectedTimeFrame, setSelectedTimeFrame] = useState<TimeFrame>(TimeFrame.WEEKLY);
   const [isLoadingChart, setIsLoadingChart] = useState(false);
+  const [refreshError, setRefreshError] = useState<string | null>(null);
+  const [currentUser, setCurrentUser] = useState<GithubUser>(user);
   
   // Use either external or local refreshing state
   const isRefreshing = externalIsRefreshing || localIsRefreshing;
 
-  // Handle refresh click
+  // Update local user state when prop changes
+  useEffect(() => {
+    if (user) {
+      setCurrentUser(user);
+    }
+  }, [user]);
+
+  const refreshTimeSeriesData = useCallback(async () => {
+    if (!currentUser?.githubUsername) return;
+    
+    setIsLoadingChart(true);
+    try {
+      const data = await fetchContributionTimeSeries(
+        currentUser.githubUsername,
+        selectedTimeFrame
+      );
+      setTimeSeriesData(data);
+    } catch (err) {
+      console.error("Error fetching contribution time series:", err);
+      // Don't show error to user, just log it
+    } finally {
+      setIsLoadingChart(false);
+    }
+  }, [currentUser?.githubUsername, selectedTimeFrame]);
+
+  // Handle refresh click with improved error handling
   const handleRefresh = async () => {
     if (isRefreshing) return; // Prevent multiple concurrent refreshes
     
     setLocalIsRefreshing(true);
+    setRefreshError(null);
+    
     try {
-      const refreshedUser = await refreshUser(user.githubUsername);
+      const refreshedUser = await refreshUser(currentUser.githubUsername);
+      
+      // Update local state first
+      setCurrentUser(refreshedUser);
+      
+      // Call parent callback if provided
       if (onRefresh) {
         onRefresh(refreshedUser);
       }
+      
+      // Also refresh time series data if drawer is open
+      if (open) {
+        await refreshTimeSeriesData();
+      }
     } catch (error) {
       console.error('Failed to refresh user:', error);
-      // Could add toast notification here
+      setRefreshError(error instanceof Error ? error.message : 'Failed to refresh user data');
     } finally {
       setLocalIsRefreshing(false);
     }
@@ -52,28 +91,15 @@ export default function UserCard({ user, onRefresh, isRefreshing: externalIsRefr
 
   // Fetch time series data when drawer opens or time frame changes
   useEffect(() => {
-    if (open && user?.githubUsername) {
-      setIsLoadingChart(true);
-      fetchContributionTimeSeries(
-        user.githubUsername,
-        selectedTimeFrame
-      )
-      .then(data => {
-        setTimeSeriesData(data);
-      })
-      .catch(err => {
-        console.error("Error fetching contribution time series:", err);
-      })
-      .finally(() => {
-        setIsLoadingChart(false);
-      });
+    if (open && currentUser?.githubUsername) {
+      refreshTimeSeriesData();
     }
-  }, [open, user?.githubUsername, selectedTimeFrame]);
+  }, [open, currentUser?.githubUsername, selectedTimeFrame, refreshTimeSeriesData]);
 
   // Most used languages
   const languageStats = useMemo(() => {
     const langCount: Record<string, number> = {};
-    user.repositories?.forEach(repo => {
+    currentUser.repositories?.forEach(repo => {
       if (repo.language) {
         langCount[repo.language] = (langCount[repo.language] || 0) + 1;
       }
@@ -81,13 +107,13 @@ export default function UserCard({ user, onRefresh, isRefreshing: externalIsRefr
     return Object.entries(langCount)
       .sort((a, b) => b[1] - a[1])
       .slice(0, 3);
-  }, [user.repositories]);
+  }, [currentUser.repositories]);
 
   // Most recently updated repo
   const recentRepo = useMemo(() => {
-    if (!user.repositories || user.repositories.length === 0) return null;
-    return [...user.repositories].sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())[0];
-  }, [user.repositories]);
+    if (!currentUser.repositories || currentUser.repositories.length === 0) return null;
+    return [...currentUser.repositories].sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())[0];
+  }, [currentUser.repositories]);
 
   // Chart data for Time Series
   const timeSeriesChartData = useMemo(() => {
@@ -108,7 +134,8 @@ export default function UserCard({ user, onRefresh, isRefreshing: externalIsRefr
     }
 
     return {
-      labels: timeSeriesData.points.map(point => formatDate(point.date)),
+      // Use chartDate property if available, otherwise fall back to regular date formatting
+      labels: timeSeriesData.points.map(point => point.chartDate || formatDate(point.date)),
       datasets: [
         {
           label: 'Contributions',
@@ -149,30 +176,43 @@ export default function UserCard({ user, onRefresh, isRefreshing: externalIsRefr
     }
   };
 
+  if (!currentUser) {
+    return (
+      <div className="p-4 bg-gray-100 dark:bg-gray-800 rounded-lg text-center">
+        <p className="text-gray-600 dark:text-gray-300">User data not available</p>
+      </div>
+    );
+  }
+
   return (
     <Dialog.Root open={open} onOpenChange={setOpen}>
       <div className="space-y-4 max-w-xl mx-auto bg-gray-50 dark:bg-gray-900 rounded-xl shadow-lg p-4 border border-gray-200 dark:border-gray-800 flex flex-col relative transition-colors">
         {/* Basic Info */}
         <div className="flex items-center space-x-4">
-          {user.avatarUrl && (
+          {currentUser.avatarUrl ? (
             <div className="relative w-16 h-16 shrink-0">
-              <Image
-                src={user.avatarUrl}
-                alt={`${user.name}'s avatar`}
-                width={64}
-                height={64}
-                className="rounded-full object-cover border-2 border-indigo-200 dark:border-indigo-800"
+              {/* Using regular img tag to avoid Next.js Image domain issues */}
+              <img
+                src={currentUser.avatarUrl}
+                alt={`${currentUser.name || currentUser.githubUsername}'s avatar`}
+                className="w-16 h-16 rounded-full object-cover border-2 border-indigo-200 dark:border-indigo-800"
               />
+            </div>
+          ) : (
+            <div className="w-16 h-16 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center shrink-0">
+              <FiUsers className="w-8 h-8 text-gray-400 dark:text-gray-500" />
             </div>
           )}
           <div className="flex-1 min-w-0">
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white truncate">{user.name}</h2>
-            <p className="text-indigo-600 dark:text-indigo-400 font-medium truncate">@{user.githubUsername}</p>
-            {user.bio && <p className="mt-1 text-gray-600 dark:text-gray-300 text-sm line-clamp-2">{user.bio}</p>}
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white truncate">
+              {currentUser.name || currentUser.githubUsername}
+            </h2>
+            <p className="text-indigo-600 dark:text-indigo-400 font-medium truncate">@{currentUser.githubUsername}</p>
+            {currentUser.bio && <p className="mt-1 text-gray-600 dark:text-gray-300 text-sm line-clamp-2">{currentUser.bio}</p>}
           </div>
           <div className="flex flex-col gap-2">
             <a
-              href={`https://github.com/${user.githubUsername}`}
+              href={`https://github.com/${currentUser.githubUsername}`}
               target="_blank"
               rel="noopener noreferrer"
               className="px-3 py-1 rounded-md bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold shadow transition-colors"
@@ -191,26 +231,34 @@ export default function UserCard({ user, onRefresh, isRefreshing: externalIsRefr
             </button>
           </div>
         </div>
+        
+        {/* Error Message (if any) */}
+        {refreshError && (
+          <div className="p-2 bg-red-100 text-red-800 rounded-md text-sm">
+            {refreshError}
+          </div>
+        )}
+        
         {/* Stats */}
         <div className="mt-2 grid grid-cols-4 gap-2 bg-white/70 dark:bg-gray-800/70 rounded-lg p-2">
           <div className="flex flex-col items-center">
             <FiUsers className="w-4 h-4 text-indigo-500 mb-0.5" />
-            <span className="font-semibold text-gray-900 dark:text-white text-sm">{user.followersCount}</span>
+            <span className="font-semibold text-gray-900 dark:text-white text-sm">{currentUser.followersCount || 0}</span>
             <span className="text-xs text-gray-500 dark:text-gray-400">Followers</span>
           </div>
           <div className="flex flex-col items-center">
             <FiUsers className="w-4 h-4 text-indigo-500 mb-0.5" />
-            <span className="font-semibold text-gray-900 dark:text-white text-sm">{user.followingCount}</span>
+            <span className="font-semibold text-gray-900 dark:text-white text-sm">{currentUser.followingCount || 0}</span>
             <span className="text-xs text-gray-500 dark:text-gray-400">Following</span>
           </div>
           <div className="flex flex-col items-center">
             <FiGitBranch className="w-4 h-4 text-indigo-500 mb-0.5" />
-            <span className="font-semibold text-gray-900 dark:text-white text-sm">{user.publicReposCount}</span>
+            <span className="font-semibold text-gray-900 dark:text-white text-sm">{currentUser.publicReposCount || 0}</span>
             <span className="text-xs text-gray-500 dark:text-gray-400">Repos</span>
           </div>
           <div className="flex flex-col items-center">
             <FiStar className="w-4 h-4 text-indigo-500 mb-0.5" />
-            <span className="font-semibold text-gray-900 dark:text-white text-sm">{user.totalContributions}</span>
+            <span className="font-semibold text-gray-900 dark:text-white text-sm">{currentUser.totalContributions || 0}</span>
             <span className="text-xs text-gray-500 dark:text-gray-400">Contribs</span>
           </div>
         </div>
@@ -257,7 +305,10 @@ export default function UserCard({ user, onRefresh, isRefreshing: externalIsRefr
             <button className="absolute top-4 right-4 text-gray-500 hover:text-gray-900 dark:hover:text-white text-2xl font-bold">&times;</button>
           </Dialog.Close>
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-0">{user.name} <span className="text-indigo-600 dark:text-indigo-400">@{user.githubUsername}</span></h2>
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-0">
+              {currentUser.name || currentUser.githubUsername}{" "}
+              <span className="text-indigo-600 dark:text-indigo-400">@{currentUser.githubUsername}</span>
+            </h2>
             <button
               onClick={handleRefresh}
               disabled={isRefreshing}
@@ -269,7 +320,15 @@ export default function UserCard({ user, onRefresh, isRefreshing: externalIsRefr
               {isRefreshing ? 'Refreshing...' : 'Refresh'}
             </button>
           </div>
-          {user.bio && <p className="mb-2 text-gray-600 dark:text-gray-300">{user.bio}</p>}
+          
+          {/* Error Message (if any) */}
+          {refreshError && (
+            <div className="p-3 mb-4 bg-red-100 text-red-800 rounded-md">
+              {refreshError}
+            </div>
+          )}
+          
+          {currentUser.bio && <p className="mb-2 text-gray-600 dark:text-gray-300">{currentUser.bio}</p>}
           <div className="mb-4 flex flex-wrap gap-2">
             {languageStats.map(([lang, count]) => (
               <span key={lang} className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-indigo-100 dark:bg-indigo-900 text-indigo-800 dark:text-indigo-200">
@@ -312,43 +371,37 @@ export default function UserCard({ user, onRefresh, isRefreshing: externalIsRefr
             
             {timeSeriesData && (
               <div className="flex justify-between text-xs text-gray-600 dark:text-gray-400 mb-4">
-                <div>Period: {formatDate(timeSeriesData.periodStart)} - {formatDate(timeSeriesData.periodEnd)}</div>
+                <div>Period: {timeSeriesData.readablePeriodStart || formatDate(timeSeriesData.periodStart)} - {timeSeriesData.readablePeriodEnd || formatDate(timeSeriesData.periodEnd)}</div>
                 <div>Total: {timeSeriesData.totalCount} contributions</div>
               </div>
             )}
-            
-            <div className="grid grid-cols-1 gap-2">
-              {user.contributions && user.contributions.slice(0, 6).map((contribution) => (
-                <div
-                  key={contribution.id}
-                  className="flex items-center space-x-3 p-2 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
-                >
-                  <div className="text-indigo-600 dark:text-indigo-400">
-                    {getContributionIcon(contribution.type as ContributionType)}
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-gray-900 dark:text-white text-sm font-medium">
-                      {contribution.type}
-                    </p>
-                    <p className="text-xs text-gray-600 dark:text-gray-300">
-                      {formatDate(contribution.date)}
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-indigo-100 dark:bg-indigo-900 text-indigo-800 dark:text-indigo-200">
-                      {contribution.count} {contribution.count === 1 ? 'contribution' : 'contributions'}
-                    </span>
-                  </div>
-                </div>
-              ))}
+
+            {/* Total Contributions Summary */}
+            <div className="mt-4 grid grid-cols-3 gap-4 bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
+              <div className="flex flex-col items-center">
+                <FiGitCommit className="w-6 h-6 text-indigo-500 mb-1" />
+                <span className="font-semibold text-gray-900 dark:text-white text-sm">{currentUser.contributions.filter(c => c.type === ContributionType.COMMIT).reduce((sum, c) => sum + c.count, 0)}</span>
+                <span className="text-xs text-gray-500 dark:text-gray-400">Commits</span>
+              </div>
+              <div className="flex flex-col items-center">
+                <FiGitPullRequest className="w-6 h-6 text-indigo-500 mb-1" />
+                <span className="font-semibold text-gray-900 dark:text-white text-sm">{currentUser.totalPullRequestContributions || 0}</span>
+                <span className="text-xs text-gray-500 dark:text-gray-400">Pull Requests</span>
+              </div>
+              <div className="flex flex-col items-center">
+                <FiAlertCircle className="w-6 h-6 text-indigo-500 mb-1" />
+                <span className="font-semibold text-gray-900 dark:text-white text-sm">{currentUser.totalIssueContributions || 0}</span>
+                <span className="text-xs text-gray-500 dark:text-gray-400">Issues</span>
+              </div>
             </div>
           </div>
+          
           {/* All Repositories */}
-          {user.repositories && user.repositories.length > 0 && (
+          {currentUser.repositories && currentUser.repositories.length > 0 ? (
             <div className="mb-6">
               <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">All Repositories</h3>
               <div className="grid grid-cols-1 gap-3">
-                {user.repositories
+                {currentUser.repositories
                   .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
                   .map((repo) => (
                     <div
@@ -370,7 +423,7 @@ export default function UserCard({ user, onRefresh, isRefreshing: externalIsRefr
                               <p className="text-xs text-gray-600 dark:text-gray-300">Stars</p>
                             </div>
                           <div className="text-center">
-                            <p className="text-gray-900 dark:text-white text-sm font-semibold">{repo.forks || 0}</p>
+                            <p className="text-gray-900 dark:text-white text-sm font-semibold">{repo.forkCount || 0}</p>
                             <p className="text-xs text-gray-600 dark:text-gray-300">Forks</p>
                           </div>
                         </div>
@@ -389,10 +442,15 @@ export default function UserCard({ user, onRefresh, isRefreshing: externalIsRefr
                   ))}
               </div>
             </div>
+          ) : (
+            <div className="mb-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg text-center">
+              <p className="text-gray-500 dark:text-gray-400">No repositories available</p>
+            </div>
           )}
-          {user.lastRefreshed && (
+          {/* Last refreshed time */}
+          {(currentUser.lastRefreshed || currentUser.lastUpdated) && (
             <p className="text-xs text-gray-500 dark:text-gray-400 text-right mt-4">
-              Last refreshed: {formatDate(user.lastRefreshed as any)}
+              Last refreshed: {formatDate(currentUser.lastRefreshed) || formatDate(currentUser.lastUpdated)}
             </p>
           )}
         </Dialog.Content>

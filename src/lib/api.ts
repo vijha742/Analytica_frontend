@@ -1,6 +1,6 @@
 import { GithubUser, RateLimit } from '@/types/github';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ;
 
 export async function fetchUser(username: string): Promise<GithubUser> {
   const response = await fetch(
@@ -13,7 +13,7 @@ export async function fetchUser(username: string): Promise<GithubUser> {
       body: JSON.stringify({
         query: `
           query($username: String!) {
-            getUser(username: $username) {
+            user(username: $username) {
               id
               githubUsername
               name
@@ -24,14 +24,16 @@ export async function fetchUser(username: string): Promise<GithubUser> {
               followingCount
               publicReposCount
               totalContributions
+              totalIssueContributions
+              totalPullRequestContributions
               lastUpdated
               repositories {
                 id
                 name
                 description
                 language
-                stargazersCount
-                forks
+                stargazerCount
+                forkCount
                 isPrivate
                 createdAt
                 updatedAt
@@ -61,7 +63,7 @@ export async function fetchUser(username: string): Promise<GithubUser> {
   if (data.errors) {
     throw new Error(data.errors[0].message);
   }
-  return data.data.getUser;
+  return data.data.user;
 }
 
 export async function fetchRateLimit(): Promise<RateLimit> {
@@ -94,14 +96,16 @@ export async function searchUsers(query: string, limit: number = 10, offset: num
               followingCount
               publicReposCount
               totalContributions
+              totalIssueContributions
+              totalPullRequestContributions
               lastUpdated
               repositories {
                 id
                 name
                 description
                 language
-                stargazersCount
-                forks
+                stargazerCount
+                forkCount
                 isPrivate
                 createdAt
                 updatedAt
@@ -174,69 +178,106 @@ export async function isUserSuggested(githubUsername: string): Promise<boolean> 
 }
 
 export const refreshUser = async (githubUsername: string): Promise<GithubUser> => {
-  const response = await fetch(
-    `${API_BASE_URL}/graphql`,
-    {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        query: `
-          mutation($githubUsername: String!) {
-            refreshUserData(githubUsername: $githubUsername) {
-              id
-              githubUsername
-              name
-              email
-              avatarUrl
-              bio
-              followersCount
-              followingCount
-              publicReposCount
-              totalContributions
-              lastUpdated
-              lastRefreshed
-              repositories {
+  try {
+    const response = await fetch(
+      `${API_BASE_URL}/graphql`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          query: `
+            mutation($githubUsername: String!) {
+              refreshUserData(githubUsername: $githubUsername) {
                 id
+                githubUsername
                 name
-                description
-                language
-                stargazersCount
-                forks
-                updatedAt
-              }
-              contributions {
-                id
-                date
-                count
-                type
+                email
+                avatarUrl
+                bio
+                followersCount
+                followingCount
+                publicReposCount
+                totalContributions
+                totalIssueContributions
+                totalPullRequestContributions
+                lastRefreshed
+                repositories {
+                  id
+                  name
+                  description
+                  language
+                  stargazerCount
+                  forkCount
+                  isPrivate
+                  createdAt
+                  updatedAt
+                }
+                contributions {
+                  id
+                  date
+                  count
+                  type
+                }
               }
             }
-          }
-        `,
-        variables: {
-          githubUsername,
-        },
-      }),
+          `,
+          variables: {
+            githubUsername,
+          },
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`Failed to refresh user data: ${response.status} ${response.statusText}`);
     }
-  );
 
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => null);
-    throw new Error(errorData?.errors?.[0]?.message || 'Failed to refresh user data');
+    const data = await response.json();
+    
+    if (data.errors && data.errors.length > 0) {
+      console.error('GraphQL errors:', data.errors);
+      throw new Error(data.errors[0].message || 'Error refreshing user data');
+    }
+    
+    if (!data.data?.refreshUserData) {
+      throw new Error('No user data returned from refresh');
+    }
+    
+    // Convert the backend SuggestedUser data to match our frontend GithubUser interface
+    const userData = data.data.refreshUserData;
+    console.log(userData)
+    
+    // Map the response to our GithubUser type, adjusting any field mismatches
+    const mappedUser: GithubUser = {
+      ...userData,
+      // Map any mismatched fields if needed
+      repositories: userData.repositories.map((repo: any) => ({
+        ...repo,
+        forks: repo.forkCount, // Ensure correct mapping between forkCount and forks
+        // Add any other field mapping needed
+      })),
+      // Ensure dates are handled correctly
+      lastUpdated: userData.lastRefreshed || new Date().toISOString(),
+      totalPullRequestContributions: userData.totalPullRequestContributions,
+      totalIssueContributions: userData.totalIssueContributions,
+    };
+    
+    return mappedUser;
+  } catch (error) {
+    console.error('Error in refreshUser:', error);
+    throw error instanceof Error 
+      ? error 
+      : new Error('Failed to refresh user data. Please try again later.');
   }
-
-  const data = await response.json();
-  if (data.errors) {
-    throw new Error(data.errors[0].message);
-  }
-  return data.data.refreshUserData;
-}
+};
 
 export interface TimeSeriesDataPoint {
   date: string;
   count: number;
+  readableDate?: string;
+  chartDate?: string;
 }
 
 export interface ContributionTimeSeries {
@@ -244,6 +285,8 @@ export interface ContributionTimeSeries {
   totalCount: number;
   periodStart: string;
   periodEnd: string;
+  readablePeriodStart?: string;
+  readablePeriodEnd?: string;
 }
 
 export async function fetchContributionTimeSeries(
@@ -272,11 +315,15 @@ export async function fetchContributionTimeSeries(
             ) {
               points {
                 date
+                readableDate
+                chartDate
                 count
               }
               totalCount
               periodStart
               periodEnd
+              readablePeriodStart
+              readablePeriodEnd
             }
           }
         `,

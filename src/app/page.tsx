@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { fetchUser, searchUsers, getSuggestedUsers, suggestUser } from '@/lib/api';
 import UserCard from '@/components/UserCard';
 import { GithubUser } from '@/types/github';
+import Image from 'next/image';
 
 export default function Home() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -14,6 +15,7 @@ export default function Home() {
   const [suggestedBy, setSuggestedBy] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [refreshingUsers, setRefreshingUsers] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     loadSuggestedUsers();
@@ -21,10 +23,14 @@ export default function Home() {
 
   const loadSuggestedUsers = async () => {
     try {
+      setLoading(true);
       const users = await getSuggestedUsers();
       setSuggestedUsers(users);
-    } catch (err) {
+      setError(null);
+    } catch {
       setError('Failed to load suggested users');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -57,7 +63,7 @@ export default function Home() {
     try {
       const userData = await fetchUser(username);
       setSelectedUser(userData);
-    } catch (err) {
+    } catch {
       setError('Failed to fetch user data. Please try again.');
     } finally {
       setLoading(false);
@@ -74,11 +80,29 @@ export default function Home() {
       setSuggestUsername('');
       setSuggestedBy('');
       await loadSuggestedUsers();
-    } catch (err) {
+    } catch {
       setError('Failed to suggest user. Please try again.');
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleUserRefresh = (username: string, refreshedUser: GithubUser) => {
+    // Update the user in the suggested users list
+    setSuggestedUsers(prevUsers => 
+      prevUsers.map(u => u.githubUsername === username ? refreshedUser : u)
+    );
+
+    // If this is also the selected user, update that too
+    if (selectedUser && selectedUser.githubUsername === username) {
+      setSelectedUser(refreshedUser);
+    }
+
+    // Remove from refreshing state
+    setRefreshingUsers(prev => ({
+      ...prev,
+      [username]: false
+    }));
   };
 
   return (
@@ -148,7 +172,7 @@ export default function Home() {
             {error}
           </div>
         )}
-<div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Search Results */}
           <div className="lg:col-span-1">
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Search Results</h2>
@@ -161,9 +185,11 @@ export default function Home() {
                 >
                   <div className="flex items-center space-x-4">
                     {user.avatarUrl && (
-                      <img
+                      <Image
                         src={user.avatarUrl}
                         alt={`${user.name}'s avatar`}
+                        width={48}
+                        height={48}
                         className="w-12 h-12 rounded-full"
                       />
                     )}
@@ -180,7 +206,11 @@ export default function Home() {
           {/* Selected User Details */}
           <div className="lg:col-span-2">
             {selectedUser ? (
-              <UserCard user={selectedUser} />
+              <UserCard 
+                user={selectedUser} 
+                onRefresh={(refreshedUser) => handleUserRefresh(selectedUser.githubUsername, refreshedUser)}
+                isRefreshing={refreshingUsers[selectedUser.githubUsername]}
+              />
             ) : (
               <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 text-center">
                 <p className="text-gray-600 dark:text-gray-300">
@@ -193,12 +223,16 @@ export default function Home() {
         
         {/* Suggested Users Section */}
         {suggestedUsers.length > 0 && (
-          <div className="mb-12">
+          <div className="my-12">
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Suggested Users</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {suggestedUsers.map((user) => (
                 <div key={user.id} className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-3">
-                  <UserCard user={user} />
+                  <UserCard 
+                    user={user} 
+                    onRefresh={(refreshedUser) => handleUserRefresh(user.githubUsername, refreshedUser)}
+                    isRefreshing={refreshingUsers[user.githubUsername]}
+                  />
                 </div>
               ))}
             </div>

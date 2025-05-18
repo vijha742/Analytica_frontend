@@ -1,11 +1,11 @@
-import Image from 'next/image';
 import { GithubUser, ContributionType, TimeFrame, ContributionTimeSeries } from '@/types/github';
 import * as Dialog from '@radix-ui/react-dialog';
 import { Line } from 'react-chartjs-2';
 import { Chart as ChartJS, LineElement, PointElement, LinearScale, Title, Tooltip, Legend, CategoryScale } from 'chart.js';
-import { FiUsers, FiGitBranch, FiStar, FiGitPullRequest, FiGitCommit, FiAlertCircle, FiEye, FiRefreshCw, FiChevronRight, FiCalendar } from 'react-icons/fi';
+import { FiUsers, FiGitBranch, FiStar, FiGitPullRequest, FiGitCommit, FiAlertCircle, FiRefreshCw, FiChevronRight, FiCalendar } from 'react-icons/fi';
 import { useMemo, useState, useEffect, useCallback } from 'react';
 import { refreshUser, fetchContributionTimeSeries } from '@/lib/api';
+import Image from 'next/image';
 
 ChartJS.register(LineElement, PointElement, LinearScale, Title, Tooltip, Legend, CategoryScale);
 
@@ -161,21 +161,6 @@ export default function UserCard({ user, onRefresh, isRefreshing: externalIsRefr
     },
   };
 
-  const getContributionIcon = (type: ContributionType) => {
-    switch (type) {
-      case ContributionType.COMMIT:
-        return <FiGitCommit className="w-6 h-6" />;
-      case ContributionType.PULL_REQUEST:
-        return <FiGitPullRequest className="w-6 h-6" />;
-      case ContributionType.ISSUE:
-        return <FiAlertCircle className="w-6 h-6" />;
-      case ContributionType.CODE_REVIEW:
-        return <FiEye className="w-6 h-6" />;
-      default:
-        return <FiStar className="w-6 h-6" />;
-    }
-  };
-
   if (!currentUser) {
     return (
       <div className="p-4 bg-gray-100 dark:bg-gray-800 rounded-lg text-center">
@@ -191,10 +176,11 @@ export default function UserCard({ user, onRefresh, isRefreshing: externalIsRefr
         <div className="flex items-center space-x-4">
           {currentUser.avatarUrl ? (
             <div className="relative w-16 h-16 shrink-0">
-              {/* Using regular img tag to avoid Next.js Image domain issues */}
-              <img
+              <Image
                 src={currentUser.avatarUrl}
                 alt={`${currentUser.name || currentUser.githubUsername}'s avatar`}
+                width={64}
+                height={64}
                 className="w-16 h-16 rounded-full object-cover border-2 border-indigo-200 dark:border-indigo-800"
               />
             </div>

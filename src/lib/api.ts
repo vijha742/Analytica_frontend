@@ -253,7 +253,17 @@ export const refreshUser = async (githubUsername: string): Promise<GithubUser> =
     const mappedUser: GithubUser = {
       ...userData,
       // Map any mismatched fields if needed
-      repositories: userData.repositories.map((repo: any) => ({
+      repositories: userData.repositories.map((repo: {
+        id: string;
+        name: string;
+        description: string;
+        language: string;
+        stargazerCount: number;
+        forkCount: number;
+        isPrivate: boolean;
+        createdAt: string;
+        updatedAt: string;
+      }) => ({
         ...repo,
         forks: repo.forkCount, // Ensure correct mapping between forkCount and forks
         // Add any other field mapping needed

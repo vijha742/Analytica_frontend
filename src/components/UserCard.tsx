@@ -6,6 +6,7 @@ import { FiUsers, FiGitBranch, FiStar, FiGitPullRequest, FiGitCommit, FiAlertCir
 import { useMemo, useState, useEffect, useCallback } from 'react';
 import { refreshUser, fetchContributionTimeSeries } from '@/lib/api';
 import Image from 'next/image';
+import { Skeleton } from '@/components/ui/skeleton';
 
 ChartJS.register(LineElement, PointElement, LinearScale, Title, Tooltip, Legend, CategoryScale);
 
@@ -442,5 +443,65 @@ export default function UserCard({ user, onRefresh, isRefreshing: externalIsRefr
         </Dialog.Content>
       </Dialog.Portal>
     </Dialog.Root>
+  );
+}
+
+export function UserCardSkeleton() {
+  return (
+    <div className="space-y-4 max-w-xl mx-auto bg-gray-50 dark:bg-gray-900 rounded-xl shadow-lg p-4 border border-gray-200 dark:border-gray-800 flex flex-col relative transition-colors">
+      {/* Basic Info */}
+      <div className="flex items-center space-x-4">
+        {/* Avatar skeleton */}
+        <div className="relative w-16 h-16 shrink-0">
+          <Skeleton className="w-16 h-16 rounded-full bg-indigo-100 dark:bg-indigo-800/30" />
+        </div>
+
+        <div className="flex-1 min-w-0 space-y-2">
+          {/* Name skeleton */}
+          <Skeleton className="h-6 w-3/4 bg-gray-200 dark:bg-gray-700" />
+          {/* Username skeleton */}
+          <Skeleton className="h-4 w-1/2 bg-indigo-100 dark:bg-indigo-800/30" />
+          {/* Bio skeleton */}
+          <Skeleton className="h-4 w-5/6 bg-gray-100 dark:bg-gray-800" />
+        </div>
+
+        {/* Action buttons skeleton */}
+        <div className="flex flex-col gap-2">
+          <Skeleton className="w-24 h-8 bg-indigo-100 dark:bg-indigo-800/30" />
+          <Skeleton className="w-24 h-8 bg-green-100 dark:bg-green-800/30" />
+        </div>
+      </div>
+
+      {/* Stats */}
+      <div className="mt-2 grid grid-cols-4 gap-2 bg-white/70 dark:bg-gray-800/70 rounded-lg p-2">
+        {Array.from({ length: 4 }).map((_, idx) => (
+          <div key={idx} className="flex flex-col items-center space-y-1">
+            <Skeleton className="w-4 h-4 bg-indigo-100 dark:bg-indigo-800/30" />
+            <Skeleton className="w-8 h-4 bg-gray-200 dark:bg-gray-700" />
+            <Skeleton className="w-12 h-3 bg-gray-100 dark:bg-gray-800" />
+          </div>
+        ))}
+      </div>
+
+      {/* Language tags */}
+      <div className="flex flex-wrap gap-2 mt-2">
+        {Array.from({ length: 3 }).map((_, idx) => (
+          <Skeleton key={idx} className="h-6 w-20 bg-indigo-100 dark:bg-indigo-800/30 rounded-full" />
+        ))}
+      </div>
+
+      {/* Recent repo skeleton */}
+      <div className="mt-2 p-2 rounded-lg bg-gray-100 dark:bg-gray-800">
+        <div className="flex items-center justify-between mb-2">
+          <Skeleton className="h-4 w-1/3 bg-gray-200 dark:bg-gray-700" />
+          <Skeleton className="h-4 w-1/4 bg-gray-200 dark:bg-gray-700" />
+        </div>
+        <Skeleton className="h-4 w-2/3 bg-indigo-100 dark:bg-indigo-800/30 mb-2" />
+        <Skeleton className="h-8 w-full bg-gray-100 dark:bg-gray-800" />
+      </div>
+
+      {/* View details button skeleton */}
+      <Skeleton className="mt-3 w-full h-10 bg-indigo-100 dark:bg-indigo-800/30 rounded-lg" />
+    </div>
   );
 }

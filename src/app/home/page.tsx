@@ -3,7 +3,7 @@
 import * as Dialog from '@radix-ui/react-dialog';
 import { useState, useEffect } from 'react';
 import { fetchUser, searchUsers, getSuggestedUsers, suggestUser } from '@/lib/api';
-import UserCard from '@/components/UserCard';
+import UserCard, { UserCardSkeleton } from '@/components/UserCard';
 import { GithubUser } from '@/types/github';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
@@ -86,78 +86,7 @@ export default function HomePage() {
     }));
   };
 
-  // Skeleton subcomponents
-  const UserCardHeaderSkeleton = () => (
-    <div className="flex items-center space-x-4">
-      <Skeleton className="w-16 h-16 rounded-full shrink-0" />
-      <div className="flex-1 min-w-0 space-y-1">
-        <Skeleton className="h-5 w-3/5" /> {/* Name */}
-        <Skeleton className="h-4 w-2/5" /> {/* Username */}
-      </div>
-      <div className="flex flex-col gap-2">
-        <Skeleton className="h-8 w-28 rounded-md" /> {/* View Profile */}
-        <Skeleton className="h-8 w-28 rounded-md" /> {/* Refresh */}
-      </div>
-    </div>
-  );
 
-  const UserBioSkeleton = () => (
-    <div className="space-y-1">
-      <Skeleton className="h-3 w-full" />
-      <Skeleton className="h-3 w-4/5" />
-    </div>
-  );
-
-  const UserStatsSkeleton = () => (
-    <div className="grid grid-cols-4 gap-2 bg-white/70 dark:bg-gray-800/70 rounded-lg p-2">
-      {Array.from({ length: 4 }).map((_, i) => (
-        <div key={i} className="flex flex-col items-center space-y-1">
-          <Skeleton className="w-4 h-4 rounded-full" />
-          <Skeleton className="h-4 w-6" />
-          <Skeleton className="h-3 w-12" />
-        </div>
-      ))}
-    </div>
-  );
-
-  const UserTechStackSkeleton = () => (
-    <div className="flex flex-wrap gap-2">
-      {Array.from({ length: 3 }).map((_, i) => (
-        <Skeleton key={i} className="h-5 w-20 rounded-full" />
-      ))}
-    </div>
-  );
-
-  const UserLatestRepoSkeleton = () => (
-    <div className="mt-2 p-2 rounded-lg bg-gray-100 dark:bg-gray-800 space-y-1.5">
-      <div className="flex items-center justify-between">
-        <Skeleton className="h-4 w-40" />
-        <Skeleton className="h-3 w-20" />
-      </div>
-      <Skeleton className="h-4 w-32" /> {/* Repo name */}
-      <Skeleton className="h-5 w-20 rounded-full" /> {/* Language badge */}
-      <Skeleton className="h-3 w-full" /> {/* Description */}
-      <Skeleton className="h-3 w-4/5" />
-    </div>
-  );
-
-  const UserCardFooterSkeleton = () => (
-    <div className="flex gap-2 mt-2">
-      <Skeleton className="h-10 w-1/2 rounded-lg" />
-      <Skeleton className="h-10 w-1/2 rounded-lg" />
-    </div>
-  );
-
-  const UserCardSkeleton = () => (
-    <div className="space-y-4 max-w-xl mx-auto bg-gray-50 dark:bg-gray-900 rounded-xl shadow-lg p-4 border border-gray-200 dark:border-gray-800 flex flex-col relative transition-colors animate-pulse">
-      <UserCardHeaderSkeleton />
-      <UserBioSkeleton />
-      <UserStatsSkeleton />
-      <UserTechStackSkeleton />
-      <UserLatestRepoSkeleton />
-      <UserCardFooterSkeleton />
-    </div>
-  );
 
   return (
     <main className="min-h-screen bg-gray-100 dark:bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
@@ -220,7 +149,11 @@ export default function HomePage() {
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Search Results</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {loading
-                ? Array.from({ length: 12 }).map((_, idx) => <UserCardSkeleton key={idx} />)
+                ? Array.from({ length: 12 }).map((_, idx) => (
+                    <div key={idx} className="w-full">
+                      <UserCardSkeleton />
+                    </div>
+                  ))
                 : users.length > 0
                   ? users.slice(0, 12).map((user) => (
                       <div key={user.id}>
@@ -258,7 +191,9 @@ export default function HomePage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {isInitialLoading ? (
               Array.from({ length: 12 }).map((_, index) => (
-                <UserCardSkeleton key={index} />
+                <div key={index} className="w-full">
+                  <UserCardSkeleton />
+                </div>
               ))
             ) : (
               suggestedUsers.slice(0, 12).map((user) => (
@@ -276,4 +211,4 @@ export default function HomePage() {
       </div>
     </main>
   );
-} 
+}

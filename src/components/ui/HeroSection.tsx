@@ -28,10 +28,13 @@ export default function HeroSection() {
             </p>
             
             <div className="flex flex-wrap gap-4 justify-center lg:justify-start">
-              <Button size="lg" className="gap-2">
-                <Github className="h-5 w-5" />
-                Get Started with GitHub
-              </Button>
+              <a href="/home" className="flex items-center">
+                <Button size="lg" className="gap-2">
+                  <Github className="h-5 w-5" />
+                  Get Started
+                </Button>
+              </a>
+              
               <Button size="lg" variant="outline" className="gap-2">
                 Learn More
               </Button>

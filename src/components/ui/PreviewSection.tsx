@@ -113,11 +113,6 @@ export default function PreviewSection() {
               <Github className="h-5 w-5" />
               Connect with GitHub
             </Button>
-            <div className="mt-4">
-              <a href="#" className="text-sm text-muted-foreground hover:text-primary underline">
-                Explore Live Demo
-              </a>
-            </div>
           </div>
         </div>
       </div>

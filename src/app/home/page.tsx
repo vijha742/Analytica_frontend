@@ -11,6 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { useSuggestedUsers } from '@/components/DataFetcher';
 import Image from 'next/image';
+import ThemeToggle from '@/components/ui/ThemeToggle';
 
 export default function HomePage() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -91,6 +92,10 @@ export default function HomePage() {
   return (
     <main className="min-h-screen bg-gray-100 dark:bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
+        <div className="absolute top-4 right-4">
+          <ThemeToggle />
+        </div>
+
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">GitHub Analytics</h1>
           <p className="text-lg text-gray-600 dark:text-gray-300">

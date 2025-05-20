@@ -197,7 +197,15 @@ export default function UserCard({ user, onRefresh, isRefreshing: externalIsRefr
               {currentUser.name || currentUser.githubUsername}
             </h2>
             <p className="text-indigo-600 dark:text-indigo-400 font-medium truncate">@{currentUser.githubUsername}</p>
-            {currentUser.bio && <p className="mt-1 text-gray-600 dark:text-gray-300 text-sm line-clamp-2">{currentUser.bio}</p>}
+            {currentUser.bio ? (
+              <p className="mt-1 text-gray-600 dark:text-gray-300 text-sm line-clamp-2 min-h-[2.5rem]">
+                {currentUser.bio}
+              </p>
+            ) : (
+              <p className="mt-1 text-gray-600 dark:text-gray-300 text-sm min-h-[2.5rem]">
+                {/* Empty bio placeholder */}
+              </p>
+            )}
           </div>
           <div className="flex flex-col gap-2">
             <a
@@ -275,7 +283,15 @@ export default function UserCard({ user, onRefresh, isRefreshing: externalIsRefr
                   {recentRepo.language}
                 </span>
               )}
-              <p className="text-xs text-gray-600 dark:text-gray-300 mt-1 line-clamp-2">{recentRepo.description}</p>
+              {recentRepo.description ? (
+                <p className="text-xs text-gray-600 dark:text-gray-300 mt-1 line-clamp-2 min-h-[2.5rem]">
+                  {recentRepo.description}
+                </p>
+              ) : (
+                <p className="text-xs text-gray-600 dark:text-gray-300 mt-1 min-h-[2.5rem]">
+                  {/* Empty repo description placeholder */}
+                </p>
+              )}
             </div>
           </div>
         )}

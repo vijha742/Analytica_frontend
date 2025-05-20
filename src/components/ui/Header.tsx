@@ -39,9 +39,12 @@ export default function Header() {
         {/* Actions */}
         <div className="flex items-center gap-2">
           <ThemeToggle />
-          <Button variant="default" className="hidden md:flex">
-            Connect with GitHub
-          </Button>
+          <a href="/home" className="flex items-center">
+            <Button variant="default" className="hidden md:flex">
+              Get Started
+            </Button>
+          </a>
+          
           <Button 
             variant="ghost" 
             size="icon"

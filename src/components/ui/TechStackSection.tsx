@@ -1,4 +1,5 @@
 import { Database } from "lucide-react";
+import Image from "next/image";
 
 export default function TechStackSection() {
   const technologies = [
@@ -30,8 +31,14 @@ export default function TechStackSection() {
             <div className="grid grid-cols-2 sm:grid-cols-5 gap-8">
               {technologies.map((tech, index) => (
                 <div key={index} className="flex flex-col items-center text-center">
-                  <div className="h-16 w-16 flex items-center justify-center mb-3">
-                    <img src={tech.logo} alt={tech.name} className="max-h-full max-w-full" />
+                  <div className="h-16 w-16 flex items-center justify-center mb-3 relative">
+                    <Image 
+                      src={tech.logo} 
+                      alt={tech.name} 
+                      width={48} 
+                      height={48}
+                      className="object-contain"
+                    />
                   </div>
                   <span className="text-sm font-medium">{tech.name}</span>
                 </div>

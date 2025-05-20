@@ -1,16 +1,12 @@
 'use client';
 
-import * as Dialog from '@radix-ui/react-dialog';
-import { useState, useEffect } from 'react';
-import { fetchUser, searchUsers, getSuggestedUsers, suggestUser } from '@/lib/api';
+import { useState } from 'react';
+import { fetchUser, searchUsers, suggestUser } from '@/lib/api';
 import UserCard, { UserCardSkeleton } from '@/components/UserCard';
 import { GithubUser } from '@/types/github';
-import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent } from '@/components/ui/card';
 import { useSuggestedUsers } from '@/components/DataFetcher';
-import Image from 'next/image';
 import ThemeToggle from '@/components/ui/ThemeToggle';
 
 export default function HomePage() {
@@ -86,8 +82,6 @@ export default function HomePage() {
       [username]: false
     }));
   };
-
-
 
   return (
     <main className="min-h-screen bg-gray-100 dark:bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">

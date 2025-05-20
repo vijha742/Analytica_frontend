@@ -42,41 +42,40 @@ A platform that helps developers track and analyze GitHub activity of their peer
 
 ### Backend
 - Spring Boot
-- Supabase for database and authentication
+- Neon serverless postgres for database and authentication
 - GitHub GraphQL API for data fetching
 - Rate limiting and caching implementation
 
-### Authentication
+### Authentication [[TODO]]
 - GitHub OAuth
 - Gmail
 - Email/Password
 
 ### Deployment
 - Frontend: Vercel (free tier)
-- Backend: Railway.app/Render.com (free tier with GitHub Student Pack)
+- Backend: Render.com 
 
 ## Execution Plan
 
 ### V0 - Foundation (Week 1-2)
 - [x] Set up project structure
-- [ ] Implement basic GitHub data fetching
-- [ ] Create user addition system
-- [ ] Design and implement basic desktop UI
-- [ ] Set up authentication system
+- [x] Implement basic GitHub data fetching
+- [x] Create user addition system
+- [x] Design and implement basic desktop UI
 
 ### V1 - Basic UI (Week 3-4)
-- [ ] Develop landing page
+- [x] Develop landing page
 - [ ] Create about page
 - [x] Implement mobile UI
-- [ ] Set up basic routing
-- [ ] Implement light/dark mode
+- [x] Set up basic routing
+- [x] Implement light/dark mode
 
 ### V2 - User Interface Enhancement (Week 5-6)
-- [ ] Create users display page
-- [ ] Implement responsive design
-- [ ] Revamp desktop UI
+- [x] Create users display page
+- [x] Implement responsive design
+- [x] Revamp desktop UI
 - [ ] Add basic user profiles
-- [ ] Implement data refresh system
+- [x] Implement data refresh system
 
 ### V3 - Core Features (Week 7-8)
 - [ ] Develop homepage
@@ -103,7 +102,6 @@ A platform that helps developers track and analyze GitHub activity of their peer
 
 ### Rate Limiting
 - Implement caching for frequently accessed data
-- Use webhooks for real-time updates
 - Batch requests where possible
 - Implement exponential backoff for retries
 - Store data locally and update incrementally

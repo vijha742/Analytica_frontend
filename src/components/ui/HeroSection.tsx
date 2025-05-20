@@ -61,7 +61,7 @@ export default function HeroSection() {
                       <div key={day} className="flex flex-col items-center">
                         <div className="h-24 w-8 flex flex-col-reverse">
                           <div 
-                            className="w-full bg-primary rounded-sm" 
+                            className="w-full bg-blue-500 rounded-sm" 
                             style={{ height: `${Math.random() * 70 + 10}%` }}
                           ></div>
                         </div>

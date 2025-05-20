@@ -44,42 +44,48 @@
     }
   
     .dark {
-      --background: 222.2 84% 4.9%;
-      --foreground: 210 40% 98%;
-  
-      --card: 222.2 84% 4.9%;
-      --card-foreground: 210 40% 98%;
-  
-      --popover: 222.2 84% 4.9%;
-      --popover-foreground: 210 40% 98%;
-  
-      --primary: 217.2 91.2% 59.8%;
-      --primary-foreground: 222.2 47.4% 11.2%;
-  
-      --secondary: 217.2 32.6% 17.5%;
-      --secondary-foreground: 210 40% 98%;
-  
-      --muted: 217.2 32.6% 17.5%;
-      --muted-foreground: 215 20.2% 65.1%;
-  
-      --accent: 217.2 32.6% 17.5%;
-      --accent-foreground: 210 40% 98%;
-  
+      --background: 220 20% 10%;      /* Darker blue-black background */
+      --foreground: 210 15% 95%;      /* Crisp white with hint of blue */
+
+      --card: 220 10% 15%;
+      --card-foreground: 220 5% 90%;
+
+      --popover: 220 10% 15%;
+      --popover-foreground: 220 5% 90%;
+
+      --primary: 210 100% 60%;        /* Bold, vibrant blue */
+      --primary-foreground: 220 5% 90%;
+
+      --secondary: 225 70% 30%;       /* Rich indigo-blue */
+      --secondary-foreground: 220 5% 90%;
+
+      --muted: 220 20% 25%;
+      --muted-foreground: 220 5% 90%;
+
+      --accent: 220 20% 25%;
+      --accent-foreground: 220 5% 90%;
+
       --destructive: 0 62.8% 30.6%;
-      --destructive-foreground: 210 40% 98%;
-  
-      --border: 217.2 32.6% 17.5%;
-      --input: 217.2 32.6% 17.5%;
-      --ring: 217.2 91.2% 59.8%;
-      
-      --sidebar-background: 240 5.9% 10%;
-      --sidebar-foreground: 240 4.8% 95.9%;
-      --sidebar-primary: 224.3 76.3% 48%;
-      --sidebar-primary-foreground: 0 0% 100%;
-      --sidebar-accent: 240 3.7% 15.9%;
-      --sidebar-accent-foreground: 240 4.8% 95.9%;
-      --sidebar-border: 240 3.7% 15.9%;
-      --sidebar-ring: 217.2 91.2% 59.8%;
+      --destructive-foreground: 220 5% 90%;
+
+      --border: 220 20% 25%;
+      --input: 220 20% 25%;
+      --ring: 220 50% 50%;
+
+      --sidebar-background: 220 10% 15%;
+      --sidebar-foreground: 220 5% 90%;
+      --sidebar-primary: 220 50% 50%;
+      --sidebar-primary-foreground: 220 5% 90%;
+      --sidebar-accent: 220 15% 20%;
+      --sidebar-accent-foreground: 220 5% 90%;
+      --sidebar-border: 220 15% 20%;
+      --sidebar-ring: 220 50% 50%;
+
+      --header-background: #020716;
+      --hero-gradient-start: #020B1B;
+      --hero-gradient-end: #09253A;
+      --page-background-odd: #101828;
+      --page-background-even: #020817;
     }
   }
   
@@ -107,4 +113,3 @@
       @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24;
     }
   }
-  

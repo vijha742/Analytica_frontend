@@ -99,10 +99,10 @@ export default function HeroSection() {
                 <div className="bg-card dark:bg-github-dark rounded-lg border p-3 text-xs font-mono text-muted-foreground overflow-hidden">
                   <Code className="h-4 w-4 mb-1" />
                   <pre className="overflow-x-auto">
-                    <span className="text-blue-500">import</span> &#123; analyzeRepo &#125; <span className="text-blue-500">from</span> <span className="text-green-500">'@analytica/github'</span>;
+                    <span className="text-blue-500">import</span> &#123; analyzeRepo &#125; <span className="text-blue-500">from</span> <span className="text-green-500">&apos;@analytica/github&apos;</span>;
                     <br />
                     <br />
-                    <span className="text-blue-500">const</span> <span className="text-yellow-500">data</span> = <span className="text-blue-500">await</span> analyzeRepo(<span className="text-green-500">'username/repo'</span>);
+                    <span className="text-blue-500">const</span> <span className="text-yellow-500">data</span> = <span className="text-blue-500">await</span> analyzeRepo(<span className="text-green-500">&apos;username/repo&apos;</span>);
                     <br />
                     <span className="text-blue-500">const</span> &#123; commits, activity, contributors &#125; = data;
                     <br />

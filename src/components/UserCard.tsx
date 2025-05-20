@@ -1,3 +1,5 @@
+'use client';
+
 import { GithubUser, ContributionType, TimeFrame, ContributionTimeSeries } from '@/types/github';
 import * as Dialog from '@radix-ui/react-dialog';
 import { Line } from 'react-chartjs-2';

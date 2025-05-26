@@ -18,6 +18,7 @@ export default function HomePage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [refreshingUsers, setRefreshingUsers] = useState<Record<string, boolean>>({});
+  const [currentSection, setCurrentSection] = useState<'search' | 'suggested'>('search');
   
   const { users: suggestedUsers, isLoading: isInitialLoading } = useSuggestedUsers();
 
@@ -50,11 +51,47 @@ export default function HomePage() {
     try {
       const userData = await fetchUser(username);
       setSelectedUser(userData);
+      setCurrentSection('search'); // Set current section to search when selecting from search results
     } catch {
       setError('Failed to fetch user data. Please try again.');
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleSuggestedUserSelect = (user: GithubUser) => {
+    setSelectedUser(user);
+    setCurrentSection('suggested'); // Set current section to suggested when selecting from suggested users
+  };
+
+  // Navigate between users in the current section
+  const handleUserNavigation = (direction: 'prev' | 'next') => {
+    if (!selectedUser) return;
+    
+    // Determine which list to navigate through based on current section
+    const currentList = currentSection === 'search' ? users : suggestedUsers;
+    if (!currentList || currentList.length === 0) return;
+    
+    // Find current index of selected user in the list
+    const currentIndex = currentList.findIndex(
+      user => user.githubUsername === selectedUser.githubUsername
+    );
+    
+    if (currentIndex === -1) return;
+    
+    // Calculate new index with wraparound
+    let newIndex;
+    if (direction === 'next') {
+      newIndex = currentIndex === currentList.length - 1 ? 0 : currentIndex + 1;
+    } else {
+      newIndex = currentIndex === 0 ? currentList.length - 1 : currentIndex - 1;
+    }
+    
+    // Update selected user
+    const nextUser = currentList[newIndex];
+    setSelectedUser(nextUser);
+    
+    // Keep drawer open by not modifying the open state in UserCard component
   };
 
   const handleSuggestUser = async (e: React.FormEvent) => {
@@ -174,6 +211,7 @@ export default function HomePage() {
                 user={selectedUser} 
                 onRefresh={(refreshedUser) => handleUserRefresh(selectedUser.githubUsername, refreshedUser)}
                 isRefreshing={refreshingUsers[selectedUser.githubUsername]}
+                onUserNavigation={handleUserNavigation}
               />
             ) : (
               <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 text-center">
@@ -197,11 +235,17 @@ export default function HomePage() {
             ) : (
               suggestedUsers.slice(0, 12).map((user) => (
                 <div key={user.id}>
-                  <UserCard 
-                    user={user} 
-                    onRefresh={(refreshedUser) => handleUserRefresh(user.githubUsername, refreshedUser)}
-                    isRefreshing={refreshingUsers[user.githubUsername]}
-                  />
+                  <div 
+                    onClick={() => handleSuggestedUserSelect(user)}
+                    className="cursor-pointer hover:shadow-lg transition-shadow"
+                  >
+                    <UserCard 
+                      user={user} 
+                      onRefresh={(refreshedUser) => handleUserRefresh(user.githubUsername, refreshedUser)}
+                      isRefreshing={refreshingUsers[user.githubUsername]}
+                      onUserNavigation={handleUserNavigation}
+                    />
+                  </div>
                 </div>
               ))
             )}

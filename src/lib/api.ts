@@ -24,8 +24,6 @@ export async function fetchUser(username: string): Promise<GithubUser> {
               followingCount
               publicReposCount
               totalContributions
-              totalIssueContributions
-              totalPullRequestContributions
               lastUpdated
               repositories {
                 id
@@ -96,8 +94,6 @@ export async function searchUsers(query: string, limit: number = 10, offset: num
               followingCount
               publicReposCount
               totalContributions
-              totalIssueContributions
-              totalPullRequestContributions
               lastUpdated
               repositories {
                 id
@@ -200,9 +196,7 @@ export const refreshUser = async (githubUsername: string): Promise<GithubUser> =
                 followingCount
                 publicReposCount
                 totalContributions
-                totalIssueContributions
-                totalPullRequestContributions
-                lastRefreshed
+                lastUpdated
                 repositories {
                   id
                   name
@@ -247,12 +241,10 @@ export const refreshUser = async (githubUsername: string): Promise<GithubUser> =
     
     // Convert the backend SuggestedUser data to match our frontend GithubUser interface
     const userData = data.data.refreshUserData;
-    console.log(userData)
     
     // Map the response to our GithubUser type, adjusting any field mismatches
     const mappedUser: GithubUser = {
       ...userData,
-      // Map any mismatched fields if needed
       repositories: userData.repositories.map((repo: {
         id: string;
         name: string;
@@ -265,13 +257,8 @@ export const refreshUser = async (githubUsername: string): Promise<GithubUser> =
         updatedAt: string;
       }) => ({
         ...repo,
-        forks: repo.forkCount, // Ensure correct mapping between forkCount and forks
-        // Add any other field mapping needed
       })),
-      // Ensure dates are handled correctly
-      lastUpdated: userData.lastRefreshed || new Date().toISOString(),
-      totalPullRequestContributions: userData.totalPullRequestContributions,
-      totalIssueContributions: userData.totalIssueContributions,
+      lastUpdated: userData.lastUpdated || new Date().toISOString(),
     };
     
     return mappedUser;

@@ -1,10 +1,8 @@
-'use client';
-
 import { GithubUser, ContributionType, TimeFrame, ContributionTimeSeries } from '@/types/github';
 import * as Dialog from '@radix-ui/react-dialog';
 import { Line } from 'react-chartjs-2';
 import { Chart as ChartJS, LineElement, PointElement, LinearScale, Title, Tooltip, Legend, CategoryScale } from 'chart.js';
-import { FiUsers, FiGitBranch, FiStar, FiGitPullRequest, FiGitCommit, FiAlertCircle, FiRefreshCw, FiChevronRight, FiCalendar } from 'react-icons/fi';
+import { FiUsers, FiGitBranch, FiStar, FiGitPullRequest, FiGitCommit, FiAlertCircle, FiRefreshCw, FiChevronRight, FiCalendar, FiChevronLeft } from 'react-icons/fi';
 import { useMemo, useState, useEffect, useCallback } from 'react';
 import { refreshUser, fetchContributionTimeSeries } from '@/lib/api';
 import Image from 'next/image';
@@ -16,6 +14,7 @@ interface UserCardProps {
   user: GithubUser;
   onRefresh?: (updatedUser: GithubUser) => void;
   isRefreshing?: boolean;
+  onUserNavigation?: (direction: 'prev' | 'next') => void;
 }
 
 function formatDate(dateStr: string | Date | null | undefined) {
@@ -25,7 +24,7 @@ function formatDate(dateStr: string | Date | null | undefined) {
   return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
 }
 
-export default function UserCard({ user, onRefresh, isRefreshing: externalIsRefreshing }: UserCardProps) {
+export default function UserCard({ user, onRefresh, isRefreshing: externalIsRefreshing, onUserNavigation }: UserCardProps) {
   const [open, setOpen] = useState(false);
   const [localIsRefreshing, setLocalIsRefreshing] = useState(false);
   const [timeSeriesData, setTimeSeriesData] = useState<ContributionTimeSeries | null>(null);
@@ -43,6 +42,14 @@ export default function UserCard({ user, onRefresh, isRefreshing: externalIsRefr
       setCurrentUser(user);
     }
   }, [user]);
+
+  // Handle user navigation with explicit function to prevent any closure issues
+  const handleUserNavigation = useCallback((direction: 'prev' | 'next') => {
+    if (onUserNavigation) {
+      console.log(`Navigating ${direction}`); // For debugging
+      onUserNavigation(direction);
+    }
+  }, [onUserNavigation]);
 
   const refreshTimeSeriesData = useCallback(async () => {
     if (!currentUser?.githubUsername) return;
@@ -341,6 +348,7 @@ export default function UserCard({ user, onRefresh, isRefreshing: externalIsRefr
               </span>
             ))}
           </div>
+          
           {/* Activity Overview - Time Series Chart */}
           <div className="mb-6">
             <div className="flex justify-between items-center mb-4">
@@ -393,11 +401,11 @@ export default function UserCard({ user, onRefresh, isRefreshing: externalIsRefr
                 <span className="font-semibold text-gray-900 dark:text-white text-sm">{currentUser.totalPullRequestContributions || 0}</span>
                 <span className="text-xs text-gray-500 dark:text-gray-400">Pull Requests</span>
               </div>
-              <div className="flex flex-col items-center">
+              {/* <div className="flex flex-col items-center">
                 <FiAlertCircle className="w-6 h-6 text-indigo-500 mb-1" />
                 <span className="font-semibold text-gray-900 dark:text-white text-sm">{currentUser.totalIssueContributions || 0}</span>
                 <span className="text-xs text-gray-500 dark:text-gray-400">Issues</span>
-              </div>
+              </div> */}
             </div>
           </div>
           
@@ -434,11 +442,15 @@ export default function UserCard({ user, onRefresh, isRefreshing: externalIsRefr
                         </div>
                       </div>
                       <div className="mt-2 flex items-center justify-between">
-                        {repo.language && (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-indigo-100 dark:bg-indigo-900 text-indigo-800 dark:text-indigo-200">
-                            {repo.language}
-                          </span>
-                        )}
+                        <div>
+                          {repo.language ? (
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-indigo-100 dark:bg-indigo-900 text-indigo-800 dark:text-indigo-200">
+                              {repo.language}
+                            </span>
+                          ) : (
+                            <span className="inline-block w-2"></span>
+                          )}
+                        </div>
                         <div className="text-xs text-gray-500 dark:text-gray-400">
                           Updated {formatDate(repo.updatedAt)}
                         </div>
@@ -454,9 +466,40 @@ export default function UserCard({ user, onRefresh, isRefreshing: externalIsRefr
           )}
           {/* Last refreshed time */}
           {(currentUser.lastRefreshed || currentUser.lastUpdated) && (
-            <p className="text-xs text-gray-500 dark:text-gray-400 text-right mt-4">
+            <p className="text-xs text-gray-500 dark:text-gray-400 text-right mt-4 mb-16">
               Last refreshed: {formatDate(currentUser.lastRefreshed) || formatDate(currentUser.lastUpdated)}
             </p>
+          )}
+          
+          {/* Floating Navigation Widget - Properly centered in the drawer only */}
+          {onUserNavigation && (
+            <div className="fixed bottom-6 right-0 mr-auto ml-auto left-0 w-fit max-w-[calc(100%-48px)] z-[60] flex items-center gap-3 px-4 py-2 bg-gray-800/80 dark:bg-gray-900/90 backdrop-blur-sm rounded-full shadow-lg border border-gray-700/30" style={{ maxWidth: 'calc(100% - 48px)', width: 'fit-content', transform: 'none', left: '0', right: '0', marginLeft: 'auto', marginRight: 'auto' }}>
+              <button 
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  handleUserNavigation('prev');
+                }}
+                className="flex items-center justify-center p-2 rounded-full bg-gray-700 hover:bg-gray-600 transition-colors"
+                title="Previous user"
+                type="button"
+              >
+                <FiChevronLeft className="w-5 h-5 text-white" />
+              </button>
+              <span className="text-sm text-white/90 font-medium">Browse Users</span>
+              <button 
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  handleUserNavigation('next');
+                }}
+                className="flex items-center justify-center p-2 rounded-full bg-gray-700 hover:bg-gray-600 transition-colors"
+                title="Next user"
+                type="button"
+              >
+                <FiChevronRight className="w-5 h-5 text-white" />
+              </button>
+            </div>
           )}
         </Dialog.Content>
       </Dialog.Portal>

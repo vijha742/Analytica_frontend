@@ -9,10 +9,7 @@ export interface GithubUser {
   followingCount: number;
   publicReposCount: number;
   totalContributions: number;
-  totalPullRequestContributions: number;
-  totalIssueContributions: number;
   lastUpdated: Date;
-  lastRefreshed: Date;
   repositories: Repository[];
   contributions: Contribution[];
 }

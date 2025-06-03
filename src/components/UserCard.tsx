@@ -393,19 +393,25 @@ export default function UserCard({ user, onRefresh, isRefreshing: externalIsRefr
             <div className="mt-4 grid grid-cols-3 gap-4 bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
               <div className="flex flex-col items-center">
                 <FiGitCommit className="w-6 h-6 text-indigo-500 mb-1" />
-                <span className="font-semibold text-gray-900 dark:text-white text-sm">{currentUser.contributions.filter(c => c.type === ContributionType.COMMIT).reduce((sum, c) => sum + c.count, 0)}</span>
+                <span className="font-semibold text-gray-900 dark:text-white text-sm">
+                  {currentUser.contributions?.filter(c => c.type === ContributionType.COMMIT)?.reduce((sum, c) => sum + c.count, 0) || 0}
+                </span>
                 <span className="text-xs text-gray-500 dark:text-gray-400">Commits</span>
               </div>
               <div className="flex flex-col items-center">
                 <FiGitPullRequest className="w-6 h-6 text-indigo-500 mb-1" />
-                <span className="font-semibold text-gray-900 dark:text-white text-sm">{currentUser.totalPullRequestContributions || 0}</span>
+                <span className="font-semibold text-gray-900 dark:text-white text-sm">
+                  {currentUser.contributions?.filter(c => c.type === ContributionType.PULL_REQUEST)?.reduce((sum, c) => sum + c.count, 0) || 0}
+                </span>
                 <span className="text-xs text-gray-500 dark:text-gray-400">Pull Requests</span>
               </div>
-              {/* <div className="flex flex-col items-center">
+              <div className="flex flex-col items-center">
                 <FiAlertCircle className="w-6 h-6 text-indigo-500 mb-1" />
-                <span className="font-semibold text-gray-900 dark:text-white text-sm">{currentUser.totalIssueContributions || 0}</span>
+                <span className="font-semibold text-gray-900 dark:text-white text-sm">
+                  {currentUser.contributions?.filter(c => c.type === ContributionType.ISSUE)?.reduce((sum, c) => sum + c.count, 0) || 0}
+                </span>
                 <span className="text-xs text-gray-500 dark:text-gray-400">Issues</span>
-              </div> */}
+              </div>
             </div>
           </div>
           
@@ -465,12 +471,12 @@ export default function UserCard({ user, onRefresh, isRefreshing: externalIsRefr
             </div>
           )}
           {/* Last refreshed time */}
-          {(currentUser.lastRefreshed || currentUser.lastUpdated) && (
+          {/* {(currentUser.lastRefreshed || currentUser.lastUpdated) && (
             <p className="text-xs text-gray-500 dark:text-gray-400 text-right mt-4 mb-16">
               Last refreshed: {formatDate(currentUser.lastRefreshed) || formatDate(currentUser.lastUpdated)}
             </p>
           )}
-          
+           */}
           {/* Floating Navigation Widget - Properly centered in the drawer only */}
           {onUserNavigation && (
             <div className="fixed bottom-6 right-0 mr-auto ml-auto left-0 w-fit max-w-[calc(100%-48px)] z-[60] flex items-center gap-3 px-4 py-2 bg-gray-800/80 dark:bg-gray-900/90 backdrop-blur-sm rounded-full shadow-lg border border-gray-700/30" style={{ maxWidth: 'calc(100% - 48px)', width: 'fit-content', transform: 'none', left: '0', right: '0', marginLeft: 'auto', marginRight: 'auto' }}>

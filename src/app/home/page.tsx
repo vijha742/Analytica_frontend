@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { fetchUser, searchUsers, suggestUser } from '@/lib/api';
 import UserCard, { UserCardSkeleton } from '@/components/UserCard';
+import SimpleUserCard from '@/components/SimpleUserCard';
 import { GithubUser } from '@/types/github';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -24,21 +25,30 @@ export default function HomePage() {
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!searchQuery.trim()) {
+      setError('Please enter a search query');
+      return;
+    }
+
     setLoading(true);
     setError(null);
+    setUsers([]); // Clear previous results
 
     try {
-      if (!searchQuery.trim()) {
-        setError('Please enter a search query');
-        return;
-      }
       const searchResults = await searchUsers(searchQuery);
+      
+      if (!Array.isArray(searchResults)) {
+        throw new Error('Invalid response from server');
+      }
+      
       setUsers(searchResults);
+      
       if (searchResults.length === 0) {
-        setError('No users found matching your search');
+        setError('No users found. Try a different search term.');
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to search users. Please try again.');
+      console.error('Search error:', err);
+      setError('Unable to perform search. Please check your connection and try again.');
     } finally {
       setLoading(false);
     }
@@ -180,49 +190,59 @@ export default function HomePage() {
           </div>
         )}
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          {/* Search Results Column */}
           <div className="lg:col-span-1">
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Search Results</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {loading
-                ? Array.from({ length: 12 }).map((_, idx) => (
-                    <div key={idx} className="w-full">
-                      <UserCardSkeleton />
-                    </div>
-                  ))
-                : users.length > 0
-                  ? users.slice(0, 12).map((user) => (
-                      <div key={user.id}>
-                        <div
-                          onClick={() => handleUserSelect(user.githubUsername)}
-                          className="cursor-pointer hover:shadow-lg transition-shadow"
-                        >
-                          <UserCard user={user} />
-                        </div>
-                      </div>
-                    ))
-                  : null}
+            <div className="h-[480px] overflow-y-auto pr-2 space-y-4 rounded-lg bg-gray-50 dark:bg-gray-900/50 p-4">
+              {loading ? (
+                Array.from({ length: 3 }).map((_, idx) => (
+                  <div key={idx} className="w-full">
+                    <UserCardSkeleton />
+                  </div>
+                ))
+              ) : users.length > 0 ? (
+                users.map((user) => (
+                  <SimpleUserCard 
+                    key={user.id} 
+                    user={user} 
+                    onSelect={(selectedUser) => {
+                      setSelectedUser(selectedUser);
+                      setCurrentSection('search');
+                    }} 
+                  />
+                ))
+              ) : (
+                <div className="text-center py-4 text-gray-500 dark:text-gray-400">
+                  {error || 'No results found'}
+                </div>
+              )}
             </div>
           </div>
 
-          <div className="lg:col-span-2">
-            {selectedUser ? (
-              <UserCard 
-                user={selectedUser} 
-                onRefresh={(refreshedUser) => handleUserRefresh(selectedUser.githubUsername, refreshedUser)}
-                isRefreshing={refreshingUsers[selectedUser.githubUsername]}
-                onUserNavigation={handleUserNavigation}
-              />
-            ) : (
-              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 text-center">
-                <p className="text-gray-600 dark:text-gray-300">
-                  Select a user to view their details
-                </p>
-              </div>
-            )}
+          {/* Selected User Details Column */}
+          <div className="lg:col-span-1">
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">User Details</h2>
+            <div className="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-4">
+              {selectedUser ? (
+                <UserCard 
+                  user={selectedUser} 
+                  onRefresh={(refreshedUser) => handleUserRefresh(selectedUser.githubUsername, refreshedUser)}
+                  isRefreshing={refreshingUsers[selectedUser.githubUsername]}
+                  onUserNavigation={handleUserNavigation}
+                />
+              ) : (
+                <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 text-center">
+                  <p className="text-gray-600 dark:text-gray-300">
+                    Select a user to view their details
+                  </p>
+                </div>
+              )}
+            </div>
           </div>
         </div>
-        
+
+        {/* Suggested Users Section - Unchanged */}
         <div className="my-12">
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Suggested Users</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

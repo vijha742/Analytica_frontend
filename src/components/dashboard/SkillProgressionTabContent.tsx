@@ -2,10 +2,44 @@ import { TrendingUpIcon, BrainIcon, CodepenIcon, ChevronRightIcon } from 'lucide
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { MetricCard } from '../ui/metric-card';
 
+interface SkillProgressionMetrics {
+  newTechnologiesAdoptedByYear: number;
+  learningRate: number;
+  experimentationRate: number;
+  lastUpdated: string;
+  recommendations: Array<{
+    title: string;
+    description: string;
+    priority: string;
+    category: string;
+    resourceLink: string;
+    trend: number;
+  }>;
+}
+
+interface LanguageProgression {
+  name: string;
+  proficiencyLevel: string;
+  firstUsed: string;
+  lastUsed: string;
+  projectCount: number;
+  linesOfCode: number;
+  trend: number;
+}
+
+interface TechnologyProgression {
+  name: string;
+  category: string;
+  adoptionRate: number;
+  proficiencyGrowth: number;
+  projectsUsedIn: number;
+  year: string;
+}
+
 interface SkillProgressionTabContentProps {
-  skillProgressionMetrics: any;
-  languageProgressions: any[];
-  technologyProgressions: any[];
+  skillProgressionMetrics: SkillProgressionMetrics;
+  languageProgressions: LanguageProgression[];
+  technologyProgressions: TechnologyProgression[];
 }
 
 export function SkillProgressionTabContent({ 
@@ -46,8 +80,8 @@ export function SkillProgressionTabContent({
               {languageProgressions.slice(0, 4).map((progression, index) => (
                 <div key={index}>
                   <div className="flex justify-between mb-1">
-                    <span className="text-sm font-medium">{progression.language}</span>
-                    <span className="text-xs">{progression.year}</span>
+                    <span className="text-sm font-medium">{progression.name}</span>
+                    <span className="text-xs">{progression.firstUsed}</span>
                   </div>
                   <div className="w-full bg-muted rounded-full h-2">
                     <div 
@@ -67,7 +101,7 @@ export function SkillProgressionTabContent({
                   </div>
                   <div className="flex justify-between mt-1 text-xs text-muted-foreground">
                     <span>{progression.linesOfCode.toLocaleString()} lines</span>
-                    <span>{progression.repositoryCount} repositories</span>
+                    <span>{progression.projectCount} repositories</span>
                   </div>
                 </div>
               ))}
@@ -85,7 +119,7 @@ export function SkillProgressionTabContent({
                 <div key={index}>
                   <div className="flex justify-between mb-1">
                     <div className="flex items-center">
-                      <span className="text-sm font-medium">{progression.technology}</span>
+                      <span className="text-sm font-medium">{progression.category}</span>
                       <span className="ml-2 text-xs px-2 py-0.5 bg-muted rounded-full">{progression.category}</span>
                     </div>
                     <span className="text-xs">{progression.year}</span>
@@ -98,7 +132,7 @@ export function SkillProgressionTabContent({
                   </div>
                   <div className="flex justify-between mt-1 text-xs text-muted-foreground">
                     <span>Adoption: {progression.adoptionRate}/10</span>
-                    <span>{progression.repositoryCount} repositories</span>
+                    <span>{progression.projectsUsedIn} repositories</span>
                   </div>
                 </div>
               ))}
@@ -114,7 +148,7 @@ export function SkillProgressionTabContent({
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {skillProgressionMetrics.recommendations.map((recommendation: any, index: number) => (
+            {skillProgressionMetrics.recommendations.map((recommendation, index: number) => (
               <div key={index} className="p-4 border rounded-lg bg-muted/20">
                 <div className="flex items-start gap-3">
                   <div className="p-2 rounded-full bg-primary/20 text-primary">

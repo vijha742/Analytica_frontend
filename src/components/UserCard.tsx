@@ -1,10 +1,10 @@
-import { GithubUser, ContributionType, TimeFrame, ContributionTimeSeries } from '@/types/github';
+import { GithubUser, ContributionType, TimeFrame } from '@/types/github';
 import * as Dialog from '@radix-ui/react-dialog';
 import { Line } from 'react-chartjs-2';
 import { Chart as ChartJS, LineElement, PointElement, LinearScale, Title, Tooltip, Legend, CategoryScale } from 'chart.js';
 import { FiUsers, FiGitBranch, FiStar, FiGitPullRequest, FiGitCommit, FiAlertCircle, FiRefreshCw, FiChevronRight, FiCalendar, FiChevronLeft } from 'react-icons/fi';
 import { useMemo, useState, useEffect, useCallback } from 'react';
-import { refreshUser, fetchContributionTimeSeries } from '@/lib/api';
+import { refreshUser, fetchContributionTimeSeries, ContributionTimeSeries } from '@/lib/api';
 import Image from 'next/image';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -145,7 +145,7 @@ export default function UserCard({ user, onRefresh, isRefreshing: externalIsRefr
 
     return {
       // Use chartDate property if available, otherwise fall back to regular date formatting
-      labels: timeSeriesData.points.map(point => point.chartDate || formatDate(point.date)),
+      labels: timeSeriesData.points.map(point => point.date || formatDate(point.date)),
       datasets: [
         {
           label: 'Contributions',
@@ -181,7 +181,7 @@ export default function UserCard({ user, onRefresh, isRefreshing: externalIsRefr
 
   return (
     <Dialog.Root open={open} onOpenChange={setOpen}>
-      <div className="space-y-4 max-w-xl mx-auto bg-gray-50 dark:bg-gray-900 rounded-xl shadow-lg p-4 border border-gray-200 dark:border-gray-800 flex flex-col relative transition-colors">
+      <div className="space-y-4 max-w-xl mx-auto bg-gray-50 absolute dark:bg-gray-900 rounded-xl shadow-lg p-4 border border-gray-200 dark:border-gray-800 flex flex-col relative transition-colors">
         {/* Basic Info */}
         <div className="flex items-center space-x-4">
           {currentUser.avatarUrl ? (
@@ -214,16 +214,16 @@ export default function UserCard({ user, onRefresh, isRefreshing: externalIsRefr
               </p>
             )}
           </div>
-          <div className="flex flex-col gap-2">
+          {/* target="_blank" */}
+          <div className="flex flex-col relative top-[-3vh]" >
             <a
               href={`https://github.com/${currentUser.githubUsername}`}
-              target="_blank"
               rel="noopener noreferrer"
-              className="px-3 py-1 rounded-md bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold shadow transition-colors"
+              className="px-3 py-1  rounded-md bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold shadow transition-colors"
             >
               View Profile
             </a>
-            <button
+            {/* <button
               onClick={handleRefresh}
               disabled={isRefreshing}
               className={`flex items-center justify-center gap-1 px-3 py-1 rounded-md ${
@@ -232,7 +232,7 @@ export default function UserCard({ user, onRefresh, isRefreshing: externalIsRefr
             >
               <FiRefreshCw className={`w-3 h-3 ${isRefreshing ? 'animate-spin' : ''}`} />
               {isRefreshing ? 'Refreshing...' : 'Refresh'}
-            </button>
+            </button> */}
           </div>
         </div>
         
@@ -321,7 +321,7 @@ export default function UserCard({ user, onRefresh, isRefreshing: externalIsRefr
               {currentUser.name || currentUser.githubUsername}{" "}
               <span className="text-indigo-600 dark:text-indigo-400">@{currentUser.githubUsername}</span>
             </h2>
-            <button
+            {/* <button
               onClick={handleRefresh}
               disabled={isRefreshing}
               className={`flex items-center justify-center gap-1 px-3 py-1 rounded-md ${
@@ -330,7 +330,7 @@ export default function UserCard({ user, onRefresh, isRefreshing: externalIsRefr
             >
               <FiRefreshCw className={`w-3 h-3 ${isRefreshing ? 'animate-spin' : ''}`} />
               {isRefreshing ? 'Refreshing...' : 'Refresh'}
-            </button>
+            </button> */}
           </div>
           
           {/* Error Message (if any) */}

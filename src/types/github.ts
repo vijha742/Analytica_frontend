@@ -383,7 +383,7 @@ export interface SkillProgressionMetrics {
   username: string;
   languageProgressiondata: LanguageProgressionPoint[];
   technologyProgressiondata: TechnologyProgressionPoint[];
-  newTechnologiesAdoptedByYeardata: Record<string, any>;
+  newTechnologiesAdoptedByYeardata: Record<string, number>;
   learningRate: number;
   experimentationFrequency: number;
   lastUpdated: string;
@@ -427,7 +427,12 @@ export interface DeveloperImpactMetrics {
   totalWatchers: number;
   dependentRepositoriesCount: number;
   communityInfluenceScore: number;
-  mostImpactfulRepositoriesData: Record<string, any>;
+  mostImpactfulRepositoriesData: Record<string, {
+    name: string;
+    stars: number;
+    forks: number;
+    impact: number;
+  }>;
   starsTrend: TrendPoint[];
   forksTrend: TrendPoint[];
   specializationScore: number;
@@ -456,7 +461,7 @@ export interface ProjectComplexity {
   fileCount: number;
   directoryCount: number;
   dependencyCount: number;
-  fileTypeDistribution: Record<string, any>;
+  fileTypeDistribution: Record<string, number>;
   complexityScore: number;
   primaryLanguage: string;
 }

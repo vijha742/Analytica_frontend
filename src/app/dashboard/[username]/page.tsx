@@ -1,6 +1,7 @@
 "use client";
 
 import { GitBranchIcon, GitPullRequestIcon, MessageSquareIcon, StarIcon, GitForkIcon } from 'lucide-react';
+import Image from 'next/image';
 import ThemeToggle from '@/components/ui/ThemeToggle';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,7 +14,7 @@ import { DashboardTechnicalTab } from '@/components/dashboard/tabs/DashboardTech
 import { DashboardSkillProgressionTab } from '@/components/dashboard/tabs/DashboardSkillProgressionTab';
 import { ContributionType } from '@/types/github';
 
-export default function DashboardPage({ params }: { params: { username: string } }) {
+export default function DashboardPage() {
   const user = dashboardMockData.user;
   const repos = dashboardMockData.repositories;
   const primaryRepo = repos[0];
@@ -30,9 +31,11 @@ export default function DashboardPage({ params }: { params: { username: string }
           <div className="flex items-center gap-4">
             <ThemeToggle />
             <div className="flex items-center gap-2">
-              <img 
+              <Image 
                 src={user.profilePicture} 
                 alt={user.name} 
+                width={32}
+                height={32}
                 className="w-8 h-8 rounded-full" 
               />
               <span className="font-medium">{user.name}</span>
@@ -46,9 +49,11 @@ export default function DashboardPage({ params }: { params: { username: string }
           <Card className="md:col-span-1">
             <CardContent className="pt-6">
               <div className="flex flex-col items-center text-center">
-                <img 
+                <Image 
                   src={user.profilePicture} 
                   alt={user.name} 
+                  width={96}
+                  height={96}
                   className="w-24 h-24 rounded-full mb-4" 
                 />
                 <h2 className="text-xl font-bold">{user.name}</h2>
@@ -153,12 +158,6 @@ export default function DashboardPage({ params }: { params: { username: string }
                   count: c.count,
                   type: c.type as ContributionType
                 }))
-              }}
-              contributions={{
-                id: user.contributions.find(c => c.type === "COMMIT")?.id.toString() || "0",
-                date: user.contributions.find(c => c.type === "COMMIT")?.date || new Date().toISOString(),
-                count: user.contributions.find(c => c.type === "COMMIT")?.count || 0,
-                type: ContributionType.COMMIT
               }}
             />
           </TabsContent>

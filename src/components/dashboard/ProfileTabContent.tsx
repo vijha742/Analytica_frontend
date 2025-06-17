@@ -2,14 +2,13 @@ import { UserIcon, UsersIcon, GitBranchIcon, FolderIcon, MessageSquareIcon } fro
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { MetricCard } from '../ui/metric-card';
 import { metricImprovementTips } from '@/lib/tooltipData';
-import { GithubUser, Contribution } from '@/types/github';
+import { GithubUser } from '@/types/github';
 
 interface ProfileTabContentProps {
   user: GithubUser;
-  contributions: Contribution;
 }
 
-export function ProfileTabContent({ user, contributions }: ProfileTabContentProps) {
+export function ProfileTabContent({ user }: ProfileTabContentProps) {
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">

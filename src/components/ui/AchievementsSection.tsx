@@ -58,7 +58,7 @@ export default function AchievementsSection() {
               key={index}
               className="group bg-card rounded-xl p-6 border hover:shadow-md transition-all relative overflow-hidden"
             >
-              <div className={`absolute right-0 top-0 w-24 h-24 -mr-12 -mt-10 rounded-full ${achievement.color} opacity-10 group-hover:opacity-20 transition-opacity`}></div>
+              <div className={`absolute right-0 top-0 w-24 h-24 -mr-12 -mt-10 rounded-full ${achievement.color} opacity-10 group-hover:opacity-20 group-hover:scale-300  transition-transform duration-300 ease-in-out  transition-opacity`}></div>
               
               <div className="flex flex-col items-center text-center">
                 <div className={`h-16 w-16 rounded-full ${achievement.color} flex items-center justify-center mb-5`}>

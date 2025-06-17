@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { fetchUser, searchUsers, suggestUser } from '@/lib/api';
+import { searchUsers, suggestUser } from '@/lib/api';
 import UserCard, { UserCardSkeleton } from '@/components/UserCard';
 import SimpleUserCard from '@/components/SimpleUserCard';
 import { GithubUser } from '@/types/github';
@@ -20,6 +20,7 @@ export default function HomePage() {
   const [error, setError] = useState<string | null>(null);
   const [refreshingUsers, setRefreshingUsers] = useState<Record<string, boolean>>({});
   const [currentSection, setCurrentSection] = useState<'search' | 'suggested'>('search');
+  const [showSearchSection, setShowSearchSection] = useState(false);
   
   const { users: suggestedUsers, isLoading: isInitialLoading } = useSuggestedUsers();
 
@@ -32,7 +33,8 @@ export default function HomePage() {
 
     setLoading(true);
     setError(null);
-    setUsers([]); // Clear previous results
+    setUsers([]);
+    setShowSearchSection(true); // Clear previous results
 
     try {
       const searchResults = await searchUsers(searchQuery);
@@ -45,29 +47,32 @@ export default function HomePage() {
       
       if (searchResults.length === 0) {
         setError('No users found. Try a different search term.');
+      } else {
+        setShowSearchSection(true); // Show search section when results are found
       }
     } catch (err) {
       console.error('Search error:', err);
       setError('Unable to perform search. Please check your connection and try again.');
+      setShowSearchSection(true); // Show search section even when there's an error so user can see the error message
     } finally {
       setLoading(false);
     }
   };
 
-  const handleUserSelect = async (username: string) => {
-    setLoading(true);
-    setError(null);
+  // const handleUserSelect = async (username: string) => {
+  //   setLoading(true);
+  //   setError(null);
 
-    try {
-      const userData = await fetchUser(username);
-      setSelectedUser(userData);
-      setCurrentSection('search'); // Set current section to search when selecting from search results
-    } catch {
-      setError('Failed to fetch user data. Please try again.');
-    } finally {
-      setLoading(false);
-    }
-  };
+  //   try {
+  //     const userData = await fetchUser(username);
+  //     setSelectedUser(userData);
+  //     setCurrentSection('search'); // Set current section to search when selecting from search results
+  //   } catch {
+  //     setError('Failed to fetch user data. Please try again.');
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
 
   const handleSuggestedUserSelect = (user: GithubUser) => {
     setSelectedUser(user);
@@ -130,6 +135,14 @@ export default function HomePage() {
     }));
   };
 
+  const handleCloseSearchSection = () => {
+    setShowSearchSection(false);
+    setSelectedUser(null);
+    setUsers([]);
+    setError(null);
+    setSearchQuery('');
+  };
+
   return (
     <main className="min-h-screen bg-gray-100 dark:bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
@@ -184,66 +197,81 @@ export default function HomePage() {
           </div>
         </form>
 
-        {error && (
+        {error && showSearchSection && (
           <div className="mb-8 p-4 bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-100 rounded-lg">
             {error}
           </div>
         )}
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {/* Search Results Column */}
-          <div className="lg:col-span-1">
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Search Results</h2>
-            <div className="h-[480px] overflow-y-auto pr-2 space-y-4 rounded-lg bg-gray-50 dark:bg-gray-900/50 p-4">
-              {loading ? (
-                Array.from({ length: 3 }).map((_, idx) => (
-                  <div key={idx} className="w-full">
-                    <UserCardSkeleton />
-                  </div>
-                ))
-              ) : users.length > 0 ? (
-                users.map((user) => (
-                  <SimpleUserCard 
-                    key={user.id} 
-                    user={user} 
-                    onSelect={(selectedUser) => {
-                      setSelectedUser(selectedUser);
-                      setCurrentSection('search');
-                    }} 
-                  />
-                ))
-              ) : (
-                <div className="text-center py-4 text-gray-500 dark:text-gray-400">
-                  {error || 'No results found'}
+        {showSearchSection && (
+          <div className="mb-8 transition-all duration-300 ease-in-out">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-3xl font-bold text-gray-900 dark:text-white">Search Results</h2>
+              <Button
+                onClick={handleCloseSearchSection}
+                variant="outline"
+                size="sm"
+                className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-red-50 dark:hover:bg-red-900/20 border-gray-300 dark:border-gray-600"
+              >
+                ✕ Close
+              </Button>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              {/* Search Results Column */}
+              <div className="lg:col-span-1">
+                <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Results</h3>
+                <div className="h-[480px] overflow-y-auto pr-2 space-y-4 rounded-lg bg-gray-50 dark:bg-gray-900/50 p-4">
+                  {loading ? (
+                    Array.from({ length: 3 }).map((_, idx) => (
+                      <div key={idx} className="w-full">
+                        <UserCardSkeleton />
+                      </div>
+                    ))
+                  ) : users.length > 0 ? (
+                    users.map((user) => (
+                      <SimpleUserCard 
+                        key={user.id} 
+                        user={user} 
+                        onSelect={(selectedUser) => {
+                          setSelectedUser(selectedUser);
+                          setCurrentSection('search');
+                        }} 
+                      />
+                    ))
+                  ) : (
+                    <div className="text-center py-4 text-gray-500 dark:text-gray-400">
+                      No results found
+                    </div>
+                  )}
                 </div>
-              )}
+              </div>
+
+              {/* Selected User Details Column */}
+              <div className="lg:col-span-1">
+                <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">User Details</h3>
+                <div className="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-4">
+                  {selectedUser ? (
+                    <UserCard 
+                      user={selectedUser} 
+                      onRefresh={(refreshedUser) => handleUserRefresh(selectedUser.githubUsername, refreshedUser)}
+                      isRefreshing={refreshingUsers[selectedUser.githubUsername]}
+                      onUserNavigation={handleUserNavigation}
+                    />
+                  ) : (
+                    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 text-center">
+                      <p className="text-gray-600 dark:text-gray-300">
+                        Select a user to view their details
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
+        )}
 
-          {/* Selected User Details Column */}
-          <div className="lg:col-span-1">
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">User Details</h2>
-            <div className="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-4">
-              {selectedUser ? (
-                <UserCard 
-                  user={selectedUser} 
-                  onRefresh={(refreshedUser) => handleUserRefresh(selectedUser.githubUsername, refreshedUser)}
-                  isRefreshing={refreshingUsers[selectedUser.githubUsername]}
-                  onUserNavigation={handleUserNavigation}
-                />
-              ) : (
-                <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 text-center">
-                  <p className="text-gray-600 dark:text-gray-300">
-                    Select a user to view their details
-                  </p>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Suggested Users Section - Unchanged */}
-        <div className="my-12">
+        {/* Suggested Users Section */}
+        <div className={`${showSearchSection ? 'mt-12' : 'mt-8'} mb-12`}>
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Suggested Users</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {isInitialLoading ? (

@@ -36,7 +36,7 @@ export function MetricCard({
         {icon && <div className="text-muted-foreground">{icon}</div>}
       </CardHeader>
       <CardContent>
-        <div className="text-2xl font-bold" className={valueClassName}>
+        <div className={cn("text-2xl font-bold", valueClassName)}>
           {value}
         </div>
         {trend && (

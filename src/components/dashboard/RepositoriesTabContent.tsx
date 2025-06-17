@@ -4,12 +4,22 @@ import { MetricCard } from '../ui/metric-card';
 import { metricImprovementTips } from '@/lib/tooltipData';
 import { Repository, CodeMetrics } from '@/types/github';
 
+interface CodeQuality {
+  score: number;
+  maintainabilityIndex: number;
+}
+
+interface ReadmeInfo {
+  hasReadme: boolean;
+  readmeScore: number;
+}
+
 interface RepositoriesTabContentProps {
   repos: Repository[];
   primaryRepo: {
     codeMetrics: CodeMetrics;
-    codeQuality: any; // Add proper type
-    readmeInfo: any; // Add proper type
+    codeQuality?: CodeQuality;
+    readmeInfo?: ReadmeInfo;
   };
 }
 

@@ -4,9 +4,23 @@ import { MetricCard } from '../ui/metric-card';
 import { RadarChart } from '../ui/radar-chart';
 import { metricImprovementTips } from '@/lib/tooltipData';
 
+interface CodeQualityStats {
+  avgCommitQuality: number;
+  codeOrganizationScore: number;
+  testCoverage: number;
+  maintainabilityIndex: number;
+}
+
+interface DocumentationStats {
+  inlineDocumentationCoverage: number;
+  avgReadmeScore: number;
+  wikiUsageRate: number;
+  documentationConsistency: number;
+}
+
 interface CodeQualityTabContentProps {
-  codeQualityStats: any; // Add proper type
-  documentationStats: any; // Add proper type
+  codeQualityStats: CodeQualityStats;
+  documentationStats: DocumentationStats;
 }
 
 export function CodeQualityTabContent({ codeQualityStats, documentationStats }: CodeQualityTabContentProps) {

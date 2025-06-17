@@ -1,8 +1,7 @@
-import { GitBranchIcon, FolderIcon, ActivityIcon, CodepenIcon, BookIcon, FileTextIcon, MessageSquareIcon } from 'lucide-react';
+import { ActivityIcon, CodepenIcon, BookIcon, FileTextIcon, MessageSquareIcon } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { MetricCard } from '@/components/ui/metric-card';
 import { RadarChart } from '@/components/ui/radar-chart';
-import { metricImprovementTips } from '@/lib/tooltipData';
 
 interface DashboardCodeQualityTabProps {
   codeQualityStats: {
@@ -83,7 +82,7 @@ export function DashboardCodeQualityTab({ codeQualityStats, documentationStats }
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {codeQualityStats.codeReviewStats.map((stat: any, index: number) => (
+              {codeQualityStats.codeReviewStats.map((stat, index: number) => (
                 <div key={index} className="flex justify-between items-center">
                   <div className="flex items-center gap-2">
                     <MessageSquareIcon className="h-4 w-4 text-muted-foreground" />
@@ -104,7 +103,7 @@ export function DashboardCodeQualityTab({ codeQualityStats, documentationStats }
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {codeQualityStats.recentImprovements.map((improvement: any, index: number) => (
+              {codeQualityStats.recentImprovements.map((improvement, index: number) => (
                 <div key={index} className="flex items-start gap-3">
                   <div className="mt-1">
                     <FileTextIcon className="h-4 w-4 text-muted-foreground" />

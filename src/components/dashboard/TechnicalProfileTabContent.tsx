@@ -2,7 +2,7 @@ import { StarIcon, GitForkIcon, LayersIcon, UsersIcon } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { MetricCard } from '../ui/metric-card';
 
-import { TechnicalProfile, DeveloperImpactMetrics, RepositoryAnalytics, LanguageSpecificField } from '@/types/github';
+import { DeveloperImpactMetrics, RepositoryAnalytics, LanguageSpecificField } from '@/types/github';
 
 interface TechnicalProfileTabContentProps {
   technicalProfile: {

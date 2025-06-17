@@ -1,4 +1,4 @@
-import { GithubUser, RateLimit, ContributionTimeSeries, CollaborationStyleMetrics, DeveloperImpactMetrics, CodeQualityIndicators, TechnicalProfile, RepositoryAnalytics, SkillProgressionMetrics, ImpactMetrics, TimeFrame } from '@/types/github';
+import { GithubUser, RateLimit, CollaborationStyleMetrics, DeveloperImpactMetrics, CodeQualityIndicators, TechnicalProfile, RepositoryAnalytics, SkillProgressionMetrics } from '@/types/github';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ;
 
@@ -103,7 +103,7 @@ export async function searchUsers(query: string, limit: number = 10, offset: num
                 publicReposCount
                 totalContributions
                 lastUpdated
-                repositories {
+                repositoriesLegacy {
                   id
                   name
                   description
@@ -451,7 +451,7 @@ export async function fetchDashboardAnalytics(username: string): Promise<{
   };
 }
 
-export async function fetchNestedComplexData(username: string): Promise<any> {
+export async function fetchNestedComplexData(username: string): Promise<Record<string, unknown>> {
   const response = await fetch(
     `${API_BASE_URL}/graphql`,
     {

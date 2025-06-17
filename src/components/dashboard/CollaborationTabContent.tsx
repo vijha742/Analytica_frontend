@@ -6,9 +6,18 @@ import { metricImprovementTips } from '@/lib/tooltipData';
 import { CollaborationMetrics } from '@/types/github';
 import { CircularProgress } from '../ui/circular-progress';
 
+interface CommunityEngagement {
+  discussionParticipation: number;
+  issueResponses: number;
+  pullRequestsReviewed: number;
+  avgReviewQuality: number;
+  helpfulnessRating: number;
+  soloVsTeamScore: number;
+}
+
 interface CollaborationTabContentProps {
   collaborationMetrics: CollaborationMetrics;
-  communityEngagement: any; // Add proper type
+  communityEngagement: CommunityEngagement;
 }
 
 export function CollaborationTabContent({ collaborationMetrics, communityEngagement }: CollaborationTabContentProps) {

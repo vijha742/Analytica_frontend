@@ -1,6 +1,8 @@
 import { StarIcon, GitForkIcon, LayersIcon, UsersIcon } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { MetricCard } from '@/components/ui/metric-card';
+import { useTechAnalysis } from '@/hooks/useGithubData';
+import { useParams } from 'next/navigation';
 
 interface DashboardProfileMetrics {
   totalStars: number;
@@ -39,6 +41,51 @@ export function DashboardTechnicalTab({
   developerImpactMetrics, 
   repositoryAnalytics 
 }: DashboardTechnicalTabProps) {
+  const params = useParams();
+  const username = typeof params.username === 'string' ? params.username : '';
+  const { data: techAnalysisData, isLoading } = useTechAnalysis(username);
+  
+  // Map API data to the format expected by the component
+  const languages = techAnalysisData?.languages?.map(lang => ({
+    name: lang.language,
+    category: getProgrammingLanguageCategory(lang.language),
+    proficiencyLevel: lang.proficiencyLevel as 'EXPERT' | 'ADVANCED' | 'INTERMEDIATE' | 'BEGINNER',
+    yearsOfExperience: lang.yearsOfExperience,
+    projectCount: lang.projectCount
+  })) || technicalProfile.languageSpecificFields;
+
+  // Helper function to categorize programming languages
+  function getProgrammingLanguageCategory(language: string): string {
+    const categories: Record<string, string> = {
+      'JavaScript': 'Frontend',
+      'TypeScript': 'Frontend',
+      'HTML': 'Frontend',
+      'CSS': 'Frontend',
+      'Python': 'Backend',
+      'Java': 'Backend',
+      'C#': 'Backend',
+      'Ruby': 'Backend',
+      'PHP': 'Backend',
+      'Go': 'Backend',
+      'Rust': 'Systems',
+      'C': 'Systems',
+      'C++': 'Systems',
+      'Swift': 'Mobile',
+      'Kotlin': 'Mobile',
+      'Dart': 'Mobile',
+      'SQL': 'Data',
+      'ANTLR': 'Parser',
+      'Lex': 'Parser',
+      'Dockerfile': 'DevOps'
+    };
+    
+    return categories[language] || 'Other';
+  }
+
+  // Calculate the versatility and specialization scores
+  const versatilityScore = techAnalysisData?.versatilityScore || 0.65;
+  const specializationScore = techAnalysisData?.specializationScore || 0.72;
+
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -47,39 +94,45 @@ export function DashboardTechnicalTab({
             <CardTitle>Language Proficiency</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {technicalProfile.languageSpecificFields.slice(0, 5).map((lang, index) => (
-                <div key={index}>
-                  <div className="flex justify-between mb-1">
-                    <div className="flex items-center">
-                      <span className="text-sm font-medium">{lang.name}</span>
-                      <span className="ml-2 text-xs px-2 py-0.5 bg-muted rounded-full">{lang.category}</span>
+            {isLoading ? (
+              <div className="py-8 flex items-center justify-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {languages.slice(0, 5).map((lang, index) => (
+                  <div key={index}>
+                    <div className="flex justify-between mb-1">
+                      <div className="flex items-center">
+                        <span className="text-sm font-medium">{lang.name}</span>
+                        <span className="ml-2 text-xs px-2 py-0.5 bg-muted rounded-full">{lang.category}</span>
+                      </div>
+                      <span className="text-xs">{lang.proficiencyLevel}</span>
                     </div>
-                    <span className="text-xs">{lang.proficiencyLevel}</span>
+                    <div className="w-full bg-muted rounded-full h-2">
+                      <div 
+                        className={`h-2 rounded-full ${
+                          lang.proficiencyLevel === 'EXPERT' ? 'bg-green-500' : 
+                          lang.proficiencyLevel === 'ADVANCED' ? 'bg-blue-500' : 
+                          lang.proficiencyLevel === 'INTERMEDIATE' ? 'bg-amber-500' : 
+                          'bg-rose-500'
+                        }`}
+                        style={{ width: `${
+                          lang.proficiencyLevel === 'EXPERT' ? '95' : 
+                          lang.proficiencyLevel === 'ADVANCED' ? '75' : 
+                          lang.proficiencyLevel === 'INTERMEDIATE' ? '50' : 
+                          '25'
+                        }%` }}
+                      ></div>
+                    </div>
+                    <div className="flex justify-between mt-1 text-xs text-muted-foreground">
+                      <span>{lang.yearsOfExperience.toFixed(1)} years</span>
+                      <span>{lang.projectCount} projects</span>
+                    </div>
                   </div>
-                  <div className="w-full bg-muted rounded-full h-2">
-                    <div 
-                      className={`h-2 rounded-full ${
-                        lang.proficiencyLevel === 'EXPERT' ? 'bg-green-500' : 
-                        lang.proficiencyLevel === 'ADVANCED' ? 'bg-blue-500' : 
-                        lang.proficiencyLevel === 'INTERMEDIATE' ? 'bg-amber-500' : 
-                        'bg-rose-500'
-                      }`}
-                      style={{ width: `${
-                        lang.proficiencyLevel === 'EXPERT' ? '95' : 
-                        lang.proficiencyLevel === 'ADVANCED' ? '75' : 
-                        lang.proficiencyLevel === 'INTERMEDIATE' ? '50' : 
-                        '25'
-                      }%` }}
-                    ></div>
-                  </div>
-                  <div className="flex justify-between mt-1 text-xs text-muted-foreground">
-                    <span>{lang.yearsOfExperience} years</span>
-                    <span>{lang.projectCount} projects</span>
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -191,6 +244,54 @@ export function DashboardTechnicalTab({
                       </span>
                     ))}
                 </div>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Show the skills progression using API data */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Skills Metrics</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <h3 className="text-sm font-medium mb-4">Versatility Score</h3>
+              <div className="relative pt-1">
+                <div className="flex mb-2 items-center justify-between">
+                  <div>
+                    <span className="text-xs font-semibold inline-block py-1 px-2 uppercase rounded-full bg-blue-200 text-blue-600">
+                      {(versatilityScore * 100).toFixed(0)}%
+                    </span>
+                  </div>
+                </div>
+                <div className="overflow-hidden h-2 mb-4 text-xs flex rounded bg-blue-200">
+                  <div style={{ width: `${versatilityScore * 100}%` }} className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-blue-500"></div>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Your versatility score indicates how well-rounded your skill set is across different technologies.
+                </p>
+              </div>
+            </div>
+            
+            <div>
+              <h3 className="text-sm font-medium mb-4">Specialization Score</h3>
+              <div className="relative pt-1">
+                <div className="flex mb-2 items-center justify-between">
+                  <div>
+                    <span className="text-xs font-semibold inline-block py-1 px-2 uppercase rounded-full bg-purple-200 text-purple-600">
+                      {(specializationScore * 100).toFixed(0)}%
+                    </span>
+                  </div>
+                </div>
+                <div className="overflow-hidden h-2 mb-4 text-xs flex rounded bg-purple-200">
+                  <div style={{ width: `${specializationScore * 100}%` }} className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-purple-500"></div>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Your specialization score indicates your depth of expertise in your primary technologies.
+                </p>
               </div>
             </div>
           </div>

@@ -3,7 +3,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ReadmeAnalysis } from '@/types/github';
-import { FileText, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
+import { FileText, CheckCircle, XCircle } from 'lucide-react';
 import { useMemo } from 'react';
 
 interface ReadmeQualityProps {
@@ -13,7 +13,7 @@ interface ReadmeQualityProps {
 export function ReadmeQuality({ readmeAnalysis }: ReadmeQualityProps) {
   const stats = useMemo(() => {
     const totalRepos = readmeAnalysis.length;
-    const averageScore = totalRepos > 0 
+    const averageScore = totalRepos > 0
       ? Math.round(readmeAnalysis.reduce((sum, readme) => sum + readme.score, 0) / totalRepos)
       : 0;
 

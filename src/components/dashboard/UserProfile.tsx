@@ -1,9 +1,8 @@
 'use client';
 
 import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { GithubUser } from '@/types/github';
-import { MapPin, Link as LinkIcon, Calendar, Users, GitBranch } from 'lucide-react';
+import { Calendar, Users, GitBranch } from 'lucide-react';
 import Image from 'next/image';
 import '@/app/globals.css'
 
@@ -18,7 +17,7 @@ export function UserProfile({ user }: UserProfileProps) {
         <div className="relative h-32 bg-gradient-to-r from-primary/20 to-secondary/20">
           <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent" />
         </div>
-        
+
         <div className="relative px-6 pb-6">
           <div className="flex flex-col sm:flex-row items-start sm:items-end gap-4 -mt-16">
             <div className="relative">
@@ -36,7 +35,7 @@ export function UserProfile({ user }: UserProfileProps) {
                 </div>
               )}
             </div>
-            
+
             <div className="flex-1 space-y-2">
               <div>
                 <h1 className="text-2xl sm:text-3xl font-bold">
@@ -44,11 +43,11 @@ export function UserProfile({ user }: UserProfileProps) {
                 </h1>
                 <p className="text-muted-foreground text-lg">@{user.githubUsername}</p>
               </div>
-              
+
               {user.bio && (
                 <p className="text-muted-foreground max-w-2xl">{user.bio}</p>
               )}
-              
+
               <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
                 <div className="flex items-center gap-1">
                   <Users className="w-4 h-4" />

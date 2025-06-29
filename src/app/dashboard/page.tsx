@@ -1,37 +1,31 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import ThemeToggle from '@/components/ui/ThemeToggle';
-import { 
-  fetchUserData, 
-  fetchCodeAnalysis, 
-  fetchReadmeAnalysis, 
-  fetchTechAnalysis 
+import {
+  fetchUserData,
+  fetchCodeAnalysis,
+  fetchReadmeAnalysis,
+  fetchTechAnalysis
 } from '@/lib/api-client';
-import { 
-  GithubUser, 
-  CodeAnalysis, 
-  ReadmeAnalysis, 
-  TechAnalysis 
+import {
+  GithubUser,
+  CodeAnalysis,
+  ReadmeAnalysis,
+  TechAnalysis
 } from '@/types/github';
-import { 
-  Search, 
-  GitBranch, 
-  Star, 
-  Users, 
-  Calendar, 
-  Code, 
-  BookOpen, 
+import {
+  Search,
+  Code,
+  BookOpen,
   TrendingUp,
   Activity,
-  Award,
-  FileText,
   Zap
 } from 'lucide-react';
 import { UserProfile } from '@/components/dashboard/UserProfile';
@@ -44,7 +38,16 @@ import { DemoDataLoader } from '@/components/dashboard/DemoDataLoader';
 import { StatsGrid } from '@/components/dashboard/StatsGrid';
 import { ApiStatusIndicator } from '@/components/dashboard/ApiStatusIndicator';
 
+
 export default function DashboardPage() {
+  return (
+    <Suspense>
+      <DashboardContent />
+    </Suspense>
+  );
+}
+
+function DashboardContent() {
   const [username, setUsername] = useState('');
   const [loading, setLoading] = useState(false);
   const [userData, setUserData] = useState<GithubUser | null>(null);
@@ -71,7 +74,7 @@ export default function DashboardPage() {
   const fetchAllData = async (user: string) => {
     setLoading(true);
     setError(null);
-    
+
     try {
       const [userResult, codeResult, readmeResult, techResult] = await Promise.allSettled([
         fetchUserData(user),
@@ -203,7 +206,7 @@ export default function DashboardPage() {
         {userData && !loading && (
           <div className="space-y-8">
             {/* API Status Indicator */}
-            <ApiStatusIndicator 
+            <ApiStatusIndicator
               userApiStatus={userApiStatus}
               techApiStatus={techApiStatus}
               readmeApiStatus={readmeApiStatus}
@@ -211,10 +214,10 @@ export default function DashboardPage() {
             {/* User Profile Section */}
             <UserProfile user={userData} />
             {/* Stats Grid */}
-            <StatsGrid 
-              user={userData} 
-              codeAnalysis={codeAnalysis} 
-              techAnalysis={techAnalysis} 
+            <StatsGrid
+              user={userData}
+              codeAnalysis={codeAnalysis}
+              techAnalysis={techAnalysis}
             />
             {/* Main Analytics Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -243,7 +246,7 @@ export default function DashboardPage() {
               <Activity className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
               <h2 className="text-2xl font-semibold mb-2">Welcome to Analytica</h2>
               <p className="text-muted-foreground mb-6">
-                Enter a GitHub username above to start analyzing their development activity, 
+                Enter a GitHub username above to start analyzing their development activity,
                 code quality, and technical skills.
               </p>
               <div className="flex flex-wrap gap-2 justify-center">

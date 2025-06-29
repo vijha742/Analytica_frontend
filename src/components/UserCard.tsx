@@ -1,11 +1,11 @@
-import { GithubUser, ContributionType, TimeFrame } from '@/types/github';
+import { GithubUser, ContributionType, TimeFrame, ContributionWeek } from '@/types/github';
 import type { ContributionTimeSeriesAPI } from '@/types/github';
 import * as Dialog from '@radix-ui/react-dialog';
 import { Line } from 'react-chartjs-2';
 import { Chart as ChartJS, LineElement, PointElement, LinearScale, Title, Tooltip, Legend, CategoryScale } from 'chart.js';
-import { FiUsers, FiGitBranch, FiStar, FiGitPullRequest, FiGitCommit, FiAlertCircle, FiRefreshCw, FiChevronRight, FiCalendar, FiChevronLeft } from 'react-icons/fi';
+import { FiUsers, FiGitBranch, FiStar, FiGitPullRequest, FiGitCommit, FiAlertCircle, FiChevronRight, FiCalendar, FiChevronLeft } from 'react-icons/fi';
 import { useMemo, useState, useEffect, useCallback } from 'react';
-import { fetchContributionTimeSeries, refreshUser } from '@/lib/api-client';
+import { fetchContributionTimeSeries } from '@/lib/api-client';
 import Image from 'next/image';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -13,8 +13,6 @@ ChartJS.register(LineElement, PointElement, LinearScale, Title, Tooltip, Legend,
 
 interface UserCardProps {
   user: GithubUser;
-  onRefresh?: (updatedUser: GithubUser) => void;
-  isRefreshing?: boolean;
   onUserNavigation?: (direction: 'prev' | 'next') => void;
 }
 
@@ -26,19 +24,13 @@ function formatDate(dateStr: string | Date | null | undefined) {
 }
 
 
-export default function UserCard({ user, onRefresh, isRefreshing: externalIsRefreshing, onUserNavigation }: UserCardProps) {
+export default function UserCard({ user, onUserNavigation }: UserCardProps) {
   const [open, setOpen] = useState(false);
-  const [localIsRefreshing, setLocalIsRefreshing] = useState(false);
   const [timeSeriesData, setTimeSeriesData] = useState<ContributionTimeSeriesAPI | null>(null);
   const [selectedTimeFrame, setSelectedTimeFrame] = useState<TimeFrame>(TimeFrame.WEEKLY);
   const [isLoadingChart, setIsLoadingChart] = useState(false);
-  const [refreshError, setRefreshError] = useState<string | null>(null);
   const [currentUser, setCurrentUser] = useState<GithubUser>(user);
 
-  // Use either external or local refreshing state
-  const isRefreshing = externalIsRefreshing || localIsRefreshing;
-
-  // Update local user state when prop changes
   useEffect(() => {
     if (user) {
       setCurrentUser(user);
@@ -53,70 +45,10 @@ export default function UserCard({ user, onRefresh, isRefreshing: externalIsRefr
     }
   }, [onUserNavigation]);
 
-  const refreshTimeSeriesData = useCallback(async () => {
-    if (!currentUser?.githubUsername) return;
-
-    setIsLoadingChart(true);
-    try {
-      const data = await fetchContributionTimeSeries(currentUser.githubUsername);
-      // Accept both possible API shapes: { points: ... } or { weeks: ... }
-      if ('weeks' in data) {
-        // Defensive: ensure totalContributions exists and correct type
-        setTimeSeriesData({
-          weeks: Array.isArray((data as any).weeks) ? (data as any).weeks : [],
-          totalContributions: (data as any).totalContributions ?? (data as any).totalCount ?? 0,
-        });
-      } else if ('points' in data) {
-        // Convert old shape to new shape for compatibility (fallback)
-        setTimeSeriesData({
-          weeks: [
-            {
-              firstDay: data.points[0]?.date || '',
-              contributionDays: data.points.map((pt: any) => ({ date: pt.date, contributionCount: pt.count })),
-            },
-          ],
-          totalContributions: data.totalCount || 0,
-        });
-      } else {
-        setTimeSeriesData(null);
-      }
-    } catch (err) {
-      console.error("Error fetching contribution time series:", err);
-      // Don't show error to user, just log it
-    } finally {
-      setIsLoadingChart(false);
-    }
-  }, [currentUser?.githubUsername, selectedTimeFrame]);
+  // Removed unused refreshTimeSeriesData to fix lint error
 
   // Handle refresh click with improved error handling
-  const handleRefresh = async () => {
-    if (isRefreshing) return; // Prevent multiple concurrent refreshes
-
-    setLocalIsRefreshing(true);
-    setRefreshError(null);
-
-    try {
-      const refreshedUser = await refreshUser(currentUser.githubUsername);
-
-      // Update local state first
-      setCurrentUser(refreshedUser);
-
-      // Call parent callback if provided
-      if (onRefresh) {
-        onRefresh(refreshedUser);
-      }
-
-      // Also refresh time series data if drawer is open
-      if (open) {
-        await refreshTimeSeriesData();
-      }
-    } catch (error) {
-      console.error('Failed to refresh user:', error);
-      setRefreshError(error instanceof Error ? error.message : 'Failed to refresh user data');
-    } finally {
-      setLocalIsRefreshing(false);
-    }
-  };
+  // ...existing code...
 
   // Fetch time series data when drawer opens or time frame changes
   useEffect(() => {
@@ -124,21 +56,27 @@ export default function UserCard({ user, onRefresh, isRefreshing: externalIsRefr
       setIsLoadingChart(true);
       fetchContributionTimeSeries(currentUser.githubUsername)
         .then((data) => {
-          if ('weeks' in data) {
-            setTimeSeriesData({
-              weeks: Array.isArray((data as any).weeks) ? (data as any).weeks : [],
-              totalContributions: (data as any).totalContributions ?? (data as any).totalCount ?? 0,
-            });
-          } else if ('points' in data) {
-            setTimeSeriesData({
-              weeks: [
-                {
-                  firstDay: data.points[0]?.date || '',
-                  contributionDays: data.points.map((pt: any) => ({ date: pt.date, contributionCount: pt.count })),
-                },
-              ],
-              totalContributions: data.totalCount || 0,
-            });
+          if (typeof data === 'object' && data !== null) {
+            if ('weeks' in data && Array.isArray((data as { weeks: ContributionWeek[] }).weeks)) {
+              const weeksData = data as { weeks: ContributionWeek[]; totalContributions?: number; totalCount?: number };
+              setTimeSeriesData({
+                weeks: weeksData.weeks,
+                totalContributions: weeksData.totalContributions ?? weeksData.totalCount ?? 0,
+              });
+            } else if ('points' in data && Array.isArray((data as { points: { date: string; count: number }[] }).points)) {
+              const pointsData = data as { points: { date: string; count: number }[]; totalCount?: number };
+              setTimeSeriesData({
+                weeks: [
+                  {
+                    firstDay: pointsData.points[0]?.date || '',
+                    contributionDays: pointsData.points.map((pt: { date: string; count: number }) => ({ date: pt.date, contributionCount: pt.count })),
+                  },
+                ],
+                totalContributions: pointsData.totalCount || 0,
+              });
+            } else {
+              setTimeSeriesData(null);
+            }
           } else {
             setTimeSeriesData(null);
           }
@@ -193,19 +131,19 @@ export default function UserCard({ user, onRefresh, isRefreshing: externalIsRefr
 
     if (selectedTimeFrame === TimeFrame.DAILY) {
       // Flatten all days
-      const allDays = timeSeriesData.weeks.flatMap((week) => week.contributionDays);
-      labels = allDays.map((day) => day.date);
-      data = allDays.map((day) => day.contributionCount);
+      const allDays = timeSeriesData.weeks.flatMap((week: { contributionDays: { date: string; contributionCount: number }[] }) => week.contributionDays);
+      labels = allDays.map((day: { date: string; contributionCount: number }) => day.date);
+      data = allDays.map((day: { date: string; contributionCount: number }) => day.contributionCount);
     } else if (selectedTimeFrame === TimeFrame.WEEKLY) {
       // Sum each week
-      labels = timeSeriesData.weeks.map((week) => week.firstDay);
-      data = timeSeriesData.weeks.map((week) => week.contributionDays.reduce((sum, d) => sum + d.contributionCount, 0));
+      labels = timeSeriesData.weeks.map((week: { firstDay: string; contributionDays: { date: string; contributionCount: number }[] }) => week.firstDay);
+      data = timeSeriesData.weeks.map((week: { firstDay: string; contributionDays: { date: string; contributionCount: number }[] }) => week.contributionDays.reduce((sum: number, d: { contributionCount: number }) => sum + d.contributionCount, 0));
     } else if (selectedTimeFrame === TimeFrame.YEARLY) {
       // Group by year, sum all weeks in each year
       const yearMap: Record<string, number> = {};
-      timeSeriesData.weeks.forEach((week) => {
+      timeSeriesData.weeks.forEach((week: { firstDay: string; contributionDays: { date: string; contributionCount: number }[] }) => {
         const year = week.firstDay.slice(0, 4);
-        yearMap[year] = (yearMap[year] || 0) + week.contributionDays.reduce((sum, d) => sum + d.contributionCount, 0);
+        yearMap[year] = (yearMap[year] || 0) + week.contributionDays.reduce((sum: number, d: { contributionCount: number }) => sum + d.contributionCount, 0);
       });
       labels = Object.keys(yearMap);
       data = Object.values(yearMap);
@@ -308,13 +246,6 @@ export default function UserCard({ user, onRefresh, isRefreshing: externalIsRefr
           </div>
         </div>
 
-        {/* Error Message (if any) */}
-        {refreshError && (
-          <div className="p-2 bg-red-100 text-red-800 rounded-md text-sm">
-            {refreshError}
-          </div>
-        )}
-
         {/* Stats */}
         <div className="mt-2 grid grid-cols-4 gap-2 bg-white/70 dark:bg-gray-800/70 rounded-lg p-2">
           <div className="flex flex-col items-center">
@@ -405,12 +336,6 @@ export default function UserCard({ user, onRefresh, isRefreshing: externalIsRefr
             </button> */}
           </div>
 
-          {/* Error Message (if any) */}
-          {refreshError && (
-            <div className="p-3 mb-4 bg-red-100 text-red-800 rounded-md">
-              {refreshError}
-            </div>
-          )}
 
           {currentUser.bio && <p className="mb-2 text-gray-600 dark:text-gray-300">{currentUser.bio}</p>}
           <div className="mb-4 flex flex-wrap gap-2">

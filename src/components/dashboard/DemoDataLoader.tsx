@@ -26,7 +26,7 @@ export function DemoDataLoader({ username, onDataLoad }: DemoDataLoaderProps) {
         fetchTechAnalysis(username)
       ]);
       onDataLoad(userData, codeAnalysis, readmeAnalysis, techAnalysis);
-    } catch (err) {
+    } catch {
       alert('Failed to load demo data. Please try again.');
     } finally {
       setLoading(false);
@@ -42,7 +42,7 @@ export function DemoDataLoader({ username, onDataLoad }: DemoDataLoaderProps) {
           <Sparkles className="h-5 w-5 text-primary" />
         </div>
         <CardDescription className="text-sm">
-          Explore the full potential of Analytica with comprehensive sample data showcasing 
+          Explore the full potential of Analytica with comprehensive sample data showcasing
           all analytics features and beautiful visualizations.
         </CardDescription>
       </CardHeader>
@@ -97,9 +97,9 @@ export function DemoDataLoader({ username, onDataLoad }: DemoDataLoaderProps) {
           </div>
         </div>
 
-        <Button 
-          onClick={handleLoadData} 
-          disabled={loading} 
+        <Button
+          onClick={handleLoadData}
+          disabled={loading}
           className="w-full relative overflow-hidden group"
           size="lg"
         >
@@ -117,9 +117,9 @@ export function DemoDataLoader({ username, onDataLoad }: DemoDataLoaderProps) {
             </div>
           )}
         </Button>
-        
+
         <p className="text-xs text-center text-muted-foreground leading-relaxed">
-          This demo loads comprehensive analytics for user <strong>vijha742</strong> with 
+          This demo loads comprehensive analytics for user <strong>vijha742</strong> with
           realistic data patterns, beautiful visualizations, and interactive components.
         </p>
       </CardContent>

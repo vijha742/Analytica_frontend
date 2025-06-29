@@ -3,7 +3,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Repository } from '@/types/github';
-import { Star, GitFork, Calendar, Code } from 'lucide-react';
+import { Star, GitFork, Code } from 'lucide-react';
 
 interface RepositoryOverviewProps {
   repositories: Repository[];
@@ -23,7 +23,7 @@ export function RepositoryOverview({ repositories }: RepositoryOverviewProps) {
   }, {} as Record<string, number>);
 
   const topLanguages = Object.entries(languageStats)
-    .sort(([,a], [,b]) => b - a)
+    .sort(([, a], [, b]) => b - a)
     .slice(0, 6);
 
   return (

@@ -3,7 +3,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { CodeAnalysis } from '@/types/github';
-import { Code2, PieChart } from 'lucide-react';
+import { Code2 } from 'lucide-react';
 import { useMemo } from 'react';
 
 interface LanguageDistributionProps {
@@ -30,7 +30,7 @@ export function LanguageDistribution({ codeAnalysis }: LanguageDistributionProps
     }, {} as Record<string, { language: string; linesOfCode: number; fileCount: number; percentage: number }>);
 
     const totalLines = Object.values(totalStats).reduce((sum, lang) => sum + lang.linesOfCode, 0);
-    
+
     Object.values(totalStats).forEach(lang => {
       lang.percentage = totalLines > 0 ? (lang.linesOfCode / totalLines) * 100 : 0;
     });

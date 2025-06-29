@@ -2,18 +2,19 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { 
-  Github, 
-  Linkedin, 
-  Mail, 
-  MapPin, 
-  Phone, 
+import {
+  Github,
+  Linkedin,
+  Mail,
+  MapPin,
+  Phone,
   Send,
   Code,
   Database,
   Globe,
   Server
 } from "lucide-react";
+import Link from "next/link";
 
 export default function AboutPage() {
   return (
@@ -27,9 +28,9 @@ export default function AboutPage() {
               <span className="text-xl font-bold text-slate-900 dark:text-white">Analytica</span>
             </div>
             <div className="hidden md:flex items-center space-x-8">
-              <a href="/" className="text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white transition-colors">Home</a>
-              <a href="/dashboard" className="text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white transition-colors">Dashboard</a>
-              <a href="/about" className="text-blue-600 font-medium">About</a>
+              <Link href="/" className="text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white transition-colors">Home</Link>
+              <Link href="/dashboard" className="text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white transition-colors">Dashboard</Link>
+              <Link href="/about" className="text-blue-600 font-medium">About</Link>
             </div>
           </div>
         </div>
@@ -69,7 +70,7 @@ export default function AboutPage() {
                 We believe in empowering developers through data-driven insights. Analytica transforms raw GitHub activity into meaningful metrics that help you understand your coding patterns, identify areas for improvement, and celebrate your achievements.
               </p>
               <p className="text-slate-600 dark:text-slate-300 leading-relaxed">
-                Whether you're a beginner looking to track your progress or an experienced developer wanting to optimize your workflow, Analytica provides the tools and insights you need to excel in your coding journey.
+                Whether you&apos;re a beginner looking to track your progress or an experienced developer wanting to optimize your workflow, Analytica provides the tools and insights you need to excel in your coding journey.
               </p>
             </Card>
 
@@ -141,7 +142,7 @@ export default function AboutPage() {
               </div>
               <div className="flex flex-wrap gap-2">
                 {[
-                  "Next.js", "TypeScript", "Tailwind CSS", "React", 
+                  "Next.js", "TypeScript", "Tailwind CSS", "React",
                   "GitHub API", "Recharts", "Radix UI", "Lucide Icons"
                 ].map((tech) => (
                   <Badge key={tech} variant="secondary" className="px-3 py-1">
@@ -209,27 +210,27 @@ export default function AboutPage() {
               <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-6">Send a Message</h3>
               <form className="space-y-4">
                 <div>
-                  <Input 
-                    placeholder="Your Name" 
+                  <Input
+                    placeholder="Your Name"
                     className="bg-white/50 dark:bg-slate-700/50 border-slate-200/50 dark:border-slate-600/50"
                   />
                 </div>
                 <div>
-                  <Input 
-                    type="email" 
-                    placeholder="Your Email" 
+                  <Input
+                    type="email"
+                    placeholder="Your Email"
                     className="bg-white/50 dark:bg-slate-700/50 border-slate-200/50 dark:border-slate-600/50"
                   />
                 </div>
                 <div>
-                  <Input 
-                    placeholder="Subject" 
+                  <Input
+                    placeholder="Subject"
                     className="bg-white/50 dark:bg-slate-700/50 border-slate-200/50 dark:border-slate-600/50"
                   />
                 </div>
                 <div>
-                  <textarea 
-                    placeholder="Your Message" 
+                  <textarea
+                    placeholder="Your Message"
                     rows={4}
                     className="w-full px-3 py-2 text-sm rounded-md border bg-white/50 dark:bg-slate-700/50 border-slate-200/50 dark:border-slate-600/50 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:text-white placeholder:text-slate-500 dark:placeholder:text-slate-400"
                   ></textarea>

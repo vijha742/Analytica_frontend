@@ -18,7 +18,6 @@ export default function HomePage() {
   const [suggestedBy, setSuggestedBy] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [refreshingUsers, setRefreshingUsers] = useState<Record<string, boolean>>({});
   const [currentSection, setCurrentSection] = useState<'search' | 'suggested'>('search');
   const [showSearchSection, setShowSearchSection] = useState(false);
 
@@ -123,16 +122,6 @@ export default function HomePage() {
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleUserRefresh = (username: string, refreshedUser: GithubUser) => {
-    if (selectedUser && selectedUser.githubUsername === username) {
-      setSelectedUser(refreshedUser);
-    }
-    setRefreshingUsers(prev => ({
-      ...prev,
-      [username]: false
-    }));
   };
 
   const handleCloseSearchSection = () => {
@@ -253,8 +242,6 @@ export default function HomePage() {
                   {selectedUser ? (
                     <UserCard
                       user={selectedUser}
-                      onRefresh={(refreshedUser) => handleUserRefresh(selectedUser.githubUsername, refreshedUser)}
-                      isRefreshing={refreshingUsers[selectedUser.githubUsername]}
                       onUserNavigation={handleUserNavigation}
                     />
                   ) : (
@@ -289,8 +276,6 @@ export default function HomePage() {
                   >
                     <UserCard
                       user={user}
-                      onRefresh={(refreshedUser) => handleUserRefresh(user.githubUsername, refreshedUser)}
-                      isRefreshing={refreshingUsers[user.githubUsername]}
                       onUserNavigation={handleUserNavigation}
                     />
                   </div>

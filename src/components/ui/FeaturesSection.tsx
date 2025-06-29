@@ -41,7 +41,7 @@ const features = [
 
 export default function FeaturesSection() {
 	return (
-		<section id="features" className="py-20 bg-secondary/50">
+		<section id="features" className="py-20 bg-secondary/50 hero-section">
 			<div className="container mx-auto flex flex-col items-center text-center lg:items-center lg:text-center">
 				<div className="text-center max-w-2xl mx-auto mb-16">
 					<h2 className="text-3xl font-bold mb-4">Core Features</h2>
@@ -55,7 +55,7 @@ export default function FeaturesSection() {
 					{features.map((feature, index) => (
 						<div
 							key={index}
-							className="bg-card rounded-xl p-6 shadow-sm border hover:border-primary/50 hover:shadow-md transition-all"
+							className="bg-card-comp rounded-xl p-6 shadow-sm border hover:border-primary/50 hover:shadow-md transition-all"
 						>
 							<div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center mb-5">
 								<feature.icon className="h-6 w-6 text-primary" />

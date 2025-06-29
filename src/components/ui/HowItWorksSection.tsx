@@ -24,7 +24,7 @@ const steps = [
 
 export default function HowItWorksSection() {
 	return (
-		<section id="how-it-works" className="py-20 bg-secondary/50">
+		<section id="how-it-works" className="py-20 bg-secondary/50 hero-section">
 			<div className="container mx-auto text-center">
 				<div className="max-w-2xl mx-auto mb-16">
 					<h2 className="text-3xl font-bold mb-4">How It Works</h2>
@@ -40,7 +40,7 @@ export default function HowItWorksSection() {
 							key={index}
 							className="flex-1 flex flex-col items-center"
 						>
-							<div className="rounded-full bg-card border h-20 w-20 flex items-center justify-center mb-5 shadow-sm">
+							<div className="rounded-full bg-card-comp border h-20 w-20 flex items-center justify-center mb-5 shadow-sm">
 								<step.icon className="h-8 w-8 text-primary" />
 							</div>
 
@@ -69,7 +69,7 @@ export default function HowItWorksSection() {
 				</div>
 
 				<div className="mt-16">
-					<div className="inline-block rounded-xl bg-card p-8 border">
+					<div className="inline-block rounded-xl bg-card-comp p-8 border">
 						<div className="flex flex-col sm:flex-row gap-4 items-center justify-center">
 							<div className="text-left">
 								<h4 className="text-xl font-semibold mb-1">

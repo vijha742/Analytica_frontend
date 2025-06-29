@@ -3,7 +3,7 @@ import { Activity, Code, Github } from "lucide-react";
 
 export default function HeroSection() {
   return (
-    <section className="overflow-hidden py-20 md:py-32 relative">
+    <section className="overflow-hidden py-20 md:py-32 relative hero-section">
       {/* Background elements */}
       <div className="absolute inset-0 -z-10 overflow-hidden">
         <div className="absolute left-1/2 top-0 -z-10 -translate-x-1/2 blur-3xl xl:-top-6" aria-hidden="true">
@@ -39,10 +39,10 @@ export default function HeroSection() {
                 Learn More
               </Button>
             </div>
-          </div>
+         </div>
           
           <div className="relative flex justify-center lg:justify-end animate-fade-in">
-            <div className="max-w-lg w-full rounded-xl border bg-card p-4 shadow-lg">
+            <div className="max-w-lg w-full rounded-xl border bg-card-comp bg-card-comp p-4 shadow-lg card-gradient">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex gap-2 items-center">
                   <Activity className="h-5 w-5 text-primary" />
@@ -58,7 +58,7 @@ export default function HeroSection() {
               {/* Dashboard content */}
               <div className="space-y-4">
                 {/* Chart */}
-                <div className="h-48 bg-muted/50 rounded-lg flex flex-col items-center justify-center p-4">
+                <div className="h-48 bg-muted rounded-lg flex flex-col items-center justify-center p-4">
                   <div className="flex w-full justify-between mb-2">
                     {[0, 1, 2, 3, 4, 5, 6].map((day) => (
                       <div key={day} className="flex flex-col items-center">
@@ -81,22 +81,22 @@ export default function HeroSection() {
 
                 {/* Stats */}
                 <div className="grid grid-cols-3 gap-2">
-                  <div className="bg-muted/50 p-3 rounded-lg">
+                  <div className="bg-muted p-3 rounded-lg">
                     <div className="text-2xl font-bold">24</div>
                     <div className="text-xs text-muted-foreground">Repos</div>
                   </div>
-                  <div className="bg-muted/50 p-3 rounded-lg">
+                  <div className="bg-muted p-3 rounded-lg">
                     <div className="text-2xl font-bold">156</div>
                     <div className="text-xs text-muted-foreground">Commits</div>
                   </div>
-                  <div className="bg-muted/50 p-3 rounded-lg">
+                  <div className="bg-muted p-3 rounded-lg">
                     <div className="text-2xl font-bold">12</div>
                     <div className="text-xs text-muted-foreground">PRs</div>
                   </div>
                 </div>
 
                 {/* Code preview */}
-                <div className="bg-card dark:bg-github-dark rounded-lg border p-3 text-xs font-mono text-muted-foreground overflow-hidden">
+                <div className="rounded-lg border p-3 text-xs font-mono text-muted-foreground overflow-hidden">
                   <Code className="h-4 w-4 mb-1" />
                   <pre className="overflow-x-auto">
                     <span className="text-blue-500">import</span> &#123; analyzeRepo &#125; <span className="text-blue-500">from</span> <span className="text-green-500">&apos;@analytica/github&apos;</span>;

@@ -44,7 +44,7 @@ const achievements = [
 export default function AchievementsSection() {
   return (
     <section id="achievements" className="py-20">
-      <div className="container mx-auto flex flex-col items-center text-center lg:items-center lg:text-center">
+      <div className="container mx-auto flex flex-col items-center text-center lg:items-center lg:text-center ">
         <div className="text-center max-w-2xl mx-auto mb-16">
           <h2 className="text-3xl font-bold mb-4">Unlock Developer Achievements</h2>
           <p className="text-muted-foreground">
@@ -56,7 +56,7 @@ export default function AchievementsSection() {
           {achievements.map((achievement, index) => (
             <div 
               key={index}
-              className="group bg-card rounded-xl p-6 border hover:shadow-md transition-all relative overflow-hidden"
+              className="group bg-card-comp rounded-xl p-6 border hover:shadow-md transition-all relative overflow-hidden"
             >
               <div className={`absolute right-0 top-0 w-24 h-24 -mr-12 -mt-10 rounded-full ${achievement.color} opacity-10 group-hover:opacity-20 group-hover:scale-300  transition-transform duration-300 ease-in-out  transition-opacity`}></div>
               

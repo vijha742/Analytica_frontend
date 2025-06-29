@@ -41,11 +41,11 @@ export default function Header() {
         <div className="flex items-center gap-2">
           <ThemeToggle />
           <Link href="/home" className="flex items-center">
-            <Button variant="default" className="hidden md:flex">
+            <Button className="bg-primary text-primary-foreground hover:bg-primary/90 hidden md:flex">
               Get Started
             </Button>
           </Link>
-          
+
           <Button 
             variant="ghost" 
             size="icon"

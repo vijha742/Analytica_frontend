@@ -52,7 +52,7 @@ const roadmapItems = [
 
 export default function RoadmapSection() {
 	return (
-		<section id="roadmap" className="py-20 bg-secondary/50">
+		<section id="roadmap" className="py-20 bg-secondary/50 hero-section">
 			<div className="container mx-auto text-center">
 				<div className="max-w-2xl mx-auto mb-16">
 					<h2 className="text-3xl font-bold mb-4">Development Roadmap</h2>
@@ -67,7 +67,7 @@ export default function RoadmapSection() {
 						{roadmapItems.map((item, index) => (
 							<div
 								key={index}
-								className="bg-card rounded-xl p-6 border flex flex-col md:flex-row gap-4"
+								className="bg-card-comp rounded-xl p-6 border flex flex-col md:flex-row gap-4"
 							>
 								<div className="md:w-1/4 flex flex-col">
 									<div className="text-2xl font-bold text-primary mb-1">

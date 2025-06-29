@@ -1,5 +1,3 @@
-// Types for GitHub user data and analyses
-
 export interface Repository {
   id: string;
   name: string;

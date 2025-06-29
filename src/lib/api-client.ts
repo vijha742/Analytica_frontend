@@ -1,189 +1,14 @@
-// API Types based on the backend endpoints
-export interface TechAnalysisLanguage {
-  language: string;
-  linesOfCode: number;
-  yearsOfExperience: number;
-  lastUsed: string;
-  proficiencyLevel: string;
-  projectCount: number;
-  trendIndicator: string;
-}
+import { GithubUser, Repository, Contribution, ContributionTimeSeriesAPI, CodeAnalysis, ReadmeAnalysis, TechAnalysis } from '@/types/github';
 
-export interface TechAnalysisResponse {
-  languages: TechAnalysisLanguage[];
-  frameworksUsed: any[];
-  librariesUsed: any[];
-  toolingPreferences: any[];
-  specializationScore: number;
-  versatilityScore: number;
-  learningRate: number;
-  experimentationFrequency: number;
-}
 
-export interface LanguageDistribution {
-  language: string;
-  linesOfCode: number;
-  percentage: number;
-  fileCount: number;
-}
-
-export interface CodeAnalysisItem {
-  title: string;
-  totalLines: number;
-  languageDistribution: LanguageDistribution[];
-  averageFileSize: number;
-  complexityScore: number;
-  complexityFactors: string[];
-}
-
-export interface CodeAnalysisResponse {
-  codeAnalysis: CodeAnalysisItem[];
-}
-
-export interface ReadmeAnalysis {
-  title: string;
-  score: number;
-  hasIntroduction: boolean;
-  hasInstallationGuide: boolean;
-  hasUsageExamples: boolean;
-  hasMaintainerSection: boolean;
-  wordCount: number;
-  lastUpdated?: string;
-}
-
-// Fallback data for tech analysis
-export const fallbackTechAnalysis: TechAnalysisResponse = {
-  languages: [
-    {
-      language: "JavaScript",
-      linesOfCode: 15436,
-      yearsOfExperience: 2.3,
-      lastUsed: "2025-05-30T10:23:18Z",
-      proficiencyLevel: "ADVANCED",
-      projectCount: 8,
-      trendIndicator: "RISING"
-    },
-    {
-      language: "TypeScript",
-      linesOfCode: 8732,
-      yearsOfExperience: 1.7,
-      lastUsed: "2025-06-02T14:37:22Z",
-      proficiencyLevel: "INTERMEDIATE",
-      projectCount: 5,
-      trendIndicator: "RISING"
-    },
-    {
-      language: "Python",
-      linesOfCode: 6281,
-      yearsOfExperience: 3.1,
-      lastUsed: "2025-04-18T09:12:44Z",
-      proficiencyLevel: "ADVANCED",
-      projectCount: 6,
-      trendIndicator: "STABLE"
-    }
-  ],
-  frameworksUsed: [],
-  librariesUsed: [],
-  toolingPreferences: [],
-  specializationScore: 0.72,
-  versatilityScore: 0.65,
-  learningRate: 0.8,
-  experimentationFrequency: 0.6
-};
-
-// Fallback data for code analysis
-export const fallbackCodeAnalysis: CodeAnalysisItem[] = [
-  {
-    title: "Analytica_frontend",
-    totalLines: 2503,
-    languageDistribution: [
-      {
-        language: "TypeScript",
-        linesOfCode: 2245,
-        percentage: 91.22779,
-        fileCount: 4561
-      },
-      {
-        language: "CSS",
-        linesOfCode: 247,
-        percentage: 8.290851,
-        fileCount: 414
-      },
-      {
-        language: "JavaScript",
-        linesOfCode: 11,
-        percentage: 0.48136488,
-        fileCount: 24
-      }
-    ],
-    averageFileSize: 19,
-    complexityScore: 99,
-    complexityFactors: [
-      "Large number of files"
-    ]
-  },
-  {
-    title: "AnalyticaGithub",
-    totalLines: 1510,
-    languageDistribution: [
-      {
-        language: "Java",
-        linesOfCode: 1510,
-        percentage: 100.0,
-        fileCount: 5000
-      }
-    ],
-    averageFileSize: 15,
-    complexityScore: 83,
-    complexityFactors: [
-      "Large number of files"
-    ]
-  }
-];
-
-// Fallback data for readme analysis
-export const fallbackReadmeAnalysis: ReadmeAnalysis[] = [
-  {
-    title: "E-commerce Platform",
-    score: 85,
-    hasIntroduction: true,
-    hasInstallationGuide: true,
-    hasUsageExamples: true,
-    hasMaintainerSection: true,
-    wordCount: 1245,
-    lastUpdated: "2025-05-15T11:32:40Z"
-  },
-  {
-    title: "Weather App",
-    score: 65,
-    hasIntroduction: true,
-    hasInstallationGuide: true,
-    hasUsageExamples: false,
-    hasMaintainerSection: false,
-    wordCount: 620,
-    lastUpdated: "2025-03-22T16:44:12Z"
-  },
-  {
-    title: "Task Manager",
-    score: 75,
-    hasIntroduction: true,
-    hasInstallationGuide: true,
-    hasUsageExamples: true,
-    hasMaintainerSection: false,
-    wordCount: 830,
-    lastUpdated: "2025-04-08T09:17:32Z"
-  }
-];
-
-// API client functions
-export async function fetchTechAnalysis(username: string): Promise<TechAnalysisResponse> {
+export async function fetchTechAnalysis(username: string): Promise<TechAnalysis> {
   try {
     const response = await fetch(`http://localhost:8080/api/u/${username}/tech-analysis`);
-    
+
     if (!response.ok) {
       throw new Error(`API error: ${response.status}`);
     }
-    
+
     return await response.json();
   } catch (error) {
     console.error('Error fetching tech analysis:', error);
@@ -194,11 +19,11 @@ export async function fetchTechAnalysis(username: string): Promise<TechAnalysisR
 export async function fetchReadmeAnalysis(username: string): Promise<ReadmeAnalysis[]> {
   try {
     const response = await fetch(`http://localhost:8080/api/u/${username}/readme-analysis`);
-    
+
     if (!response.ok) {
       throw new Error(`API error: ${response.status}`);
     }
-    
+
     return await response.json();
   } catch (error) {
     console.error('Error fetching readme analysis:', error);
@@ -206,17 +31,328 @@ export async function fetchReadmeAnalysis(username: string): Promise<ReadmeAnaly
   }
 }
 
-export async function fetchCodeAnalysis(username: string): Promise<CodeAnalysisItem[]> {
+export async function fetchCodeAnalysis(username: string): Promise<CodeAnalysis[]> {
   try {
     const response = await fetch(`http://localhost:8080/api/u/${username}/code-analysis`);
-    
+
     if (!response.ok) {
       throw new Error(`API error: ${response.status}`);
     }
-    
+
     return await response.json();
   } catch (error) {
     console.error('Error fetching code analysis:', error);
     throw error;
+  }
+}
+
+export async function fetchUserData(username: string): Promise<GithubUser> {
+  try {
+    const response = await fetch(`http://localhost:8080/api/users/${username}`);
+
+    if (!response.ok) {
+      throw new Error(`API error: ${response.status}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching user data:', error);
+    throw error;
+  }
+}
+
+export async function fetchUser(username: string): Promise<GithubUser> {
+  const response = await fetch(
+    `http://localhost:8080/graphql`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        query: `
+          query($username: String!) {
+            user(username: $username) {
+              id
+              githubUsername
+              name
+              email
+              avatarUrl
+              bio
+              followersCount
+              followingCount
+              publicReposCount
+              totalContributions
+              lastUpdated
+              repositories {
+                id
+                name
+                description
+                language
+                stargazerCount
+                forkCount
+                isPrivate
+                createdAt
+                updatedAt
+              }
+              contributions {
+                id
+                date
+                count
+                type
+              }
+            }
+          }
+        `,
+        variables: {
+          username,
+        },
+      }),
+    }
+  );
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => null);
+    throw new Error(errorData?.errors?.[0]?.message || 'Failed to fetch user data');
+  }
+
+  const data = await response.json();
+  if (data.errors) {
+    throw new Error(data.errors[0].message);
+  }
+  return data.data.user;
+}
+
+export async function getSuggestedUsers(): Promise<GithubUser[]> {
+  const response = await fetch(`http://localhost:8080/api/suggested-users`);
+  if (!response.ok) {
+    throw new Error('Failed to fetch suggested users');
+  }
+  return response.json();
+}
+
+export async function suggestUser(githubUsername: string, suggestedBy: string): Promise<void> {
+  const response = await fetch(
+    `http://localhost:8080/api/suggested-users?githubUsername=${encodeURIComponent(githubUsername)}&suggestedBy=${encodeURIComponent(suggestedBy)}`,
+    {
+      method: 'POST',
+    }
+  );
+  if (!response.ok) {
+    throw new Error('Failed to suggest user');
+  }
+}
+
+export async function fetchContributionTimeSeries(username: string): Promise<ContributionTimeSeriesAPI> {
+  try {
+    const response = await fetch(`http://localhost:8080/api/users/${username}/contrib-cal`);
+
+    if (!response.ok) {
+      throw new Error(`API error: ${response.status}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching contribution time-series:', error);
+    throw error;
+  }
+}
+
+export const refreshUser = async (githubUsername: string): Promise<GithubUser> => {
+  try {
+    const response = await fetch(
+      `http://localhost:8080/graphql`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          query: `
+            mutation($githubUsername: String!) {
+              refreshUserData(githubUsername: $githubUsername) {
+                id
+                githubUsername
+                name
+                email
+                avatarUrl
+                bio
+                followersCount
+                followingCount
+                publicReposCount
+                totalContributions
+                lastUpdated
+                repositories {
+                  id
+                  name
+                  description
+                  language
+                  stargazerCount
+                  forkCount
+                  isPrivate
+                  createdAt
+                  updatedAt
+                }
+                contributions {
+                  id
+                  date
+                  count
+                  type
+                }
+              }
+            }
+          `,
+          variables: {
+            githubUsername,
+          },
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`Failed to refresh user data: ${response.status} ${response.statusText}`);
+    }
+
+    const data = await response.json();
+
+    if (data.errors && data.errors.length > 0) {
+      console.error('GraphQL errors:', data.errors);
+      throw new Error(data.errors[0].message || 'Error refreshing user data');
+    }
+
+    if (!data.data?.refreshUserData) {
+      throw new Error('No user data returned from refresh');
+    }
+
+    // Convert the backend SuggestedUser data to match our frontend GithubUser interface
+    const userData = data.data.refreshUserData;
+
+    // Map the response to our GithubUser type, adjusting any field mismatches
+    const mappedUser: GithubUser = {
+      ...userData,
+      repositories: userData.repositories.map((repo: {
+        id: string;
+        name: string;
+        description: string;
+        language: string;
+        stargazerCount: number;
+        forkCount: number;
+        isPrivate: boolean;
+        createdAt: string;
+        updatedAt: string;
+      }) => ({
+        ...repo,
+      })),
+      lastUpdated: userData.lastUpdated || new Date().toISOString(),
+    };
+
+    return mappedUser;
+  } catch (error) {
+    console.error('Error in refreshUser:', error);
+    throw error instanceof Error
+      ? error
+      : new Error('Failed to refresh user data. Please try again later.');
+  }
+};
+
+export async function deactivateSuggestedUser(id: number): Promise<void> {
+  const response = await fetch(`http://localhost:8080/api/suggested-users/${id}`, {
+    method: 'DELETE',
+  });
+  if (!response.ok) {
+    throw new Error('Failed to deactivate suggested user');
+  }
+}
+
+export async function isUserSuggested(githubUsername: string): Promise<boolean> {
+  const response = await fetch(`http://localhost:8080/api/suggested-users/check/${encodeURIComponent(githubUsername)}`);
+  if (!response.ok) {
+    throw new Error('Failed to check if user is suggested');
+  }
+  return response.json();
+}
+
+export async function searchUsers(query: string, limit: number = 10, offset: number = 0): Promise<GithubUser[]> {
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+
+  if (!apiUrl) {
+    console.error('API URL not configured');
+    throw new Error('Internal configuration error');
+  }
+
+  try {
+    const response = await fetch(
+      `${apiUrl}/graphql`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          query: `
+            query($query: String!, $limit: Int, $offset: Int) {
+              searchUsers(query: $query, limit: $limit, offset: $offset) {
+                id
+                githubUsername
+                name
+                email
+                avatarUrl
+                bio
+                followersCount
+                followingCount
+                publicReposCount
+                totalContributions
+                lastUpdated
+                repositoriesLegacy {
+                  id
+                  name
+                  description
+                  language
+                  stargazerCount
+                  forkCount
+                  isPrivate
+                  createdAt
+                  updatedAt
+                }
+                contributions {
+                  id
+                  date
+                  count
+                  type
+                }
+              }
+            }
+          `,
+          variables: {
+            query: query.toLowerCase().trim(),
+            limit,
+            offset,
+          },
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      console.error('Search request failed:', response.status, response.statusText);
+      throw new Error('Search request failed');
+    }
+
+    const result = await response.json();
+
+    // Handle GraphQL errors
+    if (result.errors) {
+      console.error('GraphQL errors:', result.errors);
+      throw new Error(result.errors[0]?.message || 'Search request failed');
+    }
+
+    // Ensure we have valid data
+    if (!result.data?.searchUsers) {
+      return [];
+    }
+
+    return result.data.searchUsers;
+  } catch (error) {
+    console.error('Search users error:', error);
+    throw error instanceof Error ? error : new Error('Failed to search users');
   }
 }

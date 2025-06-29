@@ -19,7 +19,7 @@ const nextConfig: NextConfig = {
       {
         protocol: 'https',
         hostname: 'logosandtypes.com',
-      },
+      }
     ],
   },
 };

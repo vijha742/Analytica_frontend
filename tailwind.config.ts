@@ -6,7 +6,9 @@ export default {
     "./pages/**/*.{ts,tsx}",
     "./components/**/*.{ts,tsx}",
     "./app/**/*.{ts,tsx}",
-    "./src/**/*.{ts,tsx}",
+    "./src/**/*.{ts,tsx,css}",
+    "./src/components/dashboard/UserProfile.tsx",
+    "./src/components/**/*.{ts,tsx}",
   ],
   prefix: "",
   theme: {
@@ -56,8 +58,26 @@ export default {
           dark: "#0D1117",
           light: "#F6F8FA"
         },
+        tokyo: {
+          background: "#0d1117",
+          surface: "#161b22",
+          primary: "#7dcfff",
+          secondary: "#bb9af7",
+          accent: "#9ece6a",
+          text: "#c0caf5",
+          muted: "#8aa8f4"
+        },
+        catppuccin: {
+          background: "#eff1f5",
+          surface: "#e6e9ef",
+          primary: "#1e66f5",
+          secondary: "#dc5fb7",
+          accent: "#40a02b",
+          text: "#4c4f69",
+          muted: "#9ca0b0"
+        },
         sidebar: {
-          DEFAULT: "hsl(var(--sidebar-background))",
+          DEFAULT: "hsl(var(--sidebar))",
           foreground: "hsl(var(--sidebar-foreground))",
           primary: "hsl(var(--sidebar-primary))",
           'primary-foreground': "hsl(var(--sidebar-primary-foreground))",

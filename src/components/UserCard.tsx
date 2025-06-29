@@ -1,10 +1,11 @@
 import { GithubUser, ContributionType, TimeFrame } from '@/types/github';
+import type { ContributionTimeSeriesAPI } from '@/types/github';
 import * as Dialog from '@radix-ui/react-dialog';
 import { Line } from 'react-chartjs-2';
 import { Chart as ChartJS, LineElement, PointElement, LinearScale, Title, Tooltip, Legend, CategoryScale } from 'chart.js';
 import { FiUsers, FiGitBranch, FiStar, FiGitPullRequest, FiGitCommit, FiAlertCircle, FiRefreshCw, FiChevronRight, FiCalendar, FiChevronLeft } from 'react-icons/fi';
 import { useMemo, useState, useEffect, useCallback } from 'react';
-import { refreshUser, fetchContributionTimeSeries, ContributionTimeSeries } from '@/lib/api';
+import { fetchContributionTimeSeries, refreshUser } from '@/lib/api-client';
 import Image from 'next/image';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -24,15 +25,16 @@ function formatDate(dateStr: string | Date | null | undefined) {
   return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
 }
 
+
 export default function UserCard({ user, onRefresh, isRefreshing: externalIsRefreshing, onUserNavigation }: UserCardProps) {
   const [open, setOpen] = useState(false);
   const [localIsRefreshing, setLocalIsRefreshing] = useState(false);
-  const [timeSeriesData, setTimeSeriesData] = useState<ContributionTimeSeries | null>(null);
+  const [timeSeriesData, setTimeSeriesData] = useState<ContributionTimeSeriesAPI | null>(null);
   const [selectedTimeFrame, setSelectedTimeFrame] = useState<TimeFrame>(TimeFrame.WEEKLY);
   const [isLoadingChart, setIsLoadingChart] = useState(false);
   const [refreshError, setRefreshError] = useState<string | null>(null);
   const [currentUser, setCurrentUser] = useState<GithubUser>(user);
-  
+
   // Use either external or local refreshing state
   const isRefreshing = externalIsRefreshing || localIsRefreshing;
 
@@ -53,14 +55,31 @@ export default function UserCard({ user, onRefresh, isRefreshing: externalIsRefr
 
   const refreshTimeSeriesData = useCallback(async () => {
     if (!currentUser?.githubUsername) return;
-    
+
     setIsLoadingChart(true);
     try {
-      const data = await fetchContributionTimeSeries(
-        currentUser.githubUsername,
-        selectedTimeFrame
-      );
-      setTimeSeriesData(data);
+      const data = await fetchContributionTimeSeries(currentUser.githubUsername);
+      // Accept both possible API shapes: { points: ... } or { weeks: ... }
+      if ('weeks' in data) {
+        // Defensive: ensure totalContributions exists and correct type
+        setTimeSeriesData({
+          weeks: Array.isArray((data as any).weeks) ? (data as any).weeks : [],
+          totalContributions: (data as any).totalContributions ?? (data as any).totalCount ?? 0,
+        });
+      } else if ('points' in data) {
+        // Convert old shape to new shape for compatibility (fallback)
+        setTimeSeriesData({
+          weeks: [
+            {
+              firstDay: data.points[0]?.date || '',
+              contributionDays: data.points.map((pt: any) => ({ date: pt.date, contributionCount: pt.count })),
+            },
+          ],
+          totalContributions: data.totalCount || 0,
+        });
+      } else {
+        setTimeSeriesData(null);
+      }
     } catch (err) {
       console.error("Error fetching contribution time series:", err);
       // Don't show error to user, just log it
@@ -72,21 +91,21 @@ export default function UserCard({ user, onRefresh, isRefreshing: externalIsRefr
   // Handle refresh click with improved error handling
   const handleRefresh = async () => {
     if (isRefreshing) return; // Prevent multiple concurrent refreshes
-    
+
     setLocalIsRefreshing(true);
     setRefreshError(null);
-    
+
     try {
       const refreshedUser = await refreshUser(currentUser.githubUsername);
-      
+
       // Update local state first
       setCurrentUser(refreshedUser);
-      
+
       // Call parent callback if provided
       if (onRefresh) {
         onRefresh(refreshedUser);
       }
-      
+
       // Also refresh time series data if drawer is open
       if (open) {
         await refreshTimeSeriesData();
@@ -102,9 +121,35 @@ export default function UserCard({ user, onRefresh, isRefreshing: externalIsRefr
   // Fetch time series data when drawer opens or time frame changes
   useEffect(() => {
     if (open && currentUser?.githubUsername) {
-      refreshTimeSeriesData();
+      setIsLoadingChart(true);
+      fetchContributionTimeSeries(currentUser.githubUsername)
+        .then((data) => {
+          if ('weeks' in data) {
+            setTimeSeriesData({
+              weeks: Array.isArray((data as any).weeks) ? (data as any).weeks : [],
+              totalContributions: (data as any).totalContributions ?? (data as any).totalCount ?? 0,
+            });
+          } else if ('points' in data) {
+            setTimeSeriesData({
+              weeks: [
+                {
+                  firstDay: data.points[0]?.date || '',
+                  contributionDays: data.points.map((pt: any) => ({ date: pt.date, contributionCount: pt.count })),
+                },
+              ],
+              totalContributions: data.totalCount || 0,
+            });
+          } else {
+            setTimeSeriesData(null);
+          }
+        })
+        .catch((err) => {
+          setTimeSeriesData(null);
+          console.error("Error fetching contribution time series:", err);
+        })
+        .finally(() => setIsLoadingChart(false));
     }
-  }, [open, currentUser?.githubUsername, selectedTimeFrame, refreshTimeSeriesData]);
+  }, [open, currentUser?.githubUsername, selectedTimeFrame]);
 
   // Most used languages
   const languageStats = useMemo(() => {
@@ -127,7 +172,7 @@ export default function UserCard({ user, onRefresh, isRefreshing: externalIsRefr
 
   // Chart data for Time Series
   const timeSeriesChartData = useMemo(() => {
-    if (!timeSeriesData || !timeSeriesData.points || timeSeriesData.points.length === 0) {
+    if (!timeSeriesData || !timeSeriesData.weeks || timeSeriesData.weeks.length === 0) {
       return {
         labels: [],
         datasets: [
@@ -143,13 +188,35 @@ export default function UserCard({ user, onRefresh, isRefreshing: externalIsRefr
       };
     }
 
+    let labels: string[] = [];
+    let data: number[] = [];
+
+    if (selectedTimeFrame === TimeFrame.DAILY) {
+      // Flatten all days
+      const allDays = timeSeriesData.weeks.flatMap((week) => week.contributionDays);
+      labels = allDays.map((day) => day.date);
+      data = allDays.map((day) => day.contributionCount);
+    } else if (selectedTimeFrame === TimeFrame.WEEKLY) {
+      // Sum each week
+      labels = timeSeriesData.weeks.map((week) => week.firstDay);
+      data = timeSeriesData.weeks.map((week) => week.contributionDays.reduce((sum, d) => sum + d.contributionCount, 0));
+    } else if (selectedTimeFrame === TimeFrame.YEARLY) {
+      // Group by year, sum all weeks in each year
+      const yearMap: Record<string, number> = {};
+      timeSeriesData.weeks.forEach((week) => {
+        const year = week.firstDay.slice(0, 4);
+        yearMap[year] = (yearMap[year] || 0) + week.contributionDays.reduce((sum, d) => sum + d.contributionCount, 0);
+      });
+      labels = Object.keys(yearMap);
+      data = Object.values(yearMap);
+    }
+
     return {
-      // Use chartDate property if available, otherwise fall back to regular date formatting
-      labels: timeSeriesData.points.map(point => point.date || formatDate(point.date)),
+      labels,
       datasets: [
         {
           label: 'Contributions',
-          data: timeSeriesData.points.map(point => point.count),
+          data,
           borderColor: 'rgba(79, 70, 229, 1)',
           backgroundColor: 'rgba(79, 70, 229, 0.1)',
           tension: 0.4,
@@ -157,7 +224,7 @@ export default function UserCard({ user, onRefresh, isRefreshing: externalIsRefr
         },
       ],
     };
-  }, [timeSeriesData]);
+  }, [timeSeriesData, selectedTimeFrame]);
 
   const chartOptions = {
     responsive: true,
@@ -178,6 +245,11 @@ export default function UserCard({ user, onRefresh, isRefreshing: externalIsRefr
       </div>
     );
   }
+
+  const commits = currentUser.contributions?.filter(c => c.type === ContributionType.COMMIT)?.reduce((sum, c) => sum + c.count, 0) || 0;
+  const pulls = currentUser.contributions?.filter(c => c.type === ContributionType.PULL_REQUEST)?.reduce((sum, c) => sum + c.count, 0) || 0;
+  const issues = currentUser.contributions?.filter(c => c.type === ContributionType.ISSUE)?.reduce((sum, c) => sum + c.count, 0) || 0;
+
 
   return (
     <Dialog.Root open={open} onOpenChange={setOpen}>
@@ -235,14 +307,14 @@ export default function UserCard({ user, onRefresh, isRefreshing: externalIsRefr
             </button> */}
           </div>
         </div>
-        
+
         {/* Error Message (if any) */}
         {refreshError && (
           <div className="p-2 bg-red-100 text-red-800 rounded-md text-sm">
             {refreshError}
           </div>
         )}
-        
+
         {/* Stats */}
         <div className="mt-2 grid grid-cols-4 gap-2 bg-white/70 dark:bg-gray-800/70 rounded-lg p-2">
           <div className="flex flex-col items-center">
@@ -262,7 +334,7 @@ export default function UserCard({ user, onRefresh, isRefreshing: externalIsRefr
           </div>
           <div className="flex flex-col items-center">
             <FiStar className="w-4 h-4 text-indigo-500 mb-0.5" />
-            <span className="font-semibold text-gray-900 dark:text-white text-sm">{currentUser.totalContributions || 0}</span>
+            <span className="font-semibold text-gray-900 dark:text-white text-sm">{pulls + commits + issues || 0}</span>
             <span className="text-xs text-gray-500 dark:text-gray-400">Contribs</span>
           </div>
         </div>
@@ -332,14 +404,14 @@ export default function UserCard({ user, onRefresh, isRefreshing: externalIsRefr
               {isRefreshing ? 'Refreshing...' : 'Refresh'}
             </button> */}
           </div>
-          
+
           {/* Error Message (if any) */}
           {refreshError && (
             <div className="p-3 mb-4 bg-red-100 text-red-800 rounded-md">
               {refreshError}
             </div>
           )}
-          
+
           {currentUser.bio && <p className="mb-2 text-gray-600 dark:text-gray-300">{currentUser.bio}</p>}
           <div className="mb-4 flex flex-wrap gap-2">
             {languageStats.map(([lang, count]) => (
@@ -348,32 +420,31 @@ export default function UserCard({ user, onRefresh, isRefreshing: externalIsRefr
               </span>
             ))}
           </div>
-          
+
           {/* Activity Overview - Time Series Chart */}
           <div className="mb-6">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-lg font-bold text-gray-900 dark:text-white">Activity Overview</h3>
               <div className="flex items-center gap-2">
                 <FiCalendar className="text-gray-500" />
-                <select 
+                <select
                   value={selectedTimeFrame}
                   onChange={(e) => setSelectedTimeFrame(e.target.value as TimeFrame)}
                   className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-700 rounded-md text-sm py-1 px-2 focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500"
                 >
                   <option value={TimeFrame.DAILY}>Daily</option>
                   <option value={TimeFrame.WEEKLY}>Weekly</option>
-                  <option value={TimeFrame.MONTHLY}>Monthly</option>
                   <option value={TimeFrame.YEARLY}>Yearly</option>
                 </select>
               </div>
             </div>
-            
+
             <div className="h-48 mb-4 relative">
               {isLoadingChart ? (
                 <div className="absolute inset-0 flex items-center justify-center">
                   <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-indigo-500"></div>
                 </div>
-              ) : timeSeriesData && timeSeriesData.points && timeSeriesData.points.length > 0 ? (
+              ) : timeSeriesData && timeSeriesData.weeks && timeSeriesData.weeks.length > 0 ? (
                 <Line data={timeSeriesChartData} options={chartOptions} />
               ) : (
                 <div className="h-full flex items-center justify-center text-gray-500 dark:text-gray-400 text-sm">
@@ -381,40 +452,41 @@ export default function UserCard({ user, onRefresh, isRefreshing: externalIsRefr
                 </div>
               )}
             </div>
-            
+
             {timeSeriesData && (
               <div className="flex justify-between text-xs text-gray-600 dark:text-gray-400 mb-4">
-                <div>Period: {timeSeriesData.readablePeriodStart || formatDate(timeSeriesData.periodStart)} - {timeSeriesData.readablePeriodEnd || formatDate(timeSeriesData.periodEnd)}</div>
-                <div>Total: {timeSeriesData.totalCount} contributions</div>
+                <div>Weeks: {timeSeriesData.weeks.length}</div>
+                <div>Total: {timeSeriesData.totalContributions} contributions</div>
               </div>
             )}
+
 
             {/* Total Contributions Summary */}
             <div className="mt-4 grid grid-cols-3 gap-4 bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
               <div className="flex flex-col items-center">
                 <FiGitCommit className="w-6 h-6 text-indigo-500 mb-1" />
                 <span className="font-semibold text-gray-900 dark:text-white text-sm">
-                  {currentUser.contributions?.filter(c => c.type === ContributionType.COMMIT)?.reduce((sum, c) => sum + c.count, 0) || 0}
+                  {commits}
                 </span>
                 <span className="text-xs text-gray-500 dark:text-gray-400">Commits</span>
               </div>
               <div className="flex flex-col items-center">
                 <FiGitPullRequest className="w-6 h-6 text-indigo-500 mb-1" />
                 <span className="font-semibold text-gray-900 dark:text-white text-sm">
-                  {currentUser.contributions?.filter(c => c.type === ContributionType.PULL_REQUEST)?.reduce((sum, c) => sum + c.count, 0) || 0}
+                  {pulls}
                 </span>
                 <span className="text-xs text-gray-500 dark:text-gray-400">Pull Requests</span>
               </div>
               <div className="flex flex-col items-center">
                 <FiAlertCircle className="w-6 h-6 text-indigo-500 mb-1" />
                 <span className="font-semibold text-gray-900 dark:text-white text-sm">
-                  {currentUser.contributions?.filter(c => c.type === ContributionType.ISSUE)?.reduce((sum, c) => sum + c.count, 0) || 0}
+                  {issues}
                 </span>
                 <span className="text-xs text-gray-500 dark:text-gray-400">Issues</span>
               </div>
             </div>
           </div>
-          
+
           {/* All Repositories */}
           {currentUser.repositories && currentUser.repositories.length > 0 ? (
             <div className="mb-6">
@@ -437,10 +509,10 @@ export default function UserCard({ user, onRefresh, isRefreshing: externalIsRefr
                           )}
                         </div>
                         <div className="flex items-center space-x-3 ml-3">
-                            <div className="text-center">
-                              <p className="text-gray-900 dark:text-white text-sm font-semibold">{repo.stargazerCount || 0}</p>
-                              <p className="text-xs text-gray-600 dark:text-gray-300">Stars</p>
-                            </div>
+                          <div className="text-center">
+                            <p className="text-gray-900 dark:text-white text-sm font-semibold">{repo.stargazerCount || 0}</p>
+                            <p className="text-xs text-gray-600 dark:text-gray-300">Stars</p>
+                          </div>
                           <div className="text-center">
                             <p className="text-gray-900 dark:text-white text-sm font-semibold">{repo.forkCount || 0}</p>
                             <p className="text-xs text-gray-600 dark:text-gray-300">Forks</p>
@@ -480,7 +552,7 @@ export default function UserCard({ user, onRefresh, isRefreshing: externalIsRefr
           {/* Floating Navigation Widget - Properly centered in the drawer only */}
           {onUserNavigation && (
             <div className="fixed bottom-6 right-0 mr-auto ml-auto left-0 w-fit max-w-[calc(100%-48px)] z-[60] flex items-center gap-3 px-4 py-2 bg-gray-800/80 dark:bg-gray-900/90 backdrop-blur-sm rounded-full shadow-lg border border-gray-700/30" style={{ maxWidth: 'calc(100% - 48px)', width: 'fit-content', transform: 'none', left: '0', right: '0', marginLeft: 'auto', marginRight: 'auto' }}>
-              <button 
+              <button
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
@@ -493,7 +565,7 @@ export default function UserCard({ user, onRefresh, isRefreshing: externalIsRefr
                 <FiChevronLeft className="w-5 h-5 text-white" />
               </button>
               <span className="text-sm text-white/90 font-medium">Browse Users</span>
-              <button 
+              <button
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();

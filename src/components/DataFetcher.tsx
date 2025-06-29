@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { getSuggestedUsers } from '@/lib/api';
+import { getSuggestedUsers } from '@/lib/api-client';
 import { GithubUser } from '@/types/github';
 
 export function useSuggestedUsers() {
@@ -27,6 +27,6 @@ export function useSuggestedUsers() {
 }
 
 export default function DataFetcher() {
-  useSuggestedUsers(); // Initialize the hook
+  useSuggestedUsers();
   return null;
 } 

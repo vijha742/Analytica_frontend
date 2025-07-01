@@ -152,33 +152,45 @@ function DashboardContent() {
     <div className="min-h-screen bg-gradient-to-br from-background to-background/80">
       {/* Header */}
       <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container flex h-16 items-center justify-between">
+        <div className="container flex h-16 items-center justify-between px-4 sm:px-8">
           <div className="flex items-center space-x-4">
             <div className="flex items-center space-x-2">
               <Activity className="h-6 w-6 text-primary" />
               <h1 className="text-xl font-bold">Analytica</h1>
             </div>
           </div>
-          <form onSubmit={handleSearch} className="flex items-center space-x-2 max-w-md">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                type="text"
-                placeholder="Enter GitHub username..."
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                className="pl-10 w-64"
-              />
-            </div>
-            <Button type="submit" disabled={loading}>
-              {loading ? 'Analyzing...' : 'Analyze'}
-            </Button>
-          </form>
-          <ThemeToggle />
+          <div className="flex items-center" style={{ marginRight: '0.25rem' }}>
+            <ThemeToggle />
+          </div>
         </div>
       </header>
       {/* Main Content */}
       <main className="container mx-auto py-8 space-y-8">
+        {/* Search Bar in Content Body */}
+        <form
+          onSubmit={handleSearch}
+          className="flex flex-col sm:flex-row items-center gap-4 sm:gap-2 mb-6 max-w-2xl mx-auto"
+        >
+          <div className="relative flex-1 w-full min-w-0">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              type="text"
+              placeholder="Enter GitHub username..."
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              className="pl-10 pr-4 w-full min-w-[180px] sm:min-w-[240px] max-w-full"
+              style={{ minWidth: '180px', maxWidth: '100%' }}
+            />
+          </div>
+          <Button
+            type="submit"
+            disabled={loading}
+            className="flex-shrink-0 ml-0 sm:ml-2"
+            style={{ minWidth: '110px' }}
+          >
+            {loading ? 'Analyzing...' : 'Analyze'}
+          </Button>
+        </form>
         {error && (
           <Card className="border-destructive">
             <CardContent className="pt-6">

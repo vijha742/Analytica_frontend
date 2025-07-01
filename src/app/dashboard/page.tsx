@@ -50,6 +50,7 @@ export default function DashboardPage() {
 function DashboardContent() {
   const [username, setUsername] = useState('');
   const [loading, setLoading] = useState(false);
+  const [readmeLoading, setReadmeLoading] = useState(false);
   const [userData, setUserData] = useState<GithubUser | null>(null);
   const [codeAnalysis, setCodeAnalysis] = useState<CodeAnalysis[] | null>(null);
   const [readmeAnalysis, setReadmeAnalysis] = useState<ReadmeAnalysis[] | null>(null);
@@ -74,12 +75,14 @@ function DashboardContent() {
   const fetchAllData = async (user: string) => {
     setLoading(true);
     setError(null);
+    setReadmeAnalysis(null); // Reset readme data
+    setReadmeApiStatus('fallback');
 
     try {
-      const [userResult, codeResult, readmeResult, techResult] = await Promise.allSettled([
+      // First fetch core data (user, code, tech) - these are required to show the dashboard
+      const [userResult, codeResult, techResult] = await Promise.allSettled([
         fetchUserData(user),
         fetchCodeAnalysis(user),
-        fetchReadmeAnalysis(user),
         fetchTechAnalysis(user)
       ]);
 
@@ -97,14 +100,6 @@ function DashboardContent() {
         console.error('Failed to fetch code analysis:', codeResult.reason);
       }
 
-      if (readmeResult.status === 'fulfilled') {
-        setReadmeAnalysis(readmeResult.value);
-        setReadmeApiStatus('connected');
-      } else {
-        console.error('Failed to fetch readme analysis:', readmeResult.reason);
-        setReadmeApiStatus('error');
-      }
-
       if (techResult.status === 'fulfilled') {
         setTechAnalysis(techResult.value);
         setTechApiStatus('connected');
@@ -113,12 +108,26 @@ function DashboardContent() {
         setTechApiStatus('error');
       }
 
+      // Stop main loading after core data is fetched
+      setLoading(false);
+
+      // Now fetch readme analysis separately
+      setReadmeLoading(true);
+      try {
+        const readmeResult = await fetchReadmeAnalysis(user);
+        setReadmeAnalysis(readmeResult);
+        setReadmeApiStatus('connected');
+      } catch (readmeError) {
+        console.error('Failed to fetch readme analysis:', readmeError);
+        setReadmeApiStatus('error');
+      } finally {
+        setReadmeLoading(false);
+      }
+
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
       setUserApiStatus('error');
-      setReadmeApiStatus('error');
       setTechApiStatus('error');
-    } finally {
       setLoading(false);
     }
   };
@@ -242,8 +251,36 @@ function DashboardContent() {
                 <LanguageDistribution codeAnalysis={codeAnalysis} />
               )}
               {/* README Quality */}
-              {readmeAnalysis && (
+              {readmeAnalysis ? (
                 <ReadmeQuality readmeAnalysis={readmeAnalysis} />
+              ) : readmeLoading ? (
+                <Card>
+                  <CardHeader>
+                    <Skeleton className="h-4 w-32" />
+                    <Skeleton className="h-3 w-24" />
+                  </CardHeader>
+                  <CardContent>
+                    <Skeleton className="h-20 w-full" />
+                  </CardContent>
+                </Card>
+              ) : readmeApiStatus === 'error' ? (
+                <Card className="border-muted">
+                  <CardHeader>
+                    <h3 className="text-lg font-semibold">README Quality</h3>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-muted-foreground">Failed to load README analysis</p>
+                  </CardContent>
+                </Card>
+              ) : (
+                <Card className="border-muted">
+                  <CardHeader>
+                    <h3 className="text-lg font-semibold">README Quality</h3>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-muted-foreground">README analysis not available</p>
+                  </CardContent>
+                </Card>
               )}
             </div>
             {/* Tech Stack Analysis */}

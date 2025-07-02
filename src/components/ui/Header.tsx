@@ -9,7 +9,7 @@ export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/70 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center justify-between">
         <div className="flex items-center gap-2">
           <Link href="/" className="flex items-center space-x-2">
@@ -20,34 +20,23 @@ export default function Header() {
 
         {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center gap-6">
-          <Link href="#features" className="text-sm font-medium hover:text-primary transition-colors">
-            Features
+          <Link href="/home" className="text-sm font-medium hover:text-primary transition-colors">
+            Home
           </Link>
-          <Link href="#achievements" className="text-sm font-medium hover:text-primary transition-colors">
-            Achievements
+          <Link href="/dashboard" className="text-sm font-medium hover:text-primary transition-colors">
+            Dashboard
           </Link>
-          <Link href="#how-it-works" className="text-sm font-medium hover:text-primary transition-colors">
-            How It Works
-          </Link>
-          <Link href="#tech" className="text-sm font-medium hover:text-primary transition-colors">
-            Tech Stack
-          </Link>
-          <Link href="#roadmap" className="text-sm font-medium hover:text-primary transition-colors">
-            Roadmap
+          <Link href="/about" className="text-sm font-medium hover:text-primary transition-colors">
+            About
           </Link>
         </nav>
 
         {/* Actions */}
         <div className="flex items-center gap-2">
           <ThemeToggle />
-          <Link href="/home" className="flex items-center">
-            <Button className="bg-primary text-primary-foreground hover:bg-primary/90 hidden md:flex">
-              Get Started
-            </Button>
-          </Link>
 
-          <Button 
-            variant="ghost" 
+          <Button
+            variant="ghost"
             size="icon"
             className="md:hidden"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -61,44 +50,27 @@ export default function Header() {
       {mobileMenuOpen && (
         <div className="md:hidden border-t border-border/40">
           <div className="container py-4 space-y-3">
-            <Link 
-              href="#features" 
+            <Link
+              href="/home"
               className="block py-2 text-sm font-medium hover:text-primary transition-colors"
               onClick={() => setMobileMenuOpen(false)}
             >
-              Features
+              Home
             </Link>
-            <Link 
-              href="#achievements" 
+            <Link
+              href="/dashboard"
               className="block py-2 text-sm font-medium hover:text-primary transition-colors"
               onClick={() => setMobileMenuOpen(false)}
             >
-              Achievements
+              Dashboard
             </Link>
-            <Link 
-              href="#how-it-works" 
+            <Link
+              href="/about"
               className="block py-2 text-sm font-medium hover:text-primary transition-colors"
               onClick={() => setMobileMenuOpen(false)}
             >
-              How It Works
+              About
             </Link>
-            <Link 
-              href="#tech" 
-              className="block py-2 text-sm font-medium hover:text-primary transition-colors"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              Tech Stack
-            </Link>
-            <Link 
-              href="#roadmap" 
-              className="block py-2 text-sm font-medium hover:text-primary transition-colors"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              Roadmap
-            </Link>
-            <Button variant="default" className="w-full mt-4">
-              Connect with GitHub
-            </Button>
           </div>
         </div>
       )}

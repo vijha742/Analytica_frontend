@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import ThemeToggle from '@/components/ui/ThemeToggle';
+import Header from '@/components/ui/Header';
 import {
   fetchUserData,
   fetchCodeAnalysis,
@@ -37,13 +37,15 @@ import { TechStack } from '@/components/dashboard/TechStack';
 import { DemoDataLoader } from '@/components/dashboard/DemoDataLoader';
 import { StatsGrid } from '@/components/dashboard/StatsGrid';
 import { ApiStatusIndicator } from '@/components/dashboard/ApiStatusIndicator';
-
+import ThemeToggle from '@/components/ui/ThemeToggle';
 
 export default function DashboardPage() {
   return (
-    <Suspense>
-      <DashboardContent />
-    </Suspense>
+    <>
+      <Suspense>
+        <DashboardContent />
+      </Suspense>
+    </>
   );
 }
 
@@ -159,21 +161,7 @@ function DashboardContent() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-background/80">
-      {/* Header */}
-      <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container flex h-16 items-center justify-between px-4 sm:px-8">
-          <div className="flex items-center space-x-4">
-            <div className="flex items-center space-x-2">
-              <Activity className="h-6 w-6 text-primary" />
-              <h1 className="text-xl font-bold">Analytica</h1>
-            </div>
-          </div>
-          <div className="flex items-center" style={{ marginRight: '0.25rem' }}>
-            <ThemeToggle />
-          </div>
-        </div>
-      </header>
-      {/* Main Content */}
+      <Header />
       <main className="container mx-auto py-8 space-y-8">
         {/* Search Bar in Content Body */}
         <form

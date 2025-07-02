@@ -37,7 +37,6 @@ import { TechStack } from '@/components/dashboard/TechStack';
 import { DemoDataLoader } from '@/components/dashboard/DemoDataLoader';
 import { StatsGrid } from '@/components/dashboard/StatsGrid';
 import { ApiStatusIndicator } from '@/components/dashboard/ApiStatusIndicator';
-import ThemeToggle from '@/components/ui/ThemeToggle';
 
 type DashboardCacheType = {
   [username: string]: {
@@ -47,17 +46,16 @@ type DashboardCacheType = {
     readmeAnalysis: ReadmeAnalysis[] | null;
   };
 };
-// Use a client-side cache (window property) to avoid server sharing
 function getDashboardCache(): DashboardCacheType {
   if (typeof window !== 'undefined') {
-    // @ts-ignore
+    // @ts-expect-error: Accessing custom property on window for dashboard cache
     return window.__dashboardCache || {};
   }
   return {};
 }
 function setDashboardCache(cache: DashboardCacheType) {
   if (typeof window !== 'undefined') {
-    // @ts-ignore
+    // @ts-expect-error: Setting custom property on window for dashboard cache
     window.__dashboardCache = cache;
   }
 }
@@ -178,7 +176,7 @@ function DashboardContent() {
           readmeAnalysis: readmeResult
         };
         setDashboardCache(dashboardCache);
-      } catch (readmeError) {
+      } catch {
         setReadmeAnalysis(null);
         setReadmeApiStatus('error');
 

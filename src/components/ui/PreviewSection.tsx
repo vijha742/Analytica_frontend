@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Github, MoonIcon, SunIcon } from "lucide-react";
+import Link from "next/link";
 
 export default function PreviewSection() {
   const [activeMode, setActiveMode] = useState<"light" | "dark">("light");
@@ -60,9 +61,8 @@ export default function PreviewSection() {
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {/* Stats panel */}
-                <div className={`rounded-lg p-4 ${
-                  activeMode === "dark" ? "bg-gray-800 text-white" : "bg-gray-100 text-gray-800"
-                }`}>
+                <div className={`rounded-lg p-4 ${activeMode === "dark" ? "bg-gray-800 text-white" : "bg-gray-100 text-gray-800"
+                  }`}>
                   <h4 className="font-medium mb-3">Repository Stats</h4>
                   <div className="space-y-2">
                     {[
@@ -81,19 +81,18 @@ export default function PreviewSection() {
                 </div>
 
                 {/* Chart */}
-                <div className={`rounded-lg p-4 col-span-2 ${
-                  activeMode === "dark" ? "bg-gray-800 text-white" : "bg-gray-100 text-gray-800"
-                }`}>
+                <div className={`rounded-lg p-4 col-span-2 ${activeMode === "dark" ? "bg-gray-800 text-white" : "bg-gray-100 text-gray-800"
+                  }`}>
                   <h4 className="font-medium mb-3">Activity Overview</h4>
                   <div className="h-32 flex items-end gap-1 pt-4">
                     {Array.from({ length: 12 }).map((_, i) => (
-                      <div 
-                        key={i} 
+                      <div
+                        key={i}
                         className="flex-1 rounded-t-sm"
-                        style={{ 
+                        style={{
                           height: `${Math.random() * 70 + 10}%`,
-                          background: activeMode === "dark" 
-                            ? `rgba(59, 130, 246, ${0.3 + Math.random() * 0.7})` 
+                          background: activeMode === "dark"
+                            ? `rgba(59, 130, 246, ${0.3 + Math.random() * 0.7})`
                             : `rgba(37, 99, 235, ${0.3 + Math.random() * 0.7})`,
                         }}
                       ></div>
@@ -109,10 +108,13 @@ export default function PreviewSection() {
           </div>
 
           <div className="text-center mt-12">
-            <Button size="lg" className="gap-2">
-              <Github className="h-5 w-5" />
-              Connect with GitHub
-            </Button>
+
+            <Link href="/home">
+              <Button size="lg" className="gap-2">
+                <Github className="h-5 w-5" />
+                Connect with GitHub
+              </Button>
+            </Link>
           </div>
         </div>
       </div>

@@ -4,41 +4,45 @@ import { useEffect, useState, useCallback } from 'react';
 import { getSuggestedUsers } from '@/lib/api-client';
 import { GithubUser } from '@/types/github';
 
-
-// Use a client-side cache (window property) to avoid server sharing
 function getSuggestedUsersCache(): GithubUser[] | null {
   if (typeof window !== 'undefined') {
-    // @ts-ignore
+    // @ts-expect-error: Accessing custom property on window for suggested users cache
     return window.__suggestedUsersCache || null;
   }
   return null;
 }
 function setSuggestedUsersCache(users: GithubUser[]) {
   if (typeof window !== 'undefined') {
-    // @ts-ignore
+    // @ts-expect-error: Setting custom property on window for suggested users cache
     window.__suggestedUsersCache = users;
   }
 }
 
 
 export function useSuggestedUsers() {
-  const [users, setUsers] = useState<GithubUser[]>(getSuggestedUsersCache() || []);
-  const [isLoading, setIsLoading] = useState(!getSuggestedUsersCache());
-  const [hasLoadedOnce, setHasLoadedOnce] = useState(!!getSuggestedUsersCache());
+  const cached = getSuggestedUsersCache() || [];
+  const [users, setUsers] = useState<GithubUser[]>(cached);
+  const [isLoading, setIsLoading] = useState(cached.length === 0);
+  const [hasLoadedOnce, setHasLoadedOnce] = useState(cached.length > 0);
 
   const fetchSuggestedUsers = useCallback(async (isInitial = false) => {
-    if (isInitial) setIsLoading(true);
+    if (isInitial && users.length === 0) setIsLoading(true);
     try {
       const fetchedUsers = await getSuggestedUsers();
-      setSuggestedUsersCache(fetchedUsers);
-      setUsers(fetchedUsers);
+      if (Array.isArray(fetchedUsers) && fetchedUsers.length > 0) {
+        setSuggestedUsersCache(fetchedUsers);
+        setUsers(fetchedUsers);
+      } else {
+        // If fetch fails or returns empty, do not clear the UI, just log
+        console.warn('[DataFetcher] Warning: fetchedUsers is empty, keeping previous users.');
+      }
       setHasLoadedOnce(true);
     } catch (error) {
       console.error('Failed to fetch suggested users:', error);
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [users.length]);
 
   useEffect(() => {
     if (!hasLoadedOnce) {
@@ -54,4 +58,4 @@ export function useSuggestedUsers() {
 export default function DataFetcher() {
   useSuggestedUsers();
   return null;
-} 
+}

@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input';
 import { useSuggestedUsers } from '@/components/DataFetcher';
 import ThemeToggle from '@/components/ui/ThemeToggle';
 
+
 export default function HomePage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [users, setUsers] = useState<GithubUser[]>([]);
@@ -21,7 +22,9 @@ export default function HomePage() {
   const [currentSection, setCurrentSection] = useState<'search' | 'suggested'>('search');
   const [showSearchSection, setShowSearchSection] = useState(false);
 
-  const { users: suggestedUsers, isLoading: isInitialLoading } = useSuggestedUsers();
+  // Use refetch from hook
+  const { users: suggestedUsers, isLoading: isInitialLoading, refetch: refetchSuggestedUsers } = useSuggestedUsers();
+  const [isRefetchingSuggested, setIsRefetchingSuggested] = useState(false);
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -117,10 +120,13 @@ export default function HomePage() {
       await suggestUser(suggestUsername, suggestedBy);
       setSuggestUsername('');
       setSuggestedBy('');
+      setIsRefetchingSuggested(true);
+      await refetchSuggestedUsers();
     } catch {
       setError('Failed to suggest user. Please try again.');
     } finally {
       setLoading(false);
+      setIsRefetchingSuggested(false);
     }
   };
 
@@ -268,7 +274,7 @@ export default function HomePage() {
                 </div>
               ))
             ) : (
-              suggestedUsers.slice(0, 12).map((user) => (
+              suggestedUsers.map((user) => (
                 <div key={user.id}>
                   <div
                     onClick={() => handleSuggestedUserSelect(user)}

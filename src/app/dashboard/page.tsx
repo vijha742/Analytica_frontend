@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect, useRef, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -39,6 +39,29 @@ import { StatsGrid } from '@/components/dashboard/StatsGrid';
 import { ApiStatusIndicator } from '@/components/dashboard/ApiStatusIndicator';
 import ThemeToggle from '@/components/ui/ThemeToggle';
 
+type DashboardCacheType = {
+  [username: string]: {
+    userData: GithubUser | null;
+    codeAnalysis: CodeAnalysis[] | null;
+    techAnalysis: TechAnalysis | null;
+    readmeAnalysis: ReadmeAnalysis[] | null;
+  };
+};
+// Use a client-side cache (window property) to avoid server sharing
+function getDashboardCache(): DashboardCacheType {
+  if (typeof window !== 'undefined') {
+    // @ts-ignore
+    return window.__dashboardCache || {};
+  }
+  return {};
+}
+function setDashboardCache(cache: DashboardCacheType) {
+  if (typeof window !== 'undefined') {
+    // @ts-ignore
+    window.__dashboardCache = cache;
+  }
+}
+
 export default function DashboardPage() {
   return (
     <>
@@ -59,6 +82,8 @@ function DashboardContent() {
   const [techAnalysis, setTechAnalysis] = useState<TechAnalysis | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  const prevUsernameRef = useRef<string | null>(null);
+
   const [userApiStatus, setUserApiStatus] = useState<'connected' | 'fallback' | 'error'>('fallback');
   const [techApiStatus, setTechApiStatus] = useState<'connected' | 'fallback' | 'error'>('fallback');
   const [readmeApiStatus, setReadmeApiStatus] = useState<'connected' | 'fallback' | 'error'>('fallback');
@@ -70,58 +95,100 @@ function DashboardContent() {
     const usernameParam = searchParams.get('username');
     if (usernameParam) {
       setUsername(usernameParam);
-      fetchAllData(usernameParam);
+
+      const dashboardCache = getDashboardCache();
+      if (dashboardCache[usernameParam]) {
+        const cached = dashboardCache[usernameParam];
+        setUserData(cached.userData);
+        setCodeAnalysis(cached.codeAnalysis);
+        setReadmeAnalysis(cached.readmeAnalysis);
+        setTechAnalysis(cached.techAnalysis);
+        setError(null);
+        setLoading(false);
+        setReadmeLoading(false);
+      } else {
+        fetchAllData(usernameParam);
+      }
     }
   }, [searchParams]);
 
   const fetchAllData = async (user: string) => {
     setLoading(true);
     setError(null);
-    setReadmeAnalysis(null); // Reset readme data
+    setReadmeAnalysis(null);
     setReadmeApiStatus('fallback');
 
+
+    const dashboardCache = getDashboardCache();
+    if (prevUsernameRef.current && prevUsernameRef.current !== user) {
+      delete dashboardCache[prevUsernameRef.current];
+      setDashboardCache(dashboardCache);
+    }
+    prevUsernameRef.current = user;
+
     try {
-      // First fetch core data (user, code, tech) - these are required to show the dashboard
+
       const [userResult, codeResult, techResult] = await Promise.allSettled([
         fetchUserData(user),
         fetchCodeAnalysis(user),
         fetchTechAnalysis(user)
       ]);
 
+      let newUserData = null;
+      let newCodeAnalysis = null;
+      let newTechAnalysis = null;
+
       if (userResult.status === 'fulfilled') {
         setUserData(userResult.value);
+        newUserData = userResult.value;
         setUserApiStatus('connected');
       } else {
-        console.error('Failed to fetch user data:', userResult.reason);
+        setUserData(null);
         setUserApiStatus('error');
       }
 
       if (codeResult.status === 'fulfilled') {
         setCodeAnalysis(codeResult.value);
+        newCodeAnalysis = codeResult.value;
       } else {
-        console.error('Failed to fetch code analysis:', codeResult.reason);
+        setCodeAnalysis(null);
       }
 
       if (techResult.status === 'fulfilled') {
         setTechAnalysis(techResult.value);
+        newTechAnalysis = techResult.value;
         setTechApiStatus('connected');
       } else {
-        console.error('Failed to fetch tech analysis:', techResult.reason);
+        setTechAnalysis(null);
         setTechApiStatus('error');
       }
 
-      // Stop main loading after core data is fetched
       setLoading(false);
 
-      // Now fetch readme analysis separately
       setReadmeLoading(true);
       try {
         const readmeResult = await fetchReadmeAnalysis(user);
         setReadmeAnalysis(readmeResult);
         setReadmeApiStatus('connected');
+
+        dashboardCache[user] = {
+          userData: newUserData,
+          codeAnalysis: newCodeAnalysis,
+          techAnalysis: newTechAnalysis,
+          readmeAnalysis: readmeResult
+        };
+        setDashboardCache(dashboardCache);
       } catch (readmeError) {
-        console.error('Failed to fetch readme analysis:', readmeError);
+        setReadmeAnalysis(null);
         setReadmeApiStatus('error');
+
+        dashboardCache[user] = {
+          userData: newUserData,
+          codeAnalysis: newCodeAnalysis,
+          techAnalysis: newTechAnalysis,
+          readmeAnalysis: null
+        };
+        setDashboardCache(dashboardCache);
       } finally {
         setReadmeLoading(false);
       }
@@ -134,7 +201,7 @@ function DashboardContent() {
     }
   };
 
-  // Update: handleDemoDataLoad now takes a username argument
+
   const handleDemoDataLoad = (
     demoUserData: GithubUser,
     demoCodeAnalysis: CodeAnalysis[],
@@ -163,7 +230,6 @@ function DashboardContent() {
     <div className="min-h-screen bg-gradient-to-br from-background to-background/80">
       <Header />
       <main className="container mx-auto py-8 space-y-8">
-        {/* Search Bar in Content Body */}
         <form
           onSubmit={handleSearch}
           className="flex flex-col sm:flex-row items-center gap-4 sm:gap-2 mb-6 max-w-2xl mx-auto"
@@ -214,31 +280,23 @@ function DashboardContent() {
         )}
         {userData && !loading && (
           <div className="space-y-8">
-            {/* API Status Indicator */}
             <ApiStatusIndicator
               userApiStatus={userApiStatus}
               techApiStatus={techApiStatus}
               readmeApiStatus={readmeApiStatus}
             />
-            {/* User Profile Section */}
             <UserProfile user={userData} />
-            {/* Stats Grid */}
             <StatsGrid
               user={userData}
               codeAnalysis={codeAnalysis}
               techAnalysis={techAnalysis}
             />
-            {/* Main Analytics Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Repository Overview */}
               <RepositoryOverview repositories={userData.repositories} />
-              {/* Contribution Chart */}
               <ContributionChart contributions={userData.contributions} />
-              {/* Language Distribution */}
               {codeAnalysis && (
                 <LanguageDistribution codeAnalysis={codeAnalysis} />
               )}
-              {/* README Quality */}
               {readmeAnalysis ? (
                 <ReadmeQuality readmeAnalysis={readmeAnalysis} />
               ) : readmeLoading ? (
@@ -271,7 +329,6 @@ function DashboardContent() {
                 </Card>
               )}
             </div>
-            {/* Tech Stack Analysis */}
             {techAnalysis && (
               <TechStack techAnalysis={techAnalysis} />
             )}

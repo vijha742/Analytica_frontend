@@ -14,6 +14,8 @@ ChartJS.register(LineElement, PointElement, LinearScale, Title, Tooltip, Legend,
 interface UserCardProps {
   user: GithubUser;
   onUserNavigation?: (direction: 'prev' | 'next') => void;
+  isDialogOpen?: boolean;
+  onDialogOpenChange?: (open: boolean) => void;
 }
 
 function formatDate(dateStr: string | Date | null | undefined) {
@@ -24,8 +26,12 @@ function formatDate(dateStr: string | Date | null | undefined) {
 }
 
 
-export default function UserCard({ user, onUserNavigation }: UserCardProps) {
-  const [open, setOpen] = useState(false);
+export default function UserCard({ user, onUserNavigation, isDialogOpen, onDialogOpenChange }: UserCardProps) {
+  // Use external dialog control if provided, otherwise use internal state
+  const [internalOpen, setInternalOpen] = useState(false);
+  const open = isDialogOpen !== undefined ? isDialogOpen : internalOpen;
+  const setOpen = onDialogOpenChange || setInternalOpen;
+
   const [timeSeriesData, setTimeSeriesData] = useState<ContributionTimeSeriesAPI | null>(null);
   const [selectedTimeFrame, setSelectedTimeFrame] = useState<TimeFrame>(TimeFrame.WEEKLY);
   const [isLoadingChart, setIsLoadingChart] = useState(false);

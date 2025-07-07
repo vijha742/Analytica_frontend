@@ -77,11 +77,6 @@ export default function HomePage() {
   //   }
   // };
 
-  const handleSuggestedUserSelect = (user: GithubUser) => {
-    setSelectedUser(user);
-    setCurrentSection('suggested'); // Set current section to suggested when selecting from suggested users
-  };
-
   // Navigate between users in the current section
   const handleUserNavigation = (direction: 'prev' | 'next') => {
     if (!selectedUser) return;
@@ -285,15 +280,19 @@ export default function HomePage() {
               ) : (
                 suggestedUsers.map((user) => (
                   <div key={user.id}>
-                    <div
-                      onClick={() => handleSuggestedUserSelect(user)}
-                      className="cursor-pointer hover:shadow-lg transition-shadow"
-                    >
-                      <UserCard
-                        user={user}
-                        onUserNavigation={handleUserNavigation}
-                      />
-                    </div>
+                    <UserCard
+                      user={selectedUser && currentSection === 'suggested' && selectedUser.id === user.id ? selectedUser : user}
+                      onUserNavigation={selectedUser && currentSection === 'suggested' && selectedUser.id === user.id ? handleUserNavigation : undefined}
+                      isDialogOpen={selectedUser?.id === user.id && currentSection === 'suggested'}
+                      onDialogOpenChange={(open) => {
+                        if (!open) {
+                          setSelectedUser(null);
+                        } else {
+                          setSelectedUser(user);
+                          setCurrentSection('suggested');
+                        }
+                      }}
+                    />
                   </div>
                 ))
               )}

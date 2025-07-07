@@ -26,7 +26,9 @@ import {
   BookOpen,
   TrendingUp,
   Activity,
-  Zap
+  Zap,
+  User,
+  FolderGit2
 } from 'lucide-react';
 import { UserProfile } from '@/components/dashboard/UserProfile';
 import { RepositoryOverview } from '@/components/dashboard/RepositoryOverview';
@@ -34,9 +36,7 @@ import { ContributionChart } from '@/components/dashboard/ContributionChart';
 import { LanguageDistribution } from '@/components/dashboard/LanguageDistribution';
 import { ReadmeQuality } from '@/components/dashboard/ReadmeQuality';
 import { TechStack } from '@/components/dashboard/TechStack';
-import { DemoDataLoader } from '@/components/dashboard/DemoDataLoader';
 import { StatsGrid } from '@/components/dashboard/StatsGrid';
-import { ApiStatusIndicator } from '@/components/dashboard/ApiStatusIndicator';
 
 type DashboardCacheType = {
   [username: string]: {
@@ -278,11 +278,6 @@ function DashboardContent() {
         )}
         {userData && !loading && (
           <div className="space-y-8">
-            <ApiStatusIndicator
-              userApiStatus={userApiStatus}
-              techApiStatus={techApiStatus}
-              readmeApiStatus={readmeApiStatus}
-            />
             <UserProfile user={userData} />
             <StatsGrid
               user={userData}
@@ -333,37 +328,61 @@ function DashboardContent() {
           </div>
         )}
         {!userData && !loading && !error && (
-          <div className="text-center py-12 space-y-8">
-            <div className="max-w-md mx-auto">
-              <Activity className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <h2 className="text-2xl font-semibold mb-2">Welcome to Analytica</h2>
-              <p className="text-muted-foreground mb-6">
-                Enter a GitHub username above to start analyzing their development activity,
-                code quality, and technical skills.
+          <section className="flex flex-col items-center justify-center min-h-[65vh] py-12 w-full">
+            {/* Modern Hero Section */}
+            <div className="relative w-full max-w-2xl text-center mb-10">
+              <div className="absolute -top-10 left-1/2 -translate-x-1/2 z-0">
+                <img src="/globe.svg" alt="Dashboard Illustration" className="h-28 w-28 opacity-90 drop-shadow-xl animate-float" />
+              </div>
+              <h1 className="relative z-10 text-4xl md:text-5xl font-extrabold bg-gradient-to-r from-fuchsia-500 via-sky-400 to-emerald-400 bg-clip-text text-transparent mb-3 tracking-tight drop-shadow-lg">
+                GitHub Analytics, <span className="text-emerald-500">Reimagined</span>
+              </h1>
+              <p className="relative z-10 text-lg md:text-xl text-muted-foreground max-w-xl mx-auto mb-2">
+                Unlock deep insights into your GitHub journey. Visualize, analyze, and showcase your developer profile in a whole new way.
               </p>
-              <div className="flex flex-wrap gap-2 justify-center">
-                <Badge variant="secondary">
-                  <Code className="w-3 h-3 mr-1" />
-                  Code Analysis
-                </Badge>
-                <Badge variant="secondary">
-                  <TrendingUp className="w-3 h-3 mr-1" />
-                  Contribution Trends
-                </Badge>
-                <Badge variant="secondary">
-                  <BookOpen className="w-3 h-3 mr-1" />
-                  README Quality
-                </Badge>
-                <Badge variant="secondary">
-                  <Zap className="w-3 h-3 mr-1" />
-                  Tech Stack
-                </Badge>
+              <div className="flex justify-center gap-2 mt-4">
+                <span className="inline-block bg-primary/10 text-primary px-3 py-1 rounded-full text-xs font-medium">No login required</span>
+                <span className="inline-block bg-blue-500/10 text-blue-500 px-3 py-1 rounded-full text-xs font-medium">Instant results</span>
               </div>
             </div>
-            <div className="max-w-lg mx-auto">
-              <DemoDataLoader username={username} onDataLoad={handleDemoDataLoad} />
+            {/* Features Grid Modernized */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-7 max-w-5xl w-full px-2">
+              <div className="group flex flex-col items-center bg-gradient-to-br from-background/80 to-card/90 border border-border rounded-2xl p-7 shadow-lg hover:scale-[1.03] transition-transform cursor-pointer">
+                <User className="h-9 w-9 text-primary mb-2 group-hover:scale-110 transition-transform" />
+                <h3 className="font-semibold mb-1 text-lg">User Profile</h3>
+                <p className="text-sm text-muted-foreground text-center">See your GitHub avatar, bio, followers, and more.</p>
+              </div>
+              <div className="group flex flex-col items-center bg-gradient-to-br from-background/80 to-card/90 border border-border rounded-2xl p-7 shadow-lg hover:scale-[1.03] transition-transform cursor-pointer">
+                <Code className="h-9 w-9 text-primary mb-2 group-hover:scale-110 transition-transform" />
+                <h3 className="font-semibold mb-1 text-lg">Code Analysis</h3>
+                <p className="text-sm text-muted-foreground text-center">Language stats, code quality, and repo health at a glance.</p>
+              </div>
+              <div className="group flex flex-col items-center bg-gradient-to-br from-background/80 to-card/90 border border-border rounded-2xl p-7 shadow-lg hover:scale-[1.03] transition-transform cursor-pointer">
+                <TrendingUp className="h-9 w-9 text-primary mb-2 group-hover:scale-110 transition-transform" />
+                <h3 className="font-semibold mb-1 text-lg">Contribution Trends</h3>
+                <p className="text-sm text-muted-foreground text-center">Interactive charts of your commits, PRs, and activity.</p>
+              </div>
+              <div className="group flex flex-col items-center bg-gradient-to-br from-background/80 to-card/90 border border-border rounded-2xl p-7 shadow-lg hover:scale-[1.03] transition-transform cursor-pointer">
+                <BookOpen className="h-9 w-9 text-primary mb-2 group-hover:scale-110 transition-transform" />
+                <h3 className="font-semibold mb-1 text-lg">README Quality</h3>
+                <p className="text-sm text-muted-foreground text-center">Automated review of your project documentation.</p>
+              </div>
+              <div className="group flex flex-col items-center bg-gradient-to-br from-background/80 to-card/90 border border-border rounded-2xl p-7 shadow-lg hover:scale-[1.03] transition-transform cursor-pointer">
+                <FolderGit2 className="h-9 w-9 text-primary mb-2 group-hover:scale-110 transition-transform" />
+                <h3 className="font-semibold mb-1 text-lg">Repository Overview</h3>
+                <p className="text-sm text-muted-foreground text-center">Your top repositories, stars, forks, and more.</p>
+              </div>
+              <div className="group flex flex-col items-center bg-gradient-to-br from-background/80 to-card/90 border border-border rounded-2xl p-7 shadow-lg hover:scale-[1.03] transition-transform cursor-pointer">
+                <Zap className="h-9 w-9 text-primary mb-2 group-hover:scale-110 transition-transform" />
+                <h3 className="font-semibold mb-1 text-lg">Tech Stack</h3>
+                <p className="text-sm text-muted-foreground text-center">See the technologies and frameworks you use most.</p>
+              </div>
             </div>
-          </div>
+            {/* CTA Modern */}
+            <div className="text-center text-muted-foreground pt-8">
+              <span className="inline-block text-base font-medium bg-card/80 px-4 py-2 rounded-xl shadow">Enter a GitHub username above to see your personalized dashboard.</span>
+            </div>
+          </section>
         )}
       </main>
     </div>

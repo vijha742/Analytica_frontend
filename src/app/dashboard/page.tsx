@@ -8,28 +8,15 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import Header from '@/components/ui/Header';
-import {
-  fetchUserData,
-  fetchCodeAnalysis,
-  fetchReadmeAnalysis,
-  fetchTechAnalysis
-} from '@/lib/api-client';
+import AuthGuard from '@/components/AuthGuard';
+import { fetchUserData, fetchCodeAnalysis, fetchReadmeAnalysis, fetchTechAnalysis } from '@/lib/api-client';
 import {
   GithubUser,
   CodeAnalysis,
   ReadmeAnalysis,
   TechAnalysis
 } from '@/types/github';
-import {
-  Search,
-  Code,
-  BookOpen,
-  TrendingUp,
-  Activity,
-  Zap,
-  User,
-  FolderGit2
-} from 'lucide-react';
+import { Search, Code, BookOpen, TrendingUp, Activity, Zap, User, FolderGit2 } from 'lucide-react';
 import { UserProfile } from '@/components/dashboard/UserProfile';
 import { RepositoryOverview } from '@/components/dashboard/RepositoryOverview';
 import { ContributionChart } from '@/components/dashboard/ContributionChart';
@@ -62,11 +49,11 @@ function setDashboardCache(cache: DashboardCacheType) {
 
 export default function DashboardPage() {
   return (
-    <>
+    <AuthGuard>
       <Suspense>
         <DashboardContent />
       </Suspense>
-    </>
+    </AuthGuard>
   );
 }
 

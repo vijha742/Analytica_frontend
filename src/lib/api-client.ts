@@ -1,11 +1,11 @@
 import { GithubUser, ContributionTimeSeriesAPI, CodeAnalysis, ReadmeAnalysis, TechAnalysis } from '@/types/github';
+import { makeAuthenticatedRequest } from './auth-api';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export async function fetchTechAnalysis(username: string): Promise<TechAnalysis> {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/u/${username}/tech-analysis`);
-
+    const response = await fetch(`${API_BASE_URL}/api/public/u/${username}/tech-analysis`);
     if (!response.ok) {
       throw new Error(`API error: ${response.status}`);
     }
@@ -19,8 +19,7 @@ export async function fetchTechAnalysis(username: string): Promise<TechAnalysis>
 
 export async function fetchReadmeAnalysis(username: string): Promise<ReadmeAnalysis[]> {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/u/${username}/readme-analysis`);
-
+    const response = await fetch(`${API_BASE_URL}/api/public/u/${username}/readme-analysis`);
     if (!response.ok) {
       throw new Error(`API error: ${response.status}`);
     }
@@ -34,8 +33,7 @@ export async function fetchReadmeAnalysis(username: string): Promise<ReadmeAnaly
 
 export async function fetchCodeAnalysis(username: string): Promise<CodeAnalysis[]> {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/u/${username}/code-analysis`);
-
+    const response = await fetch(`${API_BASE_URL}/api/public/u/${username}/code-analysis`);
     if (!response.ok) {
       throw new Error(`API error: ${response.status}`);
     }
@@ -49,12 +47,10 @@ export async function fetchCodeAnalysis(username: string): Promise<CodeAnalysis[
 
 export async function fetchUserData(username: string): Promise<GithubUser> {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/users/${username}`);
-
+    const response = await fetch(`${API_BASE_URL}/api/public/users/${username}`);
     if (!response.ok) {
       throw new Error(`API error: ${response.status}`);
     }
-
     return await response.json();
   } catch (error) {
     console.error('Error fetching user data:', error);
@@ -63,7 +59,7 @@ export async function fetchUserData(username: string): Promise<GithubUser> {
 }
 
 export async function fetchUser(username: string): Promise<GithubUser> {
-  const response = await fetch(
+  const response = await makeAuthenticatedRequest(
     `${API_BASE_URL}/graphql`,
     {
       method: 'POST',
@@ -125,7 +121,7 @@ export async function fetchUser(username: string): Promise<GithubUser> {
 }
 
 export async function getSuggestedUsers(): Promise<GithubUser[]> {
-  const response = await fetch(`${API_BASE_URL}/api/suggested-users`);
+  const response = await makeAuthenticatedRequest(`${API_BASE_URL}/api/suggested-users`);
   if (!response.ok) {
     throw new Error('Failed to fetch suggested users');
   }
@@ -133,7 +129,7 @@ export async function getSuggestedUsers(): Promise<GithubUser[]> {
 }
 
 export async function suggestUser(githubUsername: string, suggestedBy: string): Promise<void> {
-  const response = await fetch(
+  const response = await makeAuthenticatedRequest(
     `${API_BASE_URL}/api/suggested-users?githubUsername=${encodeURIComponent(githubUsername)}&suggestedBy=${encodeURIComponent(suggestedBy)}`,
     {
       method: 'POST',
@@ -146,7 +142,7 @@ export async function suggestUser(githubUsername: string, suggestedBy: string): 
 
 export async function fetchContributionTimeSeries(username: string): Promise<ContributionTimeSeriesAPI> {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/users/${username}/contrib-cal`);
+    const response = await fetch(`${API_BASE_URL}/api/public/users/${username}/contrib-cal`);
 
     if (!response.ok) {
       throw new Error(`API error: ${response.status}`);
@@ -161,7 +157,7 @@ export async function fetchContributionTimeSeries(username: string): Promise<Con
 
 export const refreshUser = async (githubUsername: string): Promise<GithubUser> => {
   try {
-    const response = await fetch(
+    const response = await makeAuthenticatedRequest(
       `${API_BASE_URL}/graphql`,
       {
         method: 'POST',
@@ -257,7 +253,7 @@ export const refreshUser = async (githubUsername: string): Promise<GithubUser> =
 };
 
 export async function deactivateSuggestedUser(id: number): Promise<void> {
-  const response = await fetch(`${API_BASE_URL}/api/suggested-users/${id}`, {
+  const response = await makeAuthenticatedRequest(`${API_BASE_URL}/api/suggested-users/${id}`, {
     method: 'DELETE',
   });
   if (!response.ok) {
@@ -266,7 +262,7 @@ export async function deactivateSuggestedUser(id: number): Promise<void> {
 }
 
 export async function isUserSuggested(githubUsername: string): Promise<boolean> {
-  const response = await fetch(`${API_BASE_URL}/api/suggested-users/check/${encodeURIComponent(githubUsername)}`);
+  const response = await makeAuthenticatedRequest(`${API_BASE_URL}/api/suggested-users/check/${encodeURIComponent(githubUsername)}`);
   if (!response.ok) {
     throw new Error('Failed to check if user is suggested');
   }
@@ -282,7 +278,7 @@ export async function searchUsers(query: string, limit: number = 10, offset: num
   }
 
   try {
-    const response = await fetch(
+    const response = await makeAuthenticatedRequest(
       `${apiUrl}/graphql`,
       {
         method: 'POST',

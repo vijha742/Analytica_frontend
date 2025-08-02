@@ -121,16 +121,16 @@ export async function fetchUser(username: string): Promise<GithubUser> {
 }
 
 export async function getSuggestedUsers(): Promise<GithubUser[]> {
-  const response = await makeAuthenticatedRequest(`${API_BASE_URL}/api/suggested-users`);
+  const response = await makeAuthenticatedRequest(`${API_BASE_URL}/api/suggested-users?team=Classmates`);
   if (!response.ok) {
     throw new Error('Failed to fetch suggested users');
   }
   return response.json();
 }
 
-export async function suggestUser(githubUsername: string, suggestedBy: string): Promise<void> {
+export async function suggestUser(githubUsername: string, team: string): Promise<void> {
   const response = await makeAuthenticatedRequest(
-    `${API_BASE_URL}/api/suggested-users?githubUsername=${encodeURIComponent(githubUsername)}&suggestedBy=${encodeURIComponent(suggestedBy)}`,
+    `${API_BASE_URL}/api/suggested-users?githubUsername=${encodeURIComponent(githubUsername)}&team=${encodeURIComponent(team)}`,
     {
       method: 'POST',
     }

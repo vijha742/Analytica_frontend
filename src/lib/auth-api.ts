@@ -1,7 +1,7 @@
 import { getSession } from "next-auth/react";
 
 export async function makeAuthenticatedRequest(url: string, options: RequestInit = {}) {
-    // Get the current session to access the JWT token
+
     const session = await getSession();
 
     const defaultHeaders: Record<string, string> = {
@@ -9,7 +9,6 @@ export async function makeAuthenticatedRequest(url: string, options: RequestInit
         ...(options.headers as Record<string, string> || {}),
     };
 
-    // Add Authorization header if we have a backend JWT
     if (session?.backendJWT) {
         defaultHeaders['Authorization'] = `Bearer ${session.backendJWT}`;
     }

@@ -38,7 +38,16 @@ export default function LandingPage() {
             style={isDark ? { filter: 'invert(1)' } : {}}
           />
         </Link>
-        <div className="flex items-center">
+        <div className="flex items-center gap-4">
+          <Link href="/test" className="text-sm font-medium hover:text-primary transition-colors">
+            Test Auth
+          </Link>
+          <Link href="/dashboard" className="text-sm font-medium hover:text-primary transition-colors">
+            Dashboard
+          </Link>
+          <Link href="/home" className="text-sm font-medium hover:text-primary transition-colors">
+            Home
+          </Link>
           <ThemeToggle />
         </div>
       </div>

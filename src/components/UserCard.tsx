@@ -8,14 +8,19 @@ import { useMemo, useState, useEffect, useCallback } from 'react';
 import { fetchContributionTimeSeries } from '@/lib/api-client';
 import Image from 'next/image';
 import { Skeleton } from '@/components/ui/skeleton';
+import type { SuggestedUser } from '@/types/github';
+
+// Accept both GithubUser and SuggestedUser
+export type UserCardUser = GithubUser | SuggestedUser;
 
 ChartJS.register(LineElement, PointElement, LinearScale, Title, Tooltip, Legend, CategoryScale);
 
 interface UserCardProps {
-  user: GithubUser;
+  user: UserCardUser;
   onUserNavigation?: (direction: 'prev' | 'next') => void;
   isDialogOpen?: boolean;
   onDialogOpenChange?: (open: boolean) => void;
+  userType?: 'github' | 'suggested';
 }
 
 function formatDate(dateStr: string | Date | null | undefined) {
@@ -26,7 +31,7 @@ function formatDate(dateStr: string | Date | null | undefined) {
 }
 
 
-export default function UserCard({ user, onUserNavigation, isDialogOpen, onDialogOpenChange }: UserCardProps) {
+export default function UserCard({ user, onUserNavigation, isDialogOpen, onDialogOpenChange, userType = 'github' }: UserCardProps) {
   // Use external dialog control if provided, otherwise use internal state
   const [internalOpen, setInternalOpen] = useState(false);
   const open = isDialogOpen !== undefined ? isDialogOpen : internalOpen;
@@ -35,7 +40,7 @@ export default function UserCard({ user, onUserNavigation, isDialogOpen, onDialo
   const [timeSeriesData, setTimeSeriesData] = useState<ContributionTimeSeriesAPI | null>(null);
   const [selectedTimeFrame, setSelectedTimeFrame] = useState<TimeFrame>(TimeFrame.WEEKLY);
   const [isLoadingChart, setIsLoadingChart] = useState(false);
-  const [currentUser, setCurrentUser] = useState<GithubUser>(user);
+  const [currentUser, setCurrentUser] = useState<UserCardUser>(user);
 
   useEffect(() => {
     if (user) {
@@ -58,9 +63,9 @@ export default function UserCard({ user, onUserNavigation, isDialogOpen, onDialo
 
   // Fetch time series data when drawer opens or time frame changes
   useEffect(() => {
-    if (open && currentUser?.githubUsername) {
+    if (open && currentUser?.login) {
       setIsLoadingChart(true);
-      fetchContributionTimeSeries(currentUser.githubUsername)
+      fetchContributionTimeSeries(currentUser.login)
         .then((data) => {
           if (typeof data === 'object' && data !== null) {
             if ('weeks' in data && Array.isArray((data as { weeks: ContributionWeek[] }).weeks)) {
@@ -93,7 +98,7 @@ export default function UserCard({ user, onUserNavigation, isDialogOpen, onDialo
         })
         .finally(() => setIsLoadingChart(false));
     }
-  }, [open, currentUser?.githubUsername, selectedTimeFrame]);
+  }, [open, currentUser?.login, selectedTimeFrame]);
 
   // Most used languages
   const languageStats = useMemo(() => {
@@ -204,7 +209,7 @@ export default function UserCard({ user, onUserNavigation, isDialogOpen, onDialo
             <div className="relative w-16 h-16 shrink-0">
               <Image
                 src={currentUser.avatarUrl}
-                alt={`${currentUser.name || currentUser.githubUsername}'s avatar`}
+                alt={`${currentUser.name || currentUser.login}'s avatar`}
                 width={64}
                 height={64}
                 className="w-16 h-16 rounded-full object-cover border-2 border-indigo-200 dark:border-indigo-800"
@@ -217,9 +222,9 @@ export default function UserCard({ user, onUserNavigation, isDialogOpen, onDialo
           )}
           <div className="flex-1 min-w-0">
             <h2 className="text-xl font-bold text-gray-900 dark:text-white truncate">
-              {currentUser.name || currentUser.githubUsername}
+              {currentUser.name || (userType === 'suggested' ? currentUser.githubUsername : currentUser.login)}
             </h2>
-            <p className="text-indigo-600 dark:text-indigo-400 font-medium truncate">@{currentUser.githubUsername}</p>
+            <p className="text-indigo-600 dark:text-indigo-400 font-medium truncate">@{userType === 'suggested' ? currentUser.githubUsername : currentUser.login}</p>
             {currentUser.bio ? (
               <p className="mt-1 text-gray-600 dark:text-gray-300 text-sm line-clamp-2 min-h-[2.5rem]">
                 {currentUser.bio}
@@ -233,7 +238,7 @@ export default function UserCard({ user, onUserNavigation, isDialogOpen, onDialo
           {/* target="_blank" */}
           <div className="flex flex-col relative top-[-3vh]" >
             <a
-              href={`https://github.com/${currentUser.githubUsername}`}
+              href={`https://github.com/${userType === 'suggested' ? currentUser.githubUsername : currentUser.login}`}
               rel="noopener noreferrer"
               className="px-3 py-1  rounded-md bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold shadow transition-colors"
             >
@@ -266,7 +271,7 @@ export default function UserCard({ user, onUserNavigation, isDialogOpen, onDialo
           </div>
           <div className="flex flex-col items-center">
             <FiGitBranch className="w-4 h-4 text-indigo-500 mb-0.5" />
-            <span className="font-semibold text-gray-900 dark:text-white text-sm">{currentUser.publicReposCount || 0}</span>
+            <span className="font-semibold text-gray-900 dark:text-white text-sm">{userType === 'suggested' ? currentUser.publicReposCount : currentUser.public_repos || 0}</span>
             <span className="text-xs text-gray-500 dark:text-gray-400">Repos</span>
           </div>
           <div className="flex flex-col items-center">
@@ -290,7 +295,7 @@ export default function UserCard({ user, onUserNavigation, isDialogOpen, onDialo
           <div className="mt-2 p-2 rounded-lg bg-gray-100 dark:bg-gray-800">
             <div className="flex items-center justify-between">
               <span className="font-semibold text-gray-900 dark:text-white text-sm">Recently Updated Repo:</span>
-              <span className="text-xs text-gray-500 dark:text-gray-400">{formatDate(recentRepo.updatedAt)}</span>
+              <span className="text-xs text-gray-500 dark:text-gray-400">{formatDate(userType === 'suggested' ? currentUser.lastRefreshed : currentUser.updated_at)}</span>
             </div>
             <div className="mt-1">
               <span className="font-semibold text-indigo-700 dark:text-indigo-300 text-sm">{recentRepo.name}</span>
@@ -327,8 +332,8 @@ export default function UserCard({ user, onUserNavigation, isDialogOpen, onDialo
           </Dialog.Close>
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-0">
-              {currentUser.name || currentUser.githubUsername}{" "}
-              <span className="text-indigo-600 dark:text-indigo-400">@{currentUser.githubUsername}</span>
+              {currentUser.name || (userType === 'suggested' ? currentUser.githubUsername : currentUser.login)}{" "}
+              <span className="text-indigo-600 dark:text-indigo-400">@{userType === 'suggested' ? currentUser.githubUsername : currentUser.login}</span>
             </h2>
             {/* <button
               onClick={handleRefresh}
@@ -461,7 +466,7 @@ export default function UserCard({ user, onUserNavigation, isDialogOpen, onDialo
                           )}
                         </div>
                         <div className="text-xs text-gray-500 dark:text-gray-400">
-                          Updated {formatDate(repo.updatedAt)}
+                          Updated {formatDate(userType === 'suggested' ? currentUser.lastRefreshed : currentUser.updated_at)}
                         </div>
                       </div>
                     </div>

@@ -16,7 +16,7 @@ export default function SimpleUserCard({ user, onSelect }: SimpleUserCardProps) 
       {user.avatarUrl ? (
         <Image
           src={user.avatarUrl}
-          alt={`${user.name || user.githubUsername}'s avatar`}
+          alt={`${user.name || user.login}'s avatar`}
           width={48}
           height={48}
           className="w-12 h-12 rounded-full object-cover border-2 border-indigo-200 dark:border-indigo-800"
@@ -28,14 +28,14 @@ export default function SimpleUserCard({ user, onSelect }: SimpleUserCardProps) 
       )}
       <div className="ml-4 flex-1">
         <h3 className="text-lg font-bold text-gray-900 dark:text-white truncate">
-          {user.name || user.githubUsername}
+          {user.name || user.login}
         </h3>
         <p className="text-indigo-600 dark:text-indigo-400 font-medium truncate">
-          @{user.githubUsername}
+          @{user.login}
         </p>
       </div>
       <a
-        href={`https://github.com/${user.githubUsername}`}
+        href={`https://github.com/${user.login}`}
         target="_blank"
         rel="noopener noreferrer"
         className="ml-4 text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300"

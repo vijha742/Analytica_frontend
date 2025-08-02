@@ -24,7 +24,7 @@ export function UserProfile({ user }: UserProfileProps) {
               {user.avatarUrl ? (
                 <Image
                   src={user.avatarUrl}
-                  alt={user.name || user.githubUsername}
+                  alt={user.name || user.login}
                   width={100}
                   height={100}
                   className="w-24 h-24 sm:w-32 sm:h-32 rounded-full border-4 border-background shadow-lg"
@@ -39,9 +39,9 @@ export function UserProfile({ user }: UserProfileProps) {
             <div className="flex-1 space-y-2">
               <div>
                 <h1 className="text-2xl sm:text-3xl font-bold">
-                  {user.name || user.githubUsername}
+                  {user.name || user.login}
                 </h1>
-                <p className="text-muted-foreground text-lg">@{user.githubUsername}</p>
+                <p className="text-muted-foreground text-lg">@{user.login}</p>
               </div>
 
               {user.bio && (
@@ -59,11 +59,11 @@ export function UserProfile({ user }: UserProfileProps) {
                 </div>
                 <div className="flex items-center gap-1">
                   <GitBranch className="w-4 h-4" />
-                  <span>{user.publicReposCount} repositories</span>
+                  <span>{user.public_repos} repositories</span>
                 </div>
                 <div className="flex items-center gap-1">
                   <Calendar className="w-4 h-4" />
-                  <span>Last updated {new Date(user.lastUpdated).toLocaleDateString()}</span>
+                  <span>Last updated {new Date(user.updated_at).toLocaleDateString()}</span>
                 </div>
               </div>
             </div>

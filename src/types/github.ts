@@ -19,6 +19,21 @@ export interface Contribution {
 
 export interface GithubUser {
   id: string;
+  login: string;
+  name: string;
+  email: string;
+  avatarUrl: string;
+  bio: string;
+  followersCount: number;
+  followingCount: number;
+  public_repos: number;
+  repositories: Repository[];
+  contributions: Contribution[];
+  updated_at: string;
+}
+
+export interface SuggestedUser {
+  id: string;
   githubUsername: string;
   name: string;
   email: string;
@@ -27,9 +42,11 @@ export interface GithubUser {
   followersCount: number;
   followingCount: number;
   publicReposCount: number;
-  repositories: Repository[];
+  totalContributions: number;
   contributions: Contribution[];
-  lastUpdated: string;
+  repositories: Repository[];
+  lastRefreshed: string;
+  group: string;
 }
 
 export interface LanguageDistribution {

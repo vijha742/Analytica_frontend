@@ -13,7 +13,7 @@ interface StatsGridProps {
 export function StatsGrid({ user, codeAnalysis, techAnalysis }: StatsGridProps) {
   const totalContributions = user.contributions.reduce((sum, contrib) => sum + contrib.count, 0);
   const totalLinesOfCode = codeAnalysis?.reduce((sum, project) => sum + project.totalLines, 0) || 0;
-  const averageComplexity = codeAnalysis?.length
+  const averageComplexity = codeAnalysis?.length 
     ? Math.round(codeAnalysis.reduce((sum, project) => sum + project.complexityScore, 0) / codeAnalysis.length)
     : 0;
   const languageCount = techAnalysis?.primaryLanguages.length || 0;
@@ -49,7 +49,7 @@ export function StatsGrid({ user, codeAnalysis, techAnalysis }: StatsGridProps) 
     },
     {
       title: 'Public Repositories',
-      value: (user.public_repos ?? 0).toString(),
+      value: user.publicReposCount.toString(),
       icon: FileText,
       description: 'Open source projects',
       color: 'text-indigo-500'

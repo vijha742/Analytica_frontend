@@ -1,37 +1,30 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getToken } from 'next-auth/jwt';
 
 export async function POST(request: NextRequest) {
     try {
-        const token = await getToken({ req: request, secret: process.env.NEXTAUTH_SECRET });
-
-        if (!token || !token.githubAccessToken) {
-            return NextResponse.json({ error: 'No GitHub access token found' }, { status: 401 });
+        // Get refreshToken from cookies
+        const refreshToken = request.cookies.get('refreshToken')?.value;
+        if (!refreshToken) {
+            return NextResponse.json({ error: 'No refresh token found' }, { status: 401 });
         }
 
-        const backendResponse = await fetch(`${process.env.SPRING_BOOT_BACKEND_URL}/auth/signin`, {
+        // Call backend to refresh JWT
+        const backendResponse = await fetch(`${process.env.SPRING_BOOT_BACKEND_URL}/auth/refresh-jwt`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({
-                access_token: token.githubAccessToken,
-                userObject: {
-                    email: token.email,
-                    name: token.name,
-                    imageUrl: token.picture,
-                    githubId: token.sub
-                }
-            }),
+            body: JSON.stringify({ refreshToken }),
         });
 
         if (!backendResponse.ok) {
-            return NextResponse.json({ error: 'Backend authentication failed' }, { status: 401 });
+            return NextResponse.json({ error: 'Failed to refresh JWT' }, { status: 401 });
         }
 
         const backendData = await backendResponse.json();
-        const response = NextResponse.json({ success: true, user: backendData.user });
+        const response = NextResponse.json({ success: true });
 
+        // Update JWT and refreshToken cookies
         if (backendData.jwtToken) {
             response.cookies.set('jwt', backendData.jwtToken, {
                 httpOnly: true,
@@ -46,14 +39,14 @@ export async function POST(request: NextRequest) {
                 httpOnly: true,
                 secure: process.env.NODE_ENV === 'production',
                 sameSite: 'lax',
-                maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+                maxAge: 7 * 24 * 60 * 60 * 1000,
                 path: '/'
             });
         }
 
         return response;
     } catch (error) {
-        console.error('Error in backend JWT exchange:', error);
+        console.error('Error refreshing JWT:', error);
         return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
 }

@@ -155,102 +155,19 @@ export async function fetchContributionTimeSeries(username: string): Promise<Con
   }
 }
 
-export const refreshUser = async (githubUsername: string): Promise<GithubUser> => {
+export const refreshUser = async (githubUsername: string, team: string): Promise<GithubUser> => {
   try {
-    const response = await makeAuthenticatedRequest(
-      `${API_BASE_URL}/graphql`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          query: `
-            mutation($githubUsername: String!) {
-              refreshUserData(githubUsername: $githubUsername) {
-                id
-                githubUsername
-                name
-                email
-                avatarUrl
-                bio
-                followersCount
-                followingCount
-                publicReposCount
-                totalContributions
-                lastUpdated
-                repositories {
-                  id
-                  name
-                  description
-                  language
-                  stargazerCount
-                  forkCount
-                  isPrivate
-                  createdAt
-                  updatedAt
-                }
-                contributions {
-                  id
-                  date
-                  count
-                  type
-                }
-              }
-            }
-          `,
-          variables: {
-            githubUsername,
-          },
-        }),
-      }
-    );
-
+    const response = await makeAuthenticatedRequest(`${API_BASE_URL}/api/suggested-users/refresh?githubUsername=${encodeURIComponent(githubUsername)}&team=${encodeURIComponent(team)}`, { method: 'POST', });
     if (!response.ok) {
-      throw new Error(`Failed to refresh user data: ${response.status} ${response.statusText}`);
+      throw new Error(`API error: ${response.status}`);
     }
 
-    const data = await response.json();
-
-    if (data.errors && data.errors.length > 0) {
-      console.error('GraphQL errors:', data.errors);
-      throw new Error(data.errors[0].message || 'Error refreshing user data');
-    }
-
-    if (!data.data?.refreshUserData) {
-      throw new Error('No user data returned from refresh');
-    }
-
-    // Convert the backend SuggestedUser data to match our frontend GithubUser interface
-    const userData = data.data.refreshUserData;
-
-    // Map the response to our GithubUser type, adjusting any field mismatches
-    const mappedUser: GithubUser = {
-      ...userData,
-      repositories: userData.repositories.map((repo: {
-        id: string;
-        name: string;
-        description: string;
-        language: string;
-        stargazerCount: number;
-        forkCount: number;
-        isPrivate: boolean;
-        createdAt: string;
-        updatedAt: string;
-      }) => ({
-        ...repo,
-      })),
-      lastUpdated: userData.lastUpdated || new Date().toISOString(),
-    };
-
-    return mappedUser;
+    return await response.json();
   } catch (error) {
-    console.error('Error in refreshUser:', error);
-    throw error instanceof Error
-      ? error
-      : new Error('Failed to refresh user data. Please try again later.');
+    console.error('Error fetching code analysis:', error);
+    throw error;
   }
-};
+}
 
 export async function deactivateSuggestedUser(id: number): Promise<void> {
   const response = await makeAuthenticatedRequest(`${API_BASE_URL}/api/suggested-users/${id}`, {

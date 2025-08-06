@@ -109,7 +109,7 @@ export default function PreviewSection() {
 
           <div className="text-center mt-12">
 
-            <Link href="/home">
+            <Link href="/auth/signin">
               <Button size="lg" className="gap-2">
                 <Github className="h-5 w-5" />
                 Connect with GitHub

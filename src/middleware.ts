@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getToken } from 'next-auth/jwt';
+import { jwtDecode } from 'jwt-decode';
 
 const PUBLIC_PATHS = ['/', '/about', '/api/auth', '/_next', '/favicon.ico', '/auth'];
 
@@ -11,11 +12,57 @@ export async function middleware(req: NextRequest) {
         return NextResponse.next();
     }
 
-    // Check for NextAuth session token
-    const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
+    // Check for JWT cookie
+    const jwt = req.cookies.get('jwt')?.value;
+    const refreshToken = req.cookies.get('refreshToken')?.value;
 
-    if (!token) {
-        // Redirect to sign-in if not authenticated
+    let isJwtValid = false;
+    if (jwt) {
+        try {
+            const decoded: any = jwtDecode(jwt);
+            // JWT exp is in seconds
+            const now = Math.floor(Date.now() / 1000);
+            if (decoded.exp && decoded.exp > now) {
+                isJwtValid = true;
+            }
+        } catch (e) {
+            // Invalid JWT
+        }
+    }
+
+    if (!isJwtValid && refreshToken) {
+        // Try to refresh JWT
+        try {
+            const refreshRes = await fetch(`${req.nextUrl.origin}/api/auth/refresh-jwt`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                // cookies are sent automatically in edge runtime
+            });
+            if (refreshRes.ok) {
+                // Get new cookies from response
+                const res = NextResponse.next();
+                const setCookie = refreshRes.headers.get('set-cookie');
+                if (setCookie) {
+                    // Set cookies from refresh response
+                    res.headers.set('set-cookie', setCookie);
+                }
+                return res;
+            } else {
+                // Refresh failed, redirect to sign-in
+                const signInUrl = new URL('/api/auth/signin', req.url);
+                signInUrl.searchParams.set('callbackUrl', req.url);
+                return NextResponse.redirect(signInUrl);
+            }
+        } catch (e) {
+            // Error during refresh, redirect to sign-in
+            const signInUrl = new URL('/api/auth/signin', req.url);
+            signInUrl.searchParams.set('callbackUrl', req.url);
+            return NextResponse.redirect(signInUrl);
+        }
+    }
+
+    if (!isJwtValid) {
+        // No valid JWT and no refresh token, redirect to sign-in
         const signInUrl = new URL('/api/auth/signin', req.url);
         signInUrl.searchParams.set('callbackUrl', req.url);
         return NextResponse.redirect(signInUrl);

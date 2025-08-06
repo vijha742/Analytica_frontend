@@ -30,6 +30,7 @@ export interface GithubUser {
   repositories: Repository[];
   contributions: Contribution[];
   lastUpdated: string;
+  team: string;
 }
 
 export interface LanguageDistribution {

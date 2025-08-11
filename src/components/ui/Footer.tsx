@@ -1,4 +1,4 @@
-import { Github } from "lucide-react";
+import Image from "next/image";
 import { useEffect, useState } from 'react';
 
 export default function Footer() {
@@ -22,10 +22,14 @@ export default function Footer() {
 				<div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center md:text-left justify-center">
 					<div className="flex flex-col items-center md:items-start self-start">
 						<div className="flex items-center gap-2 justify-center md:justify-start">
-							<img
+							<Image
 								src="/image2vector(1).svg"
+								alt="Analytica Logo"
 								className="max-h-15 w-auto"
 								style={isDark ? { filter: 'invert(1)' } : {}}
+								width={48}
+								height={48}
+								priority
 							/>
 						</div>
 						<p className="text-muted-foreground mb-4 max-w-md">

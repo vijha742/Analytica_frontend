@@ -1,4 +1,5 @@
 'use client';
+import Image from "next/image";
 
 import HeroSection from '@/components/ui/HeroSection';
 import FeaturesSection from '@/components/ui/FeaturesSection';
@@ -10,7 +11,6 @@ import PreviewSection from '@/components/ui/PreviewSection';
 import Footer from '@/components/ui/Footer';
 import ThemeToggle from '@/components/ui/ThemeToggle';
 import { useEffect, useState } from 'react';
-import { Github } from 'lucide-react';
 import Link from 'next/link';
 
 export default function LandingPage() {
@@ -32,10 +32,14 @@ export default function LandingPage() {
       {/* <Header /> */}
       <div className="sticky top-0 z-50 bg-background/80 backdrop-blur flex items-center gap-2 justify-between w-full py-2 px-4">
         <Link href="/" className="flex items-center space-x-2">
-          <img
+          <Image
             src="/image2vector(1).svg"
+            alt="Analytica Logo"
             className="max-h-12 w-auto"
             style={isDark ? { filter: 'invert(1)' } : {}}
+            width={48}
+            height={48}
+            priority
           />
         </Link>
         <div className="flex items-center">

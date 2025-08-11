@@ -1,3 +1,4 @@
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import NextAuth from "next-auth";
 
 declare module "next-auth" {
@@ -6,7 +7,7 @@ declare module "next-auth" {
     backendJWT?: string;
     refreshToken?: string;
   }
-  
+
   interface JWT {
     githubAccessToken?: string;
     backendJWT?: string;

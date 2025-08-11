@@ -1,8 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getToken } from 'next-auth/jwt';
 import { jwtDecode } from 'jwt-decode';
 
 const PUBLIC_PATHS = ['/', '/about', '/api/auth', '/_next', '/favicon.ico', '/auth'];
+
+
+type decodedJwt = {
+    sub: string;
+    iat: number;
+    exp: number;
+}
 
 export async function middleware(req: NextRequest) {
     const { pathname } = req.nextUrl;
@@ -19,14 +25,14 @@ export async function middleware(req: NextRequest) {
     let isJwtValid = false;
     if (jwt) {
         try {
-            const decoded: any = jwtDecode(jwt);
+            const decoded: decodedJwt = jwtDecode(jwt);
             // JWT exp is in seconds
             const now = Math.floor(Date.now() / 1000);
             if (decoded.exp && decoded.exp > now) {
                 isJwtValid = true;
             }
         } catch (e) {
-            // Invalid JWT
+            console.log("Invalid JWT" + e)
         }
     }
 
@@ -55,6 +61,7 @@ export async function middleware(req: NextRequest) {
             }
         } catch (e) {
             // Error during refresh, redirect to sign-in
+            console.log("Redirecting to sign-in, error log: " + e)
             const signInUrl = new URL('/api/auth/signin', req.url);
             signInUrl.searchParams.set('callbackUrl', req.url);
             return NextResponse.redirect(signInUrl);

@@ -7,11 +7,18 @@ import { Badge } from "@/components/ui/badge";
 import { backendApiRequest } from "@/lib/auth-api";
 import { Activity, Database, Shield } from "lucide-react";
 
+type TestResult = {
+    test: string;
+    result: unknown;
+    success: boolean;
+    timestamp: Date;
+};
+
 export default function BackendTestComponent() {
-    const [testResults, setTestResults] = useState<any[]>([]);
+    const [testResults, setTestResults] = useState<TestResult[]>([]);
     const [loading, setLoading] = useState(false);
 
-    const addTestResult = (test: string, result: any, success: boolean) => {
+    const addTestResult = (test: string, result: unknown, success: boolean) => {
         setTestResults(prev => [...prev, { test, result, success, timestamp: new Date() }]);
     };
 
@@ -19,7 +26,6 @@ export default function BackendTestComponent() {
         setLoading(true);
         setTestResults([]);
 
-        // Test 1: Validate JWT Token
         try {
             const validateResult = await backendApiRequest('/api/validate');
             addTestResult('JWT Validation', validateResult, true);

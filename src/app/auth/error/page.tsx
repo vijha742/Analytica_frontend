@@ -1,12 +1,13 @@
 "use client";
 
+import { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { AlertCircle, Home, RefreshCw } from "lucide-react";
 import Link from "next/link";
 
-export default function AuthErrorPage() {
+function AuthErrorPage() {
     const searchParams = useSearchParams();
     const error = searchParams.get("error");
 
@@ -80,5 +81,13 @@ export default function AuthErrorPage() {
                 </CardContent>
             </Card>
         </div>
+    );
+}
+
+export default function AuthErrorPageWithSuspense() {
+    return (
+        <Suspense>
+            <AuthErrorPage />
+        </Suspense>
     );
 }

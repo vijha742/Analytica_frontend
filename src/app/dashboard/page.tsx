@@ -5,10 +5,10 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import Header from '@/components/ui/Header';
 import AuthGuard from '@/components/AuthGuard';
+import Image from 'next/image';
 import { fetchUserData, fetchCodeAnalysis, fetchReadmeAnalysis, fetchTechAnalysis } from '@/lib/api-client';
 import {
   GithubUser,
@@ -16,7 +16,7 @@ import {
   ReadmeAnalysis,
   TechAnalysis
 } from '@/types/github';
-import { Search, Code, BookOpen, TrendingUp, Activity, Zap, User, FolderGit2 } from 'lucide-react';
+import { Search, Code, BookOpen, TrendingUp, Zap, User, FolderGit2 } from 'lucide-react';
 import { UserProfile } from '@/components/dashboard/UserProfile';
 import { RepositoryOverview } from '@/components/dashboard/RepositoryOverview';
 import { ContributionChart } from '@/components/dashboard/ContributionChart';
@@ -60,7 +60,6 @@ export default function DashboardPage() {
 function DashboardContent() {
   const [username, setUsername] = useState('');
   const [loading, setLoading] = useState(false);
-  const [readmeLoading, setReadmeLoading] = useState(false);
   const [userData, setUserData] = useState<GithubUser | null>(null);
   const [codeAnalysis, setCodeAnalysis] = useState<CodeAnalysis[] | null>(null);
   const [readmeAnalysis, setReadmeAnalysis] = useState<ReadmeAnalysis[] | null>(null);
@@ -69,9 +68,9 @@ function DashboardContent() {
 
   const prevUsernameRef = useRef<string | null>(null);
 
-  const [userApiStatus, setUserApiStatus] = useState<'connected' | 'fallback' | 'error'>('fallback');
-  const [techApiStatus, setTechApiStatus] = useState<'connected' | 'fallback' | 'error'>('fallback');
-  const [readmeApiStatus, setReadmeApiStatus] = useState<'connected' | 'fallback' | 'error'>('fallback');
+  // const [userApiStatus, setUserApiStatus] = useState<'connected' | 'fallback' | 'error'>('fallback');
+  // const [techApiStatus, setTechApiStatus] = useState<'connected' | 'fallback' | 'error'>('fallback');
+  // const [readmeApiStatus, setReadmeApiStatus] = useState<'connected' | 'fallback' | 'error'>('fallback');
 
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -90,7 +89,6 @@ function DashboardContent() {
         setTechAnalysis(cached.techAnalysis);
         setError(null);
         setLoading(false);
-        setReadmeLoading(false);
       } else {
         fetchAllData(usernameParam);
       }
@@ -101,7 +99,6 @@ function DashboardContent() {
     setLoading(true);
     setError(null);
     setReadmeAnalysis(null);
-    setReadmeApiStatus('fallback');
 
 
     const dashboardCache = getDashboardCache();
@@ -126,10 +123,8 @@ function DashboardContent() {
       if (userResult.status === 'fulfilled') {
         setUserData(userResult.value);
         newUserData = userResult.value;
-        setUserApiStatus('connected');
       } else {
         setUserData(null);
-        setUserApiStatus('error');
       }
 
       if (codeResult.status === 'fulfilled') {
@@ -142,19 +137,15 @@ function DashboardContent() {
       if (techResult.status === 'fulfilled') {
         setTechAnalysis(techResult.value);
         newTechAnalysis = techResult.value;
-        setTechApiStatus('connected');
       } else {
         setTechAnalysis(null);
-        setTechApiStatus('error');
       }
 
       setLoading(false);
 
-      setReadmeLoading(true);
       try {
         const readmeResult = await fetchReadmeAnalysis(user);
         setReadmeAnalysis(readmeResult);
-        setReadmeApiStatus('connected');
 
         dashboardCache[user] = {
           userData: newUserData,
@@ -165,7 +156,6 @@ function DashboardContent() {
         setDashboardCache(dashboardCache);
       } catch {
         setReadmeAnalysis(null);
-        setReadmeApiStatus('error');
 
         dashboardCache[user] = {
           userData: newUserData,
@@ -175,34 +165,16 @@ function DashboardContent() {
         };
         setDashboardCache(dashboardCache);
       } finally {
-        setReadmeLoading(false);
       }
 
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
-      setUserApiStatus('error');
-      setTechApiStatus('error');
       setLoading(false);
     }
   };
 
 
-  const handleDemoDataLoad = (
-    demoUserData: GithubUser,
-    demoCodeAnalysis: CodeAnalysis[],
-    demoReadmeAnalysis: ReadmeAnalysis[],
-    demoTechAnalysis: TechAnalysis
-  ) => {
-    setUserData(demoUserData);
-    setCodeAnalysis(demoCodeAnalysis);
-    setReadmeAnalysis(demoReadmeAnalysis);
-    setTechAnalysis(demoTechAnalysis);
-    setUsername(demoUserData.githubUsername);
-    setUserApiStatus('fallback');
-    setReadmeApiStatus('fallback');
-    setTechApiStatus('fallback');
-    router.push(`/dashboard?username=${demoUserData.githubUsername}`);
-  };
+  // Removed unused handleDemoDataLoad to fix eslint error
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -277,36 +249,8 @@ function DashboardContent() {
               {codeAnalysis && (
                 <LanguageDistribution codeAnalysis={codeAnalysis} />
               )}
-              {readmeAnalysis ? (
+              {readmeAnalysis && (
                 <ReadmeQuality readmeAnalysis={readmeAnalysis} />
-              ) : readmeLoading ? (
-                <Card>
-                  <CardHeader>
-                    <Skeleton className="h-4 w-32" />
-                    <Skeleton className="h-3 w-24" />
-                  </CardHeader>
-                  <CardContent>
-                    <Skeleton className="h-20 w-full" />
-                  </CardContent>
-                </Card>
-              ) : readmeApiStatus === 'error' ? (
-                <Card className="border-muted">
-                  <CardHeader>
-                    <h3 className="text-lg font-semibold">README Quality</h3>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-muted-foreground">Failed to load README analysis</p>
-                  </CardContent>
-                </Card>
-              ) : (
-                <Card className="border-muted">
-                  <CardHeader>
-                    <h3 className="text-lg font-semibold">README Quality</h3>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-muted-foreground">README analysis not available</p>
-                  </CardContent>
-                </Card>
               )}
             </div>
             {techAnalysis && (
@@ -319,7 +263,7 @@ function DashboardContent() {
             {/* Modern Hero Section */}
             <div className="relative w-full max-w-2xl text-center mb-10">
               <div className="absolute -top-10 left-1/2 -translate-x-1/2 z-0">
-                <img src="/globe.svg" alt="Dashboard Illustration" className="h-28 w-28 opacity-90 drop-shadow-xl animate-float" />
+                <Image src="/globe.svg" alt="Dashboard Illustration" className="h-28 w-28 opacity-90 drop-shadow-xl animate-float" />
               </div>
               <h1 className="relative z-10 text-4xl md:text-5xl font-extrabold bg-gradient-to-r from-fuchsia-500 via-sky-400 to-emerald-400 bg-clip-text text-transparent mb-3 tracking-tight drop-shadow-lg">
                 GitHub Analytics, <span className="text-emerald-500">Reimagined</span>

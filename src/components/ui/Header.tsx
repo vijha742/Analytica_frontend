@@ -1,8 +1,10 @@
 'use client';
+import Image from "next/image";
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import ThemeToggle from "@/components/ui/ThemeToggle";
-import { Github, Menu, X } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import Link from "next/link";
 
 export default function Header() {
@@ -25,10 +27,14 @@ export default function Header() {
       <div className="container flex h-16 items-center justify-between">
         <div className="flex items-center gap-2">
           <Link href="/" className="flex items-center space-x-2">
-            <img
+            <Image
               src="/image2vector(1).svg"
+              alt="Analytica Logo"
               className="max-h-12 w-auto"
               style={isDark ? { filter: 'invert(1)' } : {}}
+              width={48}
+              height={48}
+              priority
             />
           </Link>
         </div>

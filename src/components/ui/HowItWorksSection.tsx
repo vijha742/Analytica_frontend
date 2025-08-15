@@ -79,7 +79,7 @@ export default function HowItWorksSection() {
 									Connect your GitHub account and start exploring.
 								</p>
 							</div>
-							<Link href="/home">
+							<Link href="/auth/signin">
 								<button className="bg-primary text-primary-foreground px-6 py-2 rounded-md hover:opacity-90 transition-opacity flex items-center gap-2">
 									<Github className="h-5 w-5" />
 									Connect with GitHub

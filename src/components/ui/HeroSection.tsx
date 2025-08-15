@@ -18,29 +18,29 @@ export default function HeroSection() {
               <span className="flex h-2 w-2 rounded-full bg-primary mr-2"></span>
               Analyze GitHub like never before
             </div>
-            
+
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight mb-6">
               <span className="gradient-text">Track.</span> <span className="gradient-text">Analyze.</span> <span className="gradient-text">Collaborate.</span>
             </h1>
-            
+
             <p className="text-xl text-muted-foreground mb-8 max-w-xl">
               Discover developer insights and uncover collaboration opportunities through GitHub data.
             </p>
-            
+
             <div className="flex flex-wrap gap-4 justify-center lg:justify-start">
-              <a href="/home" className="flex items-center">
+              <a href="/auth/signin" className="flex items-center">
                 <Button size="lg" className="gap-2">
                   <Github className="h-5 w-5" />
                   Get Started
                 </Button>
               </a>
-              
+
               <Button size="lg" variant="outline" className="gap-2">
                 Learn More
               </Button>
             </div>
-         </div>
-          
+          </div>
+
           <div className="relative flex justify-center lg:justify-end animate-fade-in">
             <div className="max-w-lg w-full rounded-xl border bg-card-comp bg-card-comp p-4 shadow-lg card-gradient">
               <div className="flex items-center justify-between mb-4">
@@ -63,8 +63,8 @@ export default function HeroSection() {
                     {[0, 1, 2, 3, 4, 5, 6].map((day) => (
                       <div key={day} className="flex flex-col items-center">
                         <div className="h-24 w-8 flex flex-col-reverse">
-                          <div 
-                            className="w-full bg-blue-500 rounded-sm" 
+                          <div
+                            className="w-full bg-blue-500 rounded-sm"
                             style={{ height: `${Math.random() * 70 + 10}%` }}
                           ></div>
                         </div>

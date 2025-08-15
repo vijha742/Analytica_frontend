@@ -35,10 +35,10 @@ export default function LandingPage() {
           <Image
             src="/image2vector(1).svg"
             alt="Analytica Logo"
-            className="max-h-12 w-auto"
-            style={isDark ? { filter: 'invert(1)' } : {}}
             width={48}
             height={48}
+            className="max-h-12 w-auto"
+            style={isDark ? { filter: 'invert(1)' } : {}}
             priority
           />
         </Link>

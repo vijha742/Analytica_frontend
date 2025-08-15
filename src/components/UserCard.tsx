@@ -1,11 +1,10 @@
-import { GithubUser, ContributionType, TimeFrame, ContributionWeek } from '@/types/github';
-import type { ContributionTimeSeriesAPI } from '@/types/github';
+import { GithubUser, ContributionType, TimeFrame } from '@/types/github';
 import * as Dialog from '@radix-ui/react-dialog';
 import { Line } from 'react-chartjs-2';
 import { Chart as ChartJS, LineElement, PointElement, LinearScale, Title, Tooltip, Legend, CategoryScale } from 'chart.js';
-import { FiUsers, FiGitBranch, FiStar, FiGitPullRequest, FiGitCommit, FiAlertCircle, FiChevronRight, FiCalendar, FiChevronLeft } from 'react-icons/fi';
+import { FiUsers, FiGitBranch, FiStar, FiRefreshCcw, FiGitPullRequest, FiGitCommit, FiAlertCircle, FiChevronRight, FiCalendar, FiChevronLeft } from 'react-icons/fi';
 import { useMemo, useState, useEffect, useCallback } from 'react';
-import { fetchContributionTimeSeries } from '@/lib/api-client';
+import { refreshUser, fetchContributionTimeSeries } from '@/lib/api-client';
 import Image from 'next/image';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -14,6 +13,8 @@ ChartJS.register(LineElement, PointElement, LinearScale, Title, Tooltip, Legend,
 interface UserCardProps {
   user: GithubUser;
   onUserNavigation?: (direction: 'prev' | 'next') => void;
+  onRefresh?: (updatedUser: GithubUser) => void;
+  isRefreshing?: boolean;
   isDialogOpen?: boolean;
   onDialogOpenChange?: (open: boolean) => void;
 }
@@ -26,16 +27,41 @@ function formatDate(dateStr: string | Date | null | undefined) {
 }
 
 
-export default function UserCard({ user, onUserNavigation, isDialogOpen, onDialogOpenChange }: UserCardProps) {
-  // Use external dialog control if provided, otherwise use internal state
+export default function UserCard({ user, onRefresh, isRefreshing: externalIsRefreshing, onUserNavigation, isDialogOpen, onDialogOpenChange }: UserCardProps) {
+
   const [internalOpen, setInternalOpen] = useState(false);
   const open = isDialogOpen !== undefined ? isDialogOpen : internalOpen;
   const setOpen = onDialogOpenChange || setInternalOpen;
 
-  const [timeSeriesData, setTimeSeriesData] = useState<ContributionTimeSeriesAPI | null>(null);
+  // Use a local type for chart data
+  type ChartTimeSeriesData = {
+    chartLabels: string[];
+    chartData: number[];
+    totalContributions: number;
+  };
+  const [timeSeriesData, setTimeSeriesData] = useState<ChartTimeSeriesData | null>(null);
   const [selectedTimeFrame, setSelectedTimeFrame] = useState<TimeFrame>(TimeFrame.WEEKLY);
+  const [localIsRefreshing, setLocalIsRefreshing] = useState(false);
   const [isLoadingChart, setIsLoadingChart] = useState(false);
   const [currentUser, setCurrentUser] = useState<GithubUser>(user);
+
+
+  const isRefreshing = externalIsRefreshing || localIsRefreshing;
+
+  const handleRefresh = async () => {
+    if (isRefreshing) return;
+    setLocalIsRefreshing(true);
+    try {
+      const refreshedUser = await refreshUser(user.githubUsername, user.team);
+      if (onRefresh) {
+        onRefresh(refreshedUser);
+      }
+    } catch (error) {
+      console.error('Failed to refresh user:', error);
+    } finally {
+      setLocalIsRefreshing(false);
+    }
+  };
 
   useEffect(() => {
     if (user) {
@@ -43,55 +69,50 @@ export default function UserCard({ user, onUserNavigation, isDialogOpen, onDialo
     }
   }, [user]);
 
-  // Handle user navigation with explicit function to prevent any closure issues
   const handleUserNavigation = useCallback((direction: 'prev' | 'next') => {
     if (onUserNavigation) {
-      console.log(`Navigating ${direction}`); // For debugging
+      console.log(`Navigating ${direction}`);
       onUserNavigation(direction);
     }
   }, [onUserNavigation]);
 
-  // Removed unused refreshTimeSeriesData to fix lint error
-
-  // Handle refresh click with improved error handling
-  // ...existing code...
-
-  // Fetch time series data when drawer opens or time frame changes
   useEffect(() => {
     if (open && currentUser?.githubUsername) {
       setIsLoadingChart(true);
-      fetchContributionTimeSeries(currentUser.githubUsername)
-        .then((data) => {
-          if (typeof data === 'object' && data !== null) {
-            if ('weeks' in data && Array.isArray((data as { weeks: ContributionWeek[] }).weeks)) {
-              const weeksData = data as { weeks: ContributionWeek[]; totalContributions?: number; totalCount?: number };
-              setTimeSeriesData({
-                weeks: weeksData.weeks,
-                totalContributions: weeksData.totalContributions ?? weeksData.totalCount ?? 0,
-              });
-            } else if ('points' in data && Array.isArray((data as { points: { date: string; count: number }[] }).points)) {
-              const pointsData = data as { points: { date: string; count: number }[]; totalCount?: number };
-              setTimeSeriesData({
-                weeks: [
-                  {
-                    firstDay: pointsData.points[0]?.date || '',
-                    contributionDays: pointsData.points.map((pt: { date: string; count: number }) => ({ date: pt.date, contributionCount: pt.count })),
-                  },
-                ],
-                totalContributions: pointsData.totalCount || 0,
-              });
-            } else {
-              setTimeSeriesData(null);
-            }
+      setTimeSeriesData(null); // Clear stale data when loading new time frame
+      fetchContributionTimeSeries(currentUser.githubUsername, selectedTimeFrame.toLowerCase())
+        .then((data: {
+          timeSeriesData?: Record<string, number>;
+          totalContributions?: number;
+        }) => {
+          if (
+            data &&
+            typeof data === 'object' &&
+            data.timeSeriesData &&
+            typeof data.timeSeriesData === 'object'
+          ) {
+            // Parse the response for a simple weekly chart: x = week (date), y = count
+            const sorted = Object.entries(data.timeSeriesData)
+              .map(([date, count]) => ({ date, count: Number(count) }))
+              .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+            setTimeSeriesData({
+              chartLabels: sorted.map((d) => d.date),
+              chartData: sorted.map((d) => d.count),
+              totalContributions: typeof data.totalContributions === 'number' ? data.totalContributions : sorted.reduce((sum, d) => sum + (typeof d.count === 'number' ? d.count : 0), 0),
+            });
           } else {
             setTimeSeriesData(null);
           }
         })
-        .catch((err) => {
+        .catch((err: Error) => {
           setTimeSeriesData(null);
           console.error("Error fetching contribution time series:", err);
         })
         .finally(() => setIsLoadingChart(false));
+    } else {
+      setTimeSeriesData(null);
+      setIsLoadingChart(false);
     }
   }, [open, currentUser?.githubUsername, selectedTimeFrame]);
 
@@ -116,7 +137,7 @@ export default function UserCard({ user, onUserNavigation, isDialogOpen, onDialo
 
   // Chart data for Time Series
   const timeSeriesChartData = useMemo(() => {
-    if (!timeSeriesData || !timeSeriesData.weeks || timeSeriesData.weeks.length === 0) {
+    if (!timeSeriesData || !timeSeriesData.chartLabels || !timeSeriesData.chartData) {
       return {
         labels: [],
         datasets: [
@@ -131,36 +152,12 @@ export default function UserCard({ user, onUserNavigation, isDialogOpen, onDialo
         ],
       };
     }
-
-    let labels: string[] = [];
-    let data: number[] = [];
-
-    if (selectedTimeFrame === TimeFrame.DAILY) {
-      // Flatten all days
-      const allDays = timeSeriesData.weeks.flatMap((week: { contributionDays: { date: string; contributionCount: number }[] }) => week.contributionDays);
-      labels = allDays.map((day: { date: string; contributionCount: number }) => day.date);
-      data = allDays.map((day: { date: string; contributionCount: number }) => day.contributionCount);
-    } else if (selectedTimeFrame === TimeFrame.WEEKLY) {
-      // Sum each week
-      labels = timeSeriesData.weeks.map((week: { firstDay: string; contributionDays: { date: string; contributionCount: number }[] }) => week.firstDay);
-      data = timeSeriesData.weeks.map((week: { firstDay: string; contributionDays: { date: string; contributionCount: number }[] }) => week.contributionDays.reduce((sum: number, d: { contributionCount: number }) => sum + d.contributionCount, 0));
-    } else if (selectedTimeFrame === TimeFrame.YEARLY) {
-      // Group by year, sum all weeks in each year
-      const yearMap: Record<string, number> = {};
-      timeSeriesData.weeks.forEach((week: { firstDay: string; contributionDays: { date: string; contributionCount: number }[] }) => {
-        const year = week.firstDay.slice(0, 4);
-        yearMap[year] = (yearMap[year] || 0) + week.contributionDays.reduce((sum: number, d: { contributionCount: number }) => sum + d.contributionCount, 0);
-      });
-      labels = Object.keys(yearMap);
-      data = Object.values(yearMap);
-    }
-
     return {
-      labels,
+      labels: timeSeriesData.chartLabels,
       datasets: [
         {
           label: 'Contributions',
-          data,
+          data: timeSeriesData.chartData,
           borderColor: 'rgba(79, 70, 229, 1)',
           backgroundColor: 'rgba(79, 70, 229, 0.1)',
           tension: 0.4,
@@ -239,16 +236,15 @@ export default function UserCard({ user, onUserNavigation, isDialogOpen, onDialo
             >
               View Profile
             </a>
-            {/* <button
+            <button
               onClick={handleRefresh}
               disabled={isRefreshing}
-              className={`flex items-center justify-center gap-1 px-3 py-1 rounded-md ${
-                isRefreshing ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700'
-              } text-white text-sm font-semibold shadow transition-colors`}
+              className={`flex items-center justify-center gap-1 px-3 py-1 rounded-md ${isRefreshing ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700'
+                } text-white text-sm font-semibold shadow transition-colors`}
             >
-              <FiRefreshCw className={`w-3 h-3 ${isRefreshing ? 'animate-spin' : ''}`} />
+              <FiRefreshCcw className={`w-3 h-3 ${isRefreshing ? 'animate-spin' : ''}`} />
               {isRefreshing ? 'Refreshing...' : 'Refresh'}
-            </button> */}
+            </button>
           </div>
         </div>
 
@@ -365,7 +361,7 @@ export default function UserCard({ user, onUserNavigation, isDialogOpen, onDialo
                 >
                   <option value={TimeFrame.DAILY}>Daily</option>
                   <option value={TimeFrame.WEEKLY}>Weekly</option>
-                  <option value={TimeFrame.YEARLY}>Yearly</option>
+                  <option value={TimeFrame.MONTHLY}>Monthly</option>
                 </select>
               </div>
             </div>
@@ -375,7 +371,7 @@ export default function UserCard({ user, onUserNavigation, isDialogOpen, onDialo
                 <div className="absolute inset-0 flex items-center justify-center">
                   <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-indigo-500"></div>
                 </div>
-              ) : timeSeriesData && timeSeriesData.weeks && timeSeriesData.weeks.length > 0 ? (
+              ) : timeSeriesData && timeSeriesData.chartData && timeSeriesData.chartData.length > 0 ? (
                 <Line data={timeSeriesChartData} options={chartOptions} />
               ) : (
                 <div className="h-full flex items-center justify-center text-gray-500 dark:text-gray-400 text-sm">
@@ -386,7 +382,7 @@ export default function UserCard({ user, onUserNavigation, isDialogOpen, onDialo
 
             {timeSeriesData && (
               <div className="flex justify-between text-xs text-gray-600 dark:text-gray-400 mb-4">
-                <div>Weeks: {timeSeriesData.weeks.length}</div>
+                <div>Weeks: {timeSeriesData.chartLabels.length}</div>
                 <div>Total: {timeSeriesData.totalContributions} contributions</div>
               </div>
             )}

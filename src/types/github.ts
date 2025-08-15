@@ -123,6 +123,12 @@ export interface ContributionWeek {
 }
 
 export interface ContributionTimeSeriesAPI {
-  totalContributions: number;
+  timeSeriesData: Record<string, number>; // Map<LocalDate, Integer>
+  mode: 'DAILY' | 'WEEKLY' | 'MONTHLY';
+  pull_requests?: number;
+  issues?: number;
+  commits?: number;
+  code_reviews?: number;
+  totalContributions?: number;
   weeks: ContributionWeek[];
 }

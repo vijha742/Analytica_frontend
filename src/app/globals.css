@@ -1,9 +1,6 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
-
-/* @custom-variant dark (&:is(.dark *)); */
-
 @layer base {
   :root {
     --color-background: var(--background);
@@ -45,69 +42,72 @@
     --radius-xl: calc(var(--radius) + 4px);
     --radius: 0.625rem;
     /* Catppuccin Latte (Light) Theme - Authentic Colors */
-    --background: 234 16 95;
+    --background: 234 16% 95%;
     /* #eff1f5 - Latte Base */
-    --foreground: 234 16 35;
+
+    --user-card: 0 0% 100%;
+    /* #ffffff - Latte User Card (uses HSL format: hue saturation% lightness%) */
+    --foreground: 234 16% 35%;
     /* #4c4f69 - Latte Text */
-    --card: 234 12 92;
+    --card: 234 12% 92%;
     /* #e6e9ef - Latte Mantle */
-    --card-foreground: 234 16 35;
+    --card-foreground: 234 16% 35%;
     /* #4c4f69 - Latte Text */
-    --popover: 234 12 92;
+    --popover: 234 12% 92%;
     /* #e6e9ef - Latte Mantle */
-    --popover-foreground: 234 16 35;
+    --popover-foreground: 234 16% 35%;
     /* #4c4f69 - Latte Text */
-    --primary: 222 91 54;
+    --primary: 222 91% 54%;
     /* #1e66f5 - Latte Blue */
-    --primary-foreground: 234 16 95;
+    --primary-foreground: 234 16% 95%;
     /* #eff1f5 - Latte Base */
-    --secondary: 238 89 72;
+    --secondary: 238 89% 72%;
     /* #7287fd - Latte Lavender */
-    --secondary-foreground: 234 16 35;
+    --secondary-foreground: 234 16% 35%;
     /* #4c4f69 - Latte Text */
-    --muted: 234 16 91;
+    --muted: 234 16% 91%;
     /* #dce0e8 - Latte Crust */
-    --muted-foreground: 234 10 47;
+    --muted-foreground: 234 10% 47%;
     /* #6c6f85 - Latte Subtext 0 */
-    --accent: 271 81 58;
+    --accent: 271 81% 58%;
     /* #8839ef - Latte Mauve */
-    --accent-foreground: 234 16 95;
+    --accent-foreground: 234 16% 95%;
     /* #eff1f5 - Latte Base */
-    --destructive: 347 93 44;
+    --destructive: 347 93% 44%;
     /* #d20f39 - Latte Red */
-    --destructive-foreground: 234 16 95;
+    --destructive-foreground: 234 16% 95%;
     /* #eff1f5 - Latte Base */
-    --border: 234 13 83;
+    --border: 234 13% 83%;
     /* #ccd0da - Latte Surface 0 */
-    --input: 234 10 77;
+    --input: 234 10% 77%;
     /* #bcc0cc - Latte Surface 1 */
-    --ring: 222 91 54;
+    --ring: 222 91% 54%;
     /* #1e66f5 - Latte Blue */
-    --chart-1: 222 91 54;
+    --chart-1: 222 91% 54%;
     /* #1e66f5 - Latte Blue */
-    --chart-2: 135 57 40;
+    --chart-2: 135 57% 40%;
     /* #40a02b - Latte Green */
-    --chart-3: 24 96 52;
+    --chart-3: 24 96% 52%;
     /* #fe640b - Latte Peach */
-    --chart-4: 271 81 58;
+    --chart-4: 271 81% 58%;
     /* #8839ef - Latte Mauve */
-    --chart-5: 347 93 44;
+    --chart-5: 347 93% 44%;
     /* #d20f39 - Latte Red */
-    --sidebar: 234 16 91;
+    --sidebar: 234 16% 91%;
     /* #dce0e8 - Latte Crust */
-    --sidebar-foreground: 234 16 35;
+    --sidebar-foreground: 234 16% 35%;
     /* #4c4f69 - Latte Text */
-    --sidebar-primary: 222 91 54;
+    --sidebar-primary: 222 91% 54%;
     /* #1e66f5 - Latte Blue */
-    --sidebar-primary-foreground: 234 16 95;
+    --sidebar-primary-foreground: 234 16% 95%;
     /* #eff1f5 - Latte Base */
-    --sidebar-accent: 234 13 83;
+    --sidebar-accent: 234 13% 83%;
     /* #ccd0da - Latte Surface 0 */
-    --sidebar-accent-foreground: 234 16 35;
+    --sidebar-accent-foreground: 234 16% 35%;
     /* #4c4f69 - Latte Text */
-    --sidebar-border: 234 10 77;
+    --sidebar-border: 234 10% 77%;
     /* #bcc0cc - Latte Surface 1 */
-    --sidebar-ring: 222 91 54;
+    --sidebar-ring: 222 91% 54%;
     /* #1e66f5 - Latte Blue */
     --dev-dashboard-comp: 0 100 100;
     /* Default for light mode components */
@@ -118,69 +118,71 @@
 
   .dark {
     /* Tokyo Night Theme - Authentic Colors */
-    --background: 235 19 13;
+    --background: 235 19% 13%;
     /* #1a1b26 - Tokyo Night Background */
-    --foreground: 229 73 86;
+
+    --user-card: 221 39% 11%;
+    --foreground: 229 73% 86%;
     /* #c0caf5 - Tokyo Night Foreground */
-    --card: 230 24 19;
+    --card: 230 24% 19%;
     /* #24283b - Tokyo Night Card Background */
-    --card-foreground: 229 73 86;
+    --card-foreground: 229 73% 86%;
     /* #c0caf5 - Tokyo Night Foreground */
-    --popover: 230 24 19;
+    --popover: 230 24% 19%;
     /* #24283b - Tokyo Night Card Background */
-    --popover-foreground: 229 73 86;
+    --popover-foreground: 229 73% 86%;
     /* #c0caf5 - Tokyo Night Foreground */
-    --primary: 202 100 75;
+    --primary: 202 100% 75%;
     /* #7dcfff - Tokyo Night Cyan */
-    --primary-foreground: 235 19 13;
+    --primary-foreground: 235 19% 13%;
     /* #1a1b26 - Tokyo Night Background */
-    --secondary: 261 85 79;
+    --secondary: 261 85% 79%;
     /* #bb9af7 - Tokyo Night Purple */
-    --secondary-foreground: 235 19 13;
+    --secondary-foreground: 235 19% 13%;
     /* #1a1b26 - Tokyo Night Background */
-    --muted: 229 23 33;
+    --muted: 229 23% 33%;
     /* #414868 - Tokyo Night Muted */
-    --muted-foreground: 229 35 75;
+    --muted-foreground: 229 35% 75%;
     /* #a9b1d6 - Tokyo Night Editor Foreground */
-    --accent: 171 58 65;
+    --accent: 171 58% 65%;
     /* #73daca - Tokyo Night Teal */
-    --accent-foreground: 235 19 13;
+    --accent-foreground: 235 19% 13%;
     /* #1a1b26 - Tokyo Night Background */
-    --destructive: 349 89 72;
+    --destructive: 349 89% 72%;
     /* #f7768e - Tokyo Night Red */
-    --destructive-foreground: 235 19 13;
+    --destructive-foreground: 235 19% 13%;
     /* #1a1b26 - Tokyo Night Background */
-    --border: 229 23 33;
+    --border: 229 23% 33%;
     /* #414868 - Tokyo Night Muted */
-    --input: 228 26 27;
+    --input: 228 26% 27%;
     /* #343b58 - Tokyo Night Input */
-    --ring: 202 100 75;
+    --ring: 202 100% 75%;
     /* #7dcfff - Tokyo Night Cyan */
-    --chart-1: 202 100 75;
+    --chart-1: 202 100% 75%;
     /* #7dcfff - Tokyo Night Cyan */
-    --chart-2: 89 51 61;
+    --chart-2: 89 51% 61%;
     /* #9ece6a - Tokyo Night Green */
-    --chart-3: 22 100 70;
+    --chart-3: 22 100% 70%;
     /* #ff9e64 - Tokyo Night Orange */
-    --chart-4: 261 85 79;
+    --chart-4: 261 85% 79%;
     /* #bb9af7 - Tokyo Night Purple */
-    --chart-5: 349 89 72;
+    --chart-5: 349 89% 72%;
     /* #f7768e - Tokyo Night Red */
-    --sidebar: 230 24 19;
+    --sidebar: 230 24% 19%;
     /* #24283b - Tokyo Night Card Background */
-    --sidebar-foreground: 229 73 86;
+    --sidebar-foreground: 229 73% 86%;
     /* #c0caf5 - Tokyo Night Foreground */
-    --sidebar-primary: 202 100 75;
+    --sidebar-primary: 202 100% 75%;
     /* #7dcfff - Tokyo Night Cyan */
-    --sidebar-primary-foreground: 235 19 13;
+    --sidebar-primary-foreground: 235 19% 13%;
     /* #1a1b26 - Tokyo Night Background */
-    --sidebar-accent: 228 26 27;
+    --sidebar-accent: 228 26% 27%;
     /* #343b58 - Tokyo Night Input */
-    --sidebar-accent-foreground: 229 73 86;
+    --sidebar-accent-foreground: 229 73% 86%;
     /* #c0caf5 - Tokyo Night Foreground */
-    --sidebar-border: 229 23 33;
+    --sidebar-border: 229 23% 33%;
     /* #414868 - Tokyo Night Muted */
-    --sidebar-ring: 202 100 75;
+    --sidebar-ring: 202 100% 75%;
     /* #7dcfff - Tokyo Night Cyan */
     --dev-dashboard-comp: 0 0 0;
     /* Default for dark mode components */

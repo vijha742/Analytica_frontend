@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { searchUsers, suggestUser } from '@/lib/api-client';
 import UserCard, { UserCardSkeleton } from '@/components/UserCard';
 import SimpleUserCard from '@/components/SimpleUserCard';
@@ -18,15 +18,24 @@ export default function HomePage() {
   const [users, setUsers] = useState<GithubUser[]>([]);
   const [selectedUser, setSelectedUser] = useState<GithubUser | null>(null);
   const [suggestUsername, setSuggestUsername] = useState('');
-  const [suggestedBy, setSuggestedBy] = useState('');
+  const [selectedGroup, setSelectedGroup] = useState('Classmates');
+  const [groups, setGroups] = useState(['Classmates', 'Colleagues', 'Friends']);
+  const [showCreateGroup, setShowCreateGroup] = useState(false);
+  const [newGroupName, setNewGroupName] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [currentSection, setCurrentSection] = useState<'search' | 'suggested'>('search');
   const [showSearchSection, setShowSearchSection] = useState(false);
 
-  // Use refetch from hook
-  const { users: suggestedUsers, isLoading: isInitialLoading, refetch: refetchSuggestedUsers } = useSuggestedUsers();
+  // Use refetch from hook with selected group
+  const { users: suggestedUsers, isLoading: isInitialLoading, refetch: refetchSuggestedUsers } = useSuggestedUsers(selectedGroup);
   const [isRefetchingSuggested, setIsRefetchingSuggested] = useState(false);
+
+  // Effect to handle group changes
+  useEffect(() => {
+    // The hook will automatically refetch when selectedGroup changes
+    // No additional action needed here
+  }, [selectedGroup]);
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -114,9 +123,8 @@ export default function HomePage() {
     setError(null);
 
     try {
-      await suggestUser(suggestUsername, suggestedBy);
+      await suggestUser(suggestUsername, selectedGroup);
       setSuggestUsername('');
-      setSuggestedBy('');
       setIsRefetchingSuggested(true);
       await refetchSuggestedUsers();
     } catch {
@@ -124,6 +132,16 @@ export default function HomePage() {
     } finally {
       setLoading(false);
       setIsRefetchingSuggested(false);
+    }
+  };
+
+  const handleCreateGroup = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (newGroupName.trim() && !groups.includes(newGroupName.trim())) {
+      setGroups([...groups, newGroupName.trim()]);
+      setSelectedGroup(newGroupName.trim());
+      setNewGroupName('');
+      setShowCreateGroup(false);
     }
   };
 
@@ -174,14 +192,15 @@ export default function HomePage() {
                   className="flex-1 px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 bg-input"
                   required
                 />
-                <Input
-                  type="text"
-                  value={suggestedBy}
-                  onChange={(e) => setSuggestedBy(e.target.value)}
-                  placeholder="Your name..."
-                  className="flex-1 px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 bg-input"
-                  required
-                />
+                <select
+                  value={selectedGroup}
+                  onChange={(e) => setSelectedGroup(e.target.value)}
+                  className="flex-1 px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  {groups.map((group) => (
+                    <option key={group} value={group}>{group}</option>
+                  ))}
+                </select>
                 <Button type="submit" disabled={loading} className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 disabled:opacity-50">
                   Suggest User
                 </Button>
@@ -270,6 +289,61 @@ export default function HomePage() {
                     </svg>
                   </span>
                 )}
+              </div>
+
+              {/* Groups Section */}
+              <div className="mb-6">
+                <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-3">Groups</h3>
+                <div className="flex flex-wrap items-center gap-2">
+                  {groups.map((group) => (
+                    <Button
+                      key={group}
+                      variant={selectedGroup === group ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setSelectedGroup(group)}
+                      className="text-sm"
+                    >
+                      {group}
+                    </Button>
+                  ))}
+                  {!showCreateGroup ? (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setShowCreateGroup(true)}
+                      className="text-sm border-dashed border-2 hover:border-solid"
+                    >
+                      + Add Group
+                    </Button>
+                  ) : (
+                    <form onSubmit={handleCreateGroup} className="flex items-center gap-2">
+                      <Input
+                        type="text"
+                        value={newGroupName}
+                        onChange={(e) => setNewGroupName(e.target.value)}
+                        placeholder="Group name..."
+                        className="w-32 h-8 text-sm"
+                        autoFocus
+                        required
+                      />
+                      <Button type="submit" size="sm" className="h-8 px-2">
+                        ✓
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setShowCreateGroup(false);
+                          setNewGroupName('');
+                        }}
+                        className="h-8 px-2"
+                      >
+                        ✕
+                      </Button>
+                    </form>
+                  )}
+                </div>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {isInitialLoading ? (

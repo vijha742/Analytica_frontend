@@ -120,15 +120,15 @@ export async function fetchUser(username: string): Promise<GithubUser> {
   return data.data.user;
 }
 
-export async function getSuggestedUsers(): Promise<GithubUser[]> {
-  const response = await makeAuthenticatedRequest(`${API_BASE_URL}/api/suggested-users?team=Classmates`);
+export async function getSuggestedUsers(group: string = 'Classmates'): Promise<GithubUser[]> {
+  const response = await makeAuthenticatedRequest(`${API_BASE_URL}/api/suggested-users?team=${encodeURIComponent(group)}`);
   if (!response.ok) {
     throw new Error('Failed to fetch suggested users');
   }
   return response.json();
 }
 
-export async function suggestUser(githubUsername: string, team: string): Promise<void> {
+export async function suggestUser(githubUsername: string, team: string = 'Classmates'): Promise<void> {
   const response = await makeAuthenticatedRequest(
     `${API_BASE_URL}/api/suggested-users?githubUsername=${encodeURIComponent(githubUsername)}&team=${encodeURIComponent(team)}`,
     {
@@ -140,9 +140,9 @@ export async function suggestUser(githubUsername: string, team: string): Promise
   }
 }
 
-export async function fetchContributionTimeSeries(username: string): Promise<ContributionTimeSeriesAPI> {
+export async function fetchContributionTimeSeries(username: string, mode: string): Promise<ContributionTimeSeriesAPI> {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/public/users/${username}/contrib-cal`);
+    const response = await makeAuthenticatedRequest(`${API_BASE_URL}/api/public/users/${username}/contrib-cal?mode=${encodeURIComponent(mode)}`);
 
     if (!response.ok) {
       throw new Error(`API error: ${response.status}`);
@@ -157,7 +157,11 @@ export async function fetchContributionTimeSeries(username: string): Promise<Con
 
 export const refreshUser = async (githubUsername: string, team: string): Promise<GithubUser> => {
   try {
-    const response = await makeAuthenticatedRequest(`${API_BASE_URL}/api/suggested-users/refresh?githubUsername=${encodeURIComponent(githubUsername)}&team=${encodeURIComponent(team)}`, { method: 'POST', });
+    const response = await makeAuthenticatedRequest(`${API_BASE_URL}/api/suggested-users/refresh?githubUsername=${encodeURIComponent(githubUsername)}&team=${encodeURIComponent(team)}`,
+      {
+        method: 'POST',
+      }
+    );
     if (!response.ok) {
       throw new Error(`API error: ${response.status}`);
     }

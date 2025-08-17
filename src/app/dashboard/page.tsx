@@ -68,10 +68,6 @@ function DashboardContent() {
 
   const prevUsernameRef = useRef<string | null>(null);
 
-  // const [userApiStatus, setUserApiStatus] = useState<'connected' | 'fallback' | 'error'>('fallback');
-  // const [techApiStatus, setTechApiStatus] = useState<'connected' | 'fallback' | 'error'>('fallback');
-  // const [readmeApiStatus, setReadmeApiStatus] = useState<'connected' | 'fallback' | 'error'>('fallback');
-
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -244,8 +240,8 @@ function DashboardContent() {
               techAnalysis={techAnalysis}
             />
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <RepositoryOverview repositories={userData.repositories} />
-              <ContributionChart contributions={userData.contributions} />
+              {/* <RepositoryOverview repositories={userData.repositories} /> */}
+              {/* <ContributionChart contributions={userData.contributions} /> */}
               {codeAnalysis && (
                 <LanguageDistribution codeAnalysis={codeAnalysis} />
               )}

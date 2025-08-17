@@ -11,9 +11,8 @@ interface StatsGridProps {
 }
 
 export function StatsGrid({ user, codeAnalysis, techAnalysis }: StatsGridProps) {
-  const totalContributions = user.contributions.reduce((sum, contrib) => sum + contrib.count, 0);
   const totalLinesOfCode = codeAnalysis?.reduce((sum, project) => sum + project.totalLines, 0) || 0;
-  const averageComplexity = codeAnalysis?.length 
+  const averageComplexity = codeAnalysis?.length
     ? Math.round(codeAnalysis.reduce((sum, project) => sum + project.complexityScore, 0) / codeAnalysis.length)
     : 0;
   const languageCount = techAnalysis?.primaryLanguages.length || 0;
@@ -21,7 +20,8 @@ export function StatsGrid({ user, codeAnalysis, techAnalysis }: StatsGridProps) 
   const stats = [
     {
       title: 'Total Contributions',
-      value: totalContributions.toLocaleString(),
+      // TODO: Replace with actual calculation of total contributions (commits, PRs, issues) when available.
+      value: 0,
       icon: Activity,
       description: 'Commits, PRs, and Issues',
       color: 'text-blue-500'

@@ -33,8 +33,6 @@ export default function HomePage() {
 
   // Effect to handle group changes
   useEffect(() => {
-    // The hook will automatically refetch when selectedGroup changes
-    // No additional action needed here
   }, [selectedGroup]);
 
   const handleSearch = async (e: React.FormEvent) => {
@@ -47,7 +45,7 @@ export default function HomePage() {
     setLoading(true);
     setError(null);
     setUsers([]);
-    setShowSearchSection(true); // Clear previous results
+    setShowSearchSection(true);
 
     try {
       const searchResults = await searchUsers(searchQuery);

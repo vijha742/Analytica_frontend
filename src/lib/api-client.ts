@@ -190,63 +190,13 @@ export async function isUserSuggested(githubUsername: string): Promise<boolean> 
   return response.json();
 }
 
-export async function searchUsers(query: string, limit: number = 10, offset: number = 0): Promise<GithubUser[]> {
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-
-  if (!apiUrl) {
-    console.error('API URL not configured');
-    throw new Error('Internal configuration error');
-  }
+export async function searchUsers(query: string, limit: number = 10): Promise<GithubUser[]> {
 
   try {
     const response = await makeAuthenticatedRequest(
-      `${apiUrl}/graphql`,
+      `${API_BASE_URL}/api/public/users/search?keyword=${encodeURIComponent(query)}&limit=${limit}`,
       {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          query: `
-            query($query: String!, $limit: Int, $offset: Int) {
-              searchUsers(query: $query, limit: $limit, offset: $offset) {
-                id
-                githubUsername
-                name
-                email
-                avatarUrl
-                bio
-                followersCount
-                followingCount
-                publicReposCount
-                totalContributions
-                lastUpdated
-                repositoriesLegacy {
-                  id
-                  name
-                  description
-                  language
-                  stargazerCount
-                  forkCount
-                  isPrivate
-                  createdAt
-                  updatedAt
-                }
-                contributions {
-                  id
-                  date
-                  count
-                  type
-                }
-              }
-            }
-          `,
-          variables: {
-            query: query.toLowerCase().trim(),
-            limit,
-            offset,
-          },
-        }),
+        method: 'GET'
       }
     );
 
@@ -256,19 +206,10 @@ export async function searchUsers(query: string, limit: number = 10, offset: num
     }
 
     const result = await response.json();
-
-    // Handle GraphQL errors
-    if (result.errors) {
-      console.error('GraphQL errors:', result.errors);
-      throw new Error(result.errors[0]?.message || 'Search request failed');
+    if (Array.isArray(result)) {
+      return result;
     }
-
-    // Ensure we have valid data
-    if (!result.data?.searchUsers) {
-      return [];
-    }
-
-    return result.data.searchUsers;
+    return [];
   } catch (error) {
     console.error('Search users error:', error);
     throw error instanceof Error ? error : new Error('Failed to search users');

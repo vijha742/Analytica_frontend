@@ -239,7 +239,7 @@ export default function UserCard({ user, onRefresh, isRefreshing: externalIsRefr
             <button
               onClick={handleRefresh}
               disabled={isRefreshing}
-              className={`flex items-center justify-center gap-1 px-3 py-1 rounded-md ${isRefreshing ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700'
+              className={`flex items-center mt-2 justify-center gap-1 px-3 py-1 rounded-md ${isRefreshing ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700'
                 } text-white text-sm font-semibold shadow transition-colors`}
             >
               <FiRefreshCcw className={`w-3 h-3 ${isRefreshing ? 'animate-spin' : ''}`} />

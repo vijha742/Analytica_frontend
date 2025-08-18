@@ -1,21 +1,20 @@
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { GithubUser, CodeAnalysis, TechAnalysis } from '@/types/github';
+import { GithubUser, CodeAnalysis } from '@/types/github';
 import { Activity, Code, FileText, TrendingUp, Award, Zap } from 'lucide-react';
 
 interface StatsGridProps {
   user: GithubUser;
   codeAnalysis: CodeAnalysis[] | null;
-  techAnalysis: TechAnalysis | null;
 }
 
-export function StatsGrid({ user, codeAnalysis, techAnalysis }: StatsGridProps) {
+export function StatsGrid({ user, codeAnalysis }: StatsGridProps) {
   const totalLinesOfCode = codeAnalysis?.reduce((sum, project) => sum + project.totalLines, 0) || 0;
   const averageComplexity = codeAnalysis?.length
     ? Math.round(codeAnalysis.reduce((sum, project) => sum + project.complexityScore, 0) / codeAnalysis.length)
     : 0;
-  const languageCount = techAnalysis?.primaryLanguages.length || 0;
+  const languageCount = user.technicalProfile?.primaryLanguages.length || 0;
 
   const stats = [
     {
@@ -56,7 +55,7 @@ export function StatsGrid({ user, codeAnalysis, techAnalysis }: StatsGridProps) 
     },
     {
       title: 'Versatility Score',
-      value: techAnalysis ? Math.round(techAnalysis.versatilityScore * 100).toString() : '0',
+      value: user.technicalProfile ? Math.round(user.technicalProfile.versatilityScore * 100).toString() : '0',
       icon: Award,
       description: 'Technology diversity',
       color: 'text-pink-500'

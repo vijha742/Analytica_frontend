@@ -17,8 +17,52 @@ export interface Contribution {
   count: number;
 }
 
+export interface TechnologyUsage {
+  name: string;
+  firstUsed: string;
+  lastUsed: string;
+  frequency: number;
+  projectCount: number;
+}
+
+export interface ProjectTime {
+  projectId: string;
+  startDate: string;
+  endDate: string;
+}
+
+export interface UserTech {
+  projectTimeList: ProjectTime[];
+  technologyUsageList: TechnologyUsage[];
+}
+
+export interface PrimaryLanguage {
+  language: string;
+  linesOfCode: number;
+  yearsOfExperience: number;
+  lastUsed: string;
+  firstUsed: string;
+  proficiencyLevel: string;
+  projectCount: number;
+  trendIndicator: string;
+}
+
+export interface TechnicalProfile {
+  primaryLanguages: PrimaryLanguage[];
+  frameworksUsed: PlaceholderData[];
+  librariesUsed: PlaceholderData[];
+  toolingPreferences: PlaceholderData[];
+  specializationScore: number;
+  versatilityScore: number;
+  learningRate: number;
+  experimentationFrequency: number;
+}
+export interface PlaceholderData {
+  name: string;
+}
+
 export interface GithubUser {
-  id: string;
+  id?: string;
   githubUsername: string;
   name: string;
   email: string;
@@ -27,10 +71,13 @@ export interface GithubUser {
   followersCount: number;
   followingCount: number;
   publicReposCount: number;
-  repositories: Repository[];
-  contributions: Contribution[];
+  totalContributions: number;
   lastUpdated: string;
-  team: string;
+  technicalProfile: TechnicalProfile;
+  userTech: UserTech;
+  repositories?: Repository[];
+  contributions?: Contribution[];
+  team?: string;
 }
 
 export interface LanguageDistribution {

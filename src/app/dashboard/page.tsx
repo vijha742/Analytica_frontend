@@ -9,27 +9,24 @@ import { Skeleton } from '@/components/ui/skeleton';
 import Header from '@/components/ui/Header';
 import AuthGuard from '@/components/AuthGuard';
 import Image from 'next/image';
-import { fetchUserData, fetchCodeAnalysis, fetchReadmeAnalysis, fetchTechAnalysis } from '@/lib/api-client';
+import { fetchUserData, fetchCodeAnalysis, fetchReadmeAnalysis } from '@/lib/api-client';
 import {
   GithubUser,
   CodeAnalysis,
-  ReadmeAnalysis,
-  TechAnalysis
+  ReadmeAnalysis
 } from '@/types/github';
 import { Search, Code, BookOpen, TrendingUp, Zap, User, FolderGit2 } from 'lucide-react';
 import { UserProfile } from '@/components/dashboard/UserProfile';
-import { RepositoryOverview } from '@/components/dashboard/RepositoryOverview';
-import { ContributionChart } from '@/components/dashboard/ContributionChart';
 import { LanguageDistribution } from '@/components/dashboard/LanguageDistribution';
 import { ReadmeQuality } from '@/components/dashboard/ReadmeQuality';
 import { TechStack } from '@/components/dashboard/TechStack';
 import { StatsGrid } from '@/components/dashboard/StatsGrid';
+import { TechTimeline } from '@/components/dashboard/TechTimeline';
 
 type DashboardCacheType = {
   [username: string]: {
     userData: GithubUser | null;
     codeAnalysis: CodeAnalysis[] | null;
-    techAnalysis: TechAnalysis | null;
     readmeAnalysis: ReadmeAnalysis[] | null;
   };
 };
@@ -63,7 +60,6 @@ function DashboardContent() {
   const [userData, setUserData] = useState<GithubUser | null>(null);
   const [codeAnalysis, setCodeAnalysis] = useState<CodeAnalysis[] | null>(null);
   const [readmeAnalysis, setReadmeAnalysis] = useState<ReadmeAnalysis[] | null>(null);
-  const [techAnalysis, setTechAnalysis] = useState<TechAnalysis | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const prevUsernameRef = useRef<string | null>(null);
@@ -82,7 +78,6 @@ function DashboardContent() {
         setUserData(cached.userData);
         setCodeAnalysis(cached.codeAnalysis);
         setReadmeAnalysis(cached.readmeAnalysis);
-        setTechAnalysis(cached.techAnalysis);
         setError(null);
         setLoading(false);
       } else {
@@ -106,15 +101,13 @@ function DashboardContent() {
 
     try {
 
-      const [userResult, codeResult, techResult] = await Promise.allSettled([
+      const [userResult, codeResult] = await Promise.allSettled([
         fetchUserData(user),
-        fetchCodeAnalysis(user),
-        fetchTechAnalysis(user)
+        fetchCodeAnalysis(user)
       ]);
 
       let newUserData = null;
       let newCodeAnalysis = null;
-      let newTechAnalysis = null;
 
       if (userResult.status === 'fulfilled') {
         setUserData(userResult.value);
@@ -130,13 +123,6 @@ function DashboardContent() {
         setCodeAnalysis(null);
       }
 
-      if (techResult.status === 'fulfilled') {
-        setTechAnalysis(techResult.value);
-        newTechAnalysis = techResult.value;
-      } else {
-        setTechAnalysis(null);
-      }
-
       setLoading(false);
 
       try {
@@ -146,7 +132,6 @@ function DashboardContent() {
         dashboardCache[user] = {
           userData: newUserData,
           codeAnalysis: newCodeAnalysis,
-          techAnalysis: newTechAnalysis,
           readmeAnalysis: readmeResult
         };
         setDashboardCache(dashboardCache);
@@ -156,7 +141,6 @@ function DashboardContent() {
         dashboardCache[user] = {
           userData: newUserData,
           codeAnalysis: newCodeAnalysis,
-          techAnalysis: newTechAnalysis,
           readmeAnalysis: null
         };
         setDashboardCache(dashboardCache);
@@ -237,7 +221,6 @@ function DashboardContent() {
             <StatsGrid
               user={userData}
               codeAnalysis={codeAnalysis}
-              techAnalysis={techAnalysis}
             />
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* <RepositoryOverview repositories={userData.repositories} /> */}
@@ -249,8 +232,11 @@ function DashboardContent() {
                 <ReadmeQuality readmeAnalysis={readmeAnalysis} />
               )}
             </div>
-            {techAnalysis && (
-              <TechStack techAnalysis={techAnalysis} />
+            {userData.technicalProfile && (
+              <TechStack user={userData} />
+            )}
+            {userData.userTech && userData.userTech.technologyUsageList.length > 0 && (
+              <TechTimeline technologyUsageList={userData.userTech.technologyUsageList} />
             )}
           </div>
         )}

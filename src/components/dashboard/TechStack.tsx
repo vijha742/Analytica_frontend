@@ -2,15 +2,17 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { TechAnalysis } from '@/types/github';
+import { GithubUser } from '@/types/github';
 import { Zap, TrendingUp, TrendingDown, Minus, Award } from 'lucide-react';
 import { useMemo } from 'react';
 
 interface TechStackProps {
-  techAnalysis: TechAnalysis;
+  user: GithubUser;
 }
 
-export function TechStack({ techAnalysis }: TechStackProps) {
+export function TechStack({ user }: TechStackProps) {
+  const techAnalysis = user.technicalProfile;
+
   const topLanguages = useMemo(() => {
     return techAnalysis.primaryLanguages
       .sort((a, b) => b.linesOfCode - a.linesOfCode)
@@ -110,7 +112,7 @@ export function TechStack({ techAnalysis }: TechStackProps) {
                     {lang.proficiencyLevel}
                   </Badge>
                 </div>
-                
+
                 <div className="grid grid-cols-3 gap-2 text-sm">
                   <div>
                     <div className="font-medium">{lang.linesOfCode.toLocaleString()}</div>
@@ -122,7 +124,7 @@ export function TechStack({ techAnalysis }: TechStackProps) {
                   </div>
                   <div>
                     <div className="font-medium">
-                      {lang.yearsOfExperience < 1 
+                      {lang.yearsOfExperience < 1
                         ? `${Math.round(lang.yearsOfExperience * 12)}mo`
                         : `${lang.yearsOfExperience.toFixed(1)}y`
                       }
@@ -140,53 +142,53 @@ export function TechStack({ techAnalysis }: TechStackProps) {
         </div>
 
         {/* Additional Technologies */}
-        {(techAnalysis.frameworksUsed.length > 0 || 
-          techAnalysis.librariesUsed.length > 0 || 
+        {(techAnalysis.frameworksUsed.length > 0 ||
+          techAnalysis.librariesUsed.length > 0 ||
           techAnalysis.toolingPreferences.length > 0) && (
-          <div className="space-y-4">
-            <h4 className="text-lg font-semibold">Additional Technologies</h4>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {techAnalysis.frameworksUsed.length > 0 && (
-                <div>
-                  <h5 className="font-medium mb-2">Frameworks</h5>
-                  <div className="flex flex-wrap gap-2">
-                    {techAnalysis.frameworksUsed.map((framework) => (
-                      <Badge key={framework} variant="outline">
-                        {framework}
-                      </Badge>
-                    ))}
+            <div className="space-y-4">
+              <h4 className="text-lg font-semibold">Additional Technologies</h4>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {techAnalysis.frameworksUsed.length > 0 && (
+                  <div>
+                    <h5 className="font-medium mb-2">Frameworks</h5>
+                    <div className="flex flex-wrap gap-2">
+                      {techAnalysis.frameworksUsed.map((framework) => (
+                        <Badge key={framework.name} variant="outline">
+                          {framework.name}
+                        </Badge>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              )}
-              
-              {techAnalysis.librariesUsed.length > 0 && (
-                <div>
-                  <h5 className="font-medium mb-2">Libraries</h5>
-                  <div className="flex flex-wrap gap-2">
-                    {techAnalysis.librariesUsed.map((library) => (
-                      <Badge key={library} variant="outline">
-                        {library}
-                      </Badge>
-                    ))}
+                )}
+
+                {techAnalysis.librariesUsed.length > 0 && (
+                  <div>
+                    <h5 className="font-medium mb-2">Libraries</h5>
+                    <div className="flex flex-wrap gap-2">
+                      {techAnalysis.librariesUsed.map((library) => (
+                        <Badge key={library.name} variant="outline">
+                          {library.name}
+                        </Badge>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              )}
-              
-              {techAnalysis.toolingPreferences.length > 0 && (
-                <div>
-                  <h5 className="font-medium mb-2">Tools</h5>
-                  <div className="flex flex-wrap gap-2">
-                    {techAnalysis.toolingPreferences.map((tool) => (
-                      <Badge key={tool} variant="outline">
-                        {tool}
-                      </Badge>
-                    ))}
+                )}
+
+                {techAnalysis.toolingPreferences.length > 0 && (
+                  <div>
+                    <h5 className="font-medium mb-2">Tools</h5>
+                    <div className="flex flex-wrap gap-2">
+                      {techAnalysis.toolingPreferences.map((tool) => (
+                        <Badge key={tool.name} variant="outline">
+                          {tool.name}
+                        </Badge>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
+              </div>
             </div>
-          </div>
-        )}
+          )}
       </CardContent>
     </Card>
   );

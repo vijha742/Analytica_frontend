@@ -22,7 +22,7 @@ export function EmptyGroupCTA({ groupName, onScrollToSearch }: EmptyGroupCTAProp
                 </div>
 
                 <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-                    Your "{groupName}" group is empty
+                    Your {groupName} group is empty
                 </h3>
 
                 <p className="text-gray-600 dark:text-gray-300 mb-6 max-w-md">
@@ -38,7 +38,7 @@ export function EmptyGroupCTA({ groupName, onScrollToSearch }: EmptyGroupCTAProp
 
                     <div className="flex items-center gap-3 text-sm text-gray-700 dark:text-gray-300 bg-white/70 dark:bg-gray-800/70 rounded-lg p-3">
                         <div className="w-8 h-8 rounded-full bg-green-500 text-white flex items-center justify-center text-xs font-bold">2</div>
-                        <span>Add them to your "{groupName}" group</span>
+                        <span>Add them to your {groupName} group</span>
                         <Plus className="w-4 h-4 ml-auto text-green-500" />
                     </div>
 

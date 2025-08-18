@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { searchUsers, suggestUser } from '@/lib/api-client';
 import UserCard, { UserCardSkeleton } from '@/components/UserCard';
 import SimpleUserCard from '@/components/SimpleUserCard';
@@ -11,6 +11,8 @@ import { useSuggestedUsers } from '@/components/DataFetcher';
 import AuthGuard from '@/components/AuthGuard';
 
 import Header from '@/components/ui/Header';
+import SearchUserCard from '@/components/SearchUserCard';
+import { EmptyGroupCTA } from '@/components/ui/EmptyGroupCTA';
 
 
 export default function HomePage() {
@@ -30,6 +32,9 @@ export default function HomePage() {
   // Use refetch from hook with selected group
   const { users: suggestedUsers, isLoading: isInitialLoading, refetch: refetchSuggestedUsers } = useSuggestedUsers(selectedGroup);
   const [isRefetchingSuggested, setIsRefetchingSuggested] = useState(false);
+
+  // Ref for scrolling to search section
+  const searchSectionRef = useRef<HTMLFormElement>(null);
 
   // Effect to handle group changes
   useEffect(() => {
@@ -151,6 +156,13 @@ export default function HomePage() {
     setSearchQuery('');
   };
 
+  const scrollToSearch = () => {
+    searchSectionRef.current?.scrollIntoView({
+      behavior: 'smooth',
+      block: 'start'
+    });
+  };
+
   return (
     <AuthGuard>
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
@@ -164,7 +176,7 @@ export default function HomePage() {
             </p>
           </div> */}
 
-            <form onSubmit={handleSearch} className="mb-8">
+            <form onSubmit={handleSearch} className="mb-8" ref={searchSectionRef}>
               <div className="flex flex-col sm:flex-row gap-4">
                 <Input
                   type="text"
@@ -258,9 +270,22 @@ export default function HomePage() {
                     <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4 bg-text-highlight">User Details</h3>
                     <div className="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-4">
                       {selectedUser ? (
-                        <UserCard
+                        <SearchUserCard
                           user={selectedUser}
-                          onUserNavigation={handleUserNavigation}
+                          onSuggestUser={async (user) => {
+                            setLoading(true);
+                            setError(null);
+                            try {
+                              await suggestUser(user.githubUsername, selectedGroup);
+                              setIsRefetchingSuggested(true);
+                              await refetchSuggestedUsers();
+                            } catch {
+                              setError('Failed to suggest user. Please try again.');
+                            } finally {
+                              setLoading(false);
+                              setIsRefetchingSuggested(false);
+                            }
+                          }}
                         />
                       ) : (
                         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 text-center">
@@ -350,7 +375,7 @@ export default function HomePage() {
                       <UserCardSkeleton />
                     </div>
                   ))
-                ) : (
+                ) : suggestedUsers.length > 0 ? (
                   suggestedUsers.map((user) => (
                     <div key={user.id}>
                       <UserCard
@@ -368,6 +393,13 @@ export default function HomePage() {
                       />
                     </div>
                   ))
+                ) : (
+                  <div className="col-span-full">
+                    <EmptyGroupCTA
+                      groupName={selectedGroup}
+                      onScrollToSearch={scrollToSearch}
+                    />
+                  </div>
                 )}
               </div>
             </div>

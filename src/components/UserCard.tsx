@@ -52,7 +52,7 @@ export default function UserCard({ user, onRefresh, isRefreshing: externalIsRefr
     if (isRefreshing) return;
     setLocalIsRefreshing(true);
     try {
-      const refreshedUser = await refreshUser(user.githubUsername, user.team);
+      const refreshedUser = await refreshUser(user.githubUsername, user.team || 'Classmates');
       if (onRefresh) {
         onRefresh(refreshedUser);
       }
@@ -165,7 +165,7 @@ export default function UserCard({ user, onRefresh, isRefreshing: externalIsRefr
         },
       ],
     };
-  }, [timeSeriesData, selectedTimeFrame]);
+  }, [timeSeriesData]);
 
   const chartOptions = {
     responsive: true,

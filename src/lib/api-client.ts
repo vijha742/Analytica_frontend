@@ -1,4 +1,4 @@
-import { GithubUser, ContributionTimeSeriesAPI, CodeAnalysis, ReadmeAnalysis, TechAnalysis } from '@/types/github';
+import { GithubUser, ContributionTimeSeriesAPI, CodeAnalysis, ReadmeAnalysis, TechAnalysis, UserComparisonResponse } from '@/types/github';
 import { makeAuthenticatedRequest } from './auth-api';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;

@@ -173,6 +173,16 @@ export const refreshUser = async (githubUsername: string, team: string): Promise
   }
 }
 
+export const compareUsers = async (user1: string, user2: string): Promise<UserComparisonResponse> => {
+  const response = await makeAuthenticatedRequest(`${API_BASE_URL}/api/suggested-users/compare?User1=${encodeURIComponent(user1)}&User2=${encodeURIComponent(user2)}`);
+
+  if (!response.ok) {
+    throw new Error(`API error: ${response.status}`);
+  }
+
+  return await response.json();
+};
+
 export async function deactivateSuggestedUser(id: number): Promise<void> {
   const response = await makeAuthenticatedRequest(`${API_BASE_URL}/api/suggested-users/${id}`, {
     method: 'DELETE',

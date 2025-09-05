@@ -179,3 +179,18 @@ export interface ContributionTimeSeriesAPI {
   totalContributions?: number;
   weeks: ContributionWeek[];
 }
+
+export interface CompResults {
+  followersResult: string;
+  publicReposResult: string;
+  totalContributionsResult: string;
+  pullRequestsResult: string;
+  issuesResult: string;
+  commitsResult: string;
+}
+
+export interface UserComparisonResponse {
+  results: CompResults;
+  user1: GithubUser;
+  user2: GithubUser;
+}

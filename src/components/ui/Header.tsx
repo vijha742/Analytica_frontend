@@ -86,6 +86,13 @@ export default function Header() {
               Dashboard
             </Link>
             <Link
+              href="/compare"
+              className="block py-2 text-sm font-medium hover:text-primary transition-colors"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              Compare
+            </Link>
+            <Link
               href="/about"
               className="block py-2 text-sm font-medium hover:text-primary transition-colors"
               onClick={() => setMobileMenuOpen(false)}

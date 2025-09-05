@@ -7,7 +7,7 @@ import SimpleUserCard from '@/components/SimpleUserCard';
 import { GithubUser } from '@/types/github';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { useSuggestedUsers } from '@/components/DataFetcher';
+import { useSuggestedUsersHome } from '@/hooks/useSuggestedUsersHome';
 import AuthGuard from '@/components/AuthGuard';
 
 import Header from '@/components/ui/Header';
@@ -30,7 +30,7 @@ export default function HomePage() {
   const [showSearchSection, setShowSearchSection] = useState(false);
 
   // Use refetch from hook with selected group
-  const { users: suggestedUsers, isLoading: isInitialLoading, refetch: refetchSuggestedUsers } = useSuggestedUsers(selectedGroup);
+  const { users: suggestedUsers, isLoading: isInitialLoading, refetch: refetchSuggestedUsers, clearCache, removeUser } = useSuggestedUsersHome(selectedGroup);
   const [isRefetchingSuggested, setIsRefetchingSuggested] = useState(false);
 
   // Ref for scrolling to search section
@@ -100,7 +100,7 @@ export default function HomePage() {
 
     // Find current index of selected user in the list
     const currentIndex = currentList.findIndex(
-      user => user.githubUsername === selectedUser.githubUsername
+      (user: GithubUser) => user.githubUsername === selectedUser.githubUsername
     );
 
     if (currentIndex === -1) return;
@@ -145,6 +145,18 @@ export default function HomePage() {
       setSelectedGroup(newGroupName.trim());
       setNewGroupName('');
       setShowCreateGroup(false);
+    }
+  };
+
+  const handleDeleteUser = (userId: string) => {
+    // Remove the user from the list and close dialog if it was open
+    if (selectedUser?.id === userId) {
+      setSelectedUser(null);
+    }
+
+    // Remove user from the hook's state and cache
+    if (removeUser) {
+      removeUser(userId);
     }
   };
 
@@ -376,11 +388,12 @@ export default function HomePage() {
                     </div>
                   ))
                 ) : suggestedUsers.length > 0 ? (
-                  suggestedUsers.map((user) => (
+                  suggestedUsers.map((user: GithubUser) => (
                     <div key={user.id}>
                       <UserCard
                         user={selectedUser && currentSection === 'suggested' && selectedUser.id === user.id ? selectedUser : user}
                         onUserNavigation={selectedUser && currentSection === 'suggested' && selectedUser.id === user.id ? handleUserNavigation : undefined}
+                        onDelete={handleDeleteUser}
                         isDialogOpen={selectedUser?.id === user.id && currentSection === 'suggested'}
                         onDialogOpenChange={(open) => {
                           if (!open) {

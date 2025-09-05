@@ -47,6 +47,12 @@ export default function Header() {
           <Link href="/dashboard" className="text-sm font-medium hover:text-primary transition-colors">
             Dashboard
           </Link>
+          <Link href="/leaderboard" className="text-sm font-medium hover:text-primary transition-colors">
+            Leaderboard
+          </Link>
+          <Link href="/compare" className="text-sm font-medium hover:text-primary transition-colors">
+            Compare
+          </Link>
           <Link href="/about" className="text-sm font-medium hover:text-primary transition-colors">
             About
           </Link>
@@ -84,6 +90,13 @@ export default function Header() {
               onClick={() => setMobileMenuOpen(false)}
             >
               Dashboard
+            </Link>
+            <Link
+              href="/leaderboard"
+              className="block py-2 text-sm font-medium hover:text-primary transition-colors"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              Leaderboard
             </Link>
             <Link
               href="/compare"

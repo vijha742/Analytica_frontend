@@ -192,6 +192,23 @@ export async function deactivateSuggestedUser(id: number): Promise<void> {
   }
 }
 
+export async function deleteSuggestedUser(id: string): Promise<{ success: boolean }> {
+  try {
+    const response = await makeAuthenticatedRequest(`${API_BASE_URL}/api/suggested-users/${id}`, {
+      method: 'DELETE',
+    });
+
+    if (!response.ok) {
+      throw new Error(`API error: ${response.status}`);
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.error('Error deleting suggested user:', error);
+    return { success: false };
+  }
+}
+
 export async function isUserSuggested(githubUsername: string): Promise<boolean> {
   const response = await makeAuthenticatedRequest(`${API_BASE_URL}/api/suggested-users/check/${encodeURIComponent(githubUsername)}`);
   if (!response.ok) {
@@ -223,5 +240,20 @@ export async function searchUsers(query: string, limit: number = 10): Promise<Gi
   } catch (error) {
     console.error('Search users error:', error);
     throw error instanceof Error ? error : new Error('Failed to search users');
+  }
+}
+
+export async function getLeaderboard(scope: string = "global"): Promise<GithubUser[]> {
+  try {
+    const response = await makeAuthenticatedRequest(`${API_BASE_URL}/api/social/leaderboard?scope=${encodeURIComponent(scope)}`);
+
+    if (!response.ok) {
+      throw new Error(`API error: ${response.status}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching leaderboard:', error);
+    throw error;
   }
 }

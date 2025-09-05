@@ -2,9 +2,9 @@ import { GithubUser, ContributionType, TimeFrame } from '@/types/github';
 import * as Dialog from '@radix-ui/react-dialog';
 import { Line } from 'react-chartjs-2';
 import { Chart as ChartJS, LineElement, PointElement, LinearScale, Title, Tooltip, Legend, CategoryScale } from 'chart.js';
-import { FiUsers, FiGitBranch, FiStar, FiRefreshCcw, FiGitPullRequest, FiGitCommit, FiAlertCircle, FiChevronRight, FiCalendar, FiChevronLeft } from 'react-icons/fi';
+import { FiUsers, FiGitBranch, FiStar, FiRefreshCcw, FiGitPullRequest, FiGitCommit, FiAlertCircle, FiChevronRight, FiCalendar, FiChevronLeft, FiX } from 'react-icons/fi';
 import { useMemo, useState, useEffect, useCallback } from 'react';
-import { refreshUser, fetchContributionTimeSeries } from '@/lib/api-client';
+import { refreshUser, fetchContributionTimeSeries, deleteSuggestedUser } from '@/lib/api-client';
 import Image from 'next/image';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -14,6 +14,7 @@ interface UserCardProps {
   user: GithubUser;
   onUserNavigation?: (direction: 'prev' | 'next') => void;
   onRefresh?: (updatedUser: GithubUser) => void;
+  onDelete?: (userId: string) => void;
   isRefreshing?: boolean;
   isDialogOpen?: boolean;
   onDialogOpenChange?: (open: boolean) => void;
@@ -27,7 +28,7 @@ function formatDate(dateStr: string | Date | null | undefined) {
 }
 
 
-export default function UserCard({ user, onRefresh, isRefreshing: externalIsRefreshing, onUserNavigation, isDialogOpen, onDialogOpenChange }: UserCardProps) {
+export default function UserCard({ user, onRefresh, onDelete, isRefreshing: externalIsRefreshing, onUserNavigation, isDialogOpen, onDialogOpenChange }: UserCardProps) {
 
   const [internalOpen, setInternalOpen] = useState(false);
   const open = isDialogOpen !== undefined ? isDialogOpen : internalOpen;
@@ -44,6 +45,10 @@ export default function UserCard({ user, onRefresh, isRefreshing: externalIsRefr
   const [localIsRefreshing, setLocalIsRefreshing] = useState(false);
   const [isLoadingChart, setIsLoadingChart] = useState(false);
   const [currentUser, setCurrentUser] = useState<GithubUser>(user);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [showNotification, setShowNotification] = useState(false);
+  const [notificationMessage, setNotificationMessage] = useState('');
+  const [notificationType, setNotificationType] = useState<'success' | 'error'>('success');
 
 
   const isRefreshing = externalIsRefreshing || localIsRefreshing;
@@ -60,6 +65,37 @@ export default function UserCard({ user, onRefresh, isRefreshing: externalIsRefr
       console.error('Failed to refresh user:', error);
     } finally {
       setLocalIsRefreshing(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (isDeleting || !currentUser.id) return;
+    setIsDeleting(true);
+    try {
+      const result = await deleteSuggestedUser(currentUser.id);
+      if (result.success) {
+        setNotificationMessage('User removed successfully');
+        setNotificationType('success');
+        setShowNotification(true);
+        setTimeout(() => setShowNotification(false), 3000);
+
+        if (onDelete && currentUser.id) {
+          onDelete(currentUser.id);
+        }
+      } else {
+        setNotificationMessage('Failed to remove user');
+        setNotificationType('error');
+        setShowNotification(true);
+        setTimeout(() => setShowNotification(false), 3000);
+      }
+    } catch (error) {
+      console.error('Failed to delete user:', error);
+      setNotificationMessage('Failed to remove user');
+      setNotificationType('error');
+      setShowNotification(true);
+      setTimeout(() => setShowNotification(false), 3000);
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -194,7 +230,34 @@ export default function UserCard({ user, onRefresh, isRefreshing: externalIsRefr
 
   return (
     <Dialog.Root open={open} onOpenChange={setOpen}>
+      {/* Notification Toast */}
+      {showNotification && (
+        <div className={`fixed top-4 left-1/2 transform -translate-x-1/2 z-[70] px-4 py-2 rounded-lg shadow-lg transition-all duration-300 ${notificationType === 'success'
+          ? 'bg-green-500 text-white'
+          : 'bg-red-500 text-white'
+          }`}>
+          {notificationMessage}
+        </div>
+      )}
+
       <div className="space-y-4 max-w-xl mx-auto bg-gray-50 absolute dark:bg-gray-900 rounded-xl shadow-lg p-4 border border-gray-200 dark:border-gray-800 flex flex-col relative transition-colors">
+        {/* Mac-style Close Button */}
+        <button
+          onClick={handleDelete}
+          disabled={isDeleting}
+          className={`absolute top-3 left-3 w-3 h-3 rounded-full transition-all duration-200 ${isDeleting
+            ? 'bg-gray-400 cursor-not-allowed'
+            : 'bg-red-500 hover:bg-red-600 hover:scale-110'
+            } flex items-center justify-center group z-10`}
+          title={isDeleting ? 'Removing...' : 'Remove user'}
+        >
+          {isDeleting ? (
+            <div className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />
+          ) : (
+            <FiX className="w-2 h-2 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+          )}
+        </button>
+
         {/* Basic Info */}
         <div className="flex items-center space-x-4">
           {currentUser.avatarUrl ? (
@@ -319,7 +382,9 @@ export default function UserCard({ user, onRefresh, isRefreshing: externalIsRefr
         <Dialog.Overlay className="fixed inset-0 bg-black/40 z-40" />
         <Dialog.Content className="fixed top-0 right-0 h-full w-full max-w-lg bg-white dark:bg-gray-900 z-50 shadow-xl p-6 overflow-y-auto flex flex-col">
           <Dialog.Close asChild>
-            <button className="absolute top-4 right-4 text-gray-500 hover:text-gray-900 dark:hover:text-white text-2xl font-bold">&times;</button>
+            <button className="absolute top-4 right-4 text-gray-500 hover:text-gray-900 dark:hover:text-white text-2xl font-bold">
+              <FiX />
+            </button>
           </Dialog.Close>
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-0">

@@ -30,7 +30,7 @@ export default function HomePage() {
   const [showSearchSection, setShowSearchSection] = useState(false);
 
   // Use refetch from hook with selected group
-  const { users: suggestedUsers, isLoading: isInitialLoading, refetch: refetchSuggestedUsers, clearCache, removeUser } = useSuggestedUsersHome(selectedGroup);
+  const { users: suggestedUsers, isLoading: isInitialLoading, refetch: refetchSuggestedUsers, removeUser } = useSuggestedUsersHome(selectedGroup);
   const [isRefetchingSuggested, setIsRefetchingSuggested] = useState(false);
 
   // Ref for scrolling to search section

@@ -330,7 +330,7 @@ export default function UserCard({ user, onRefresh, onDelete, isRefreshing: exte
           </div>
           <div className="flex flex-col items-center">
             <FiStar className="w-4 h-4 text-indigo-500 mb-0.5" />
-            <span className="font-semibold text-gray-900 dark:text-white text-sm">{pulls + commits + issues || 0}</span>
+            <span className="font-semibold text-gray-900 dark:text-white text-sm">{currentUser.totalContributions}</span>
             <span className="text-xs text-gray-500 dark:text-gray-400">Contribs</span>
           </div>
         </div>

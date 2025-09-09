@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { getLeaderboard } from '@/lib/api-client'
 import { GithubUser } from '@/types/github'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
@@ -11,7 +11,7 @@ import LoadingSpinner from '@/components/ui/LoadingSpinner'
 import { Trophy, Medal, Award, Users, GitBranch, Star } from 'lucide-react'
 import AuthGuard from '@/components/AuthGuard'
 
-interface LeaderboardProps { }
+// interface LeaderboardProps {unknown}
 
 export default function LeaderboardPage() {
     const [users, setUsers] = useState<GithubUser[]>([])
@@ -54,6 +54,8 @@ export default function LeaderboardPage() {
     }
 
     const formatNumber = (num: number) => {
+        if(num !=null) {
+        console.log(num)
         if (num >= 1000000) {
             return (num / 1000000).toFixed(1) + 'M'
         }
@@ -61,6 +63,8 @@ export default function LeaderboardPage() {
             return (num / 1000).toFixed(1) + 'K'
         }
         return num.toString()
+        }
+        else return '0'
     }
 
     if (loading) {

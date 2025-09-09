@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { compareUsers } from '@/lib/api-client'
-import { GithubUser, UserComparisonResponse, CompResults } from '@/types/github'
+import { UserComparisonResponse, CompResults } from '@/types/github'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'

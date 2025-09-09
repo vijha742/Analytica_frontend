@@ -65,9 +65,9 @@ export interface GithubUser {
   id?: string;
   githubUsername: string;
   name: string;
-  email: string;
+  email?: string;
   avatarUrl: string;
-  bio: string;
+  bio?: string;
   followersCount: number;
   followingCount: number;
   publicReposCount: number;
@@ -78,6 +78,13 @@ export interface GithubUser {
   repositories?: Repository[];
   contributions?: Contribution[];
   team?: string;
+  teams?: string[];
+  createdAt?: string;
+}
+
+export interface SupplementingUserMatch {
+  matchedUser: GithubUser;
+  matchScore: number;
 }
 
 export interface LanguageDistribution {

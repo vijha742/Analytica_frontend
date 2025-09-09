@@ -47,6 +47,9 @@ export default function Header() {
           <Link href="/dashboard" className="text-sm font-medium hover:text-primary transition-colors">
             Dashboard
           </Link>
+          <Link href="/tech-matches" className="text-sm font-medium hover:text-primary transition-colors">
+            Tech Matches
+          </Link>
           <Link href="/leaderboard" className="text-sm font-medium hover:text-primary transition-colors">
             Leaderboard
           </Link>
@@ -90,6 +93,13 @@ export default function Header() {
               onClick={() => setMobileMenuOpen(false)}
             >
               Dashboard
+            </Link>
+            <Link
+              href="/tech-matches"
+              className="block py-2 text-sm font-medium hover:text-primary transition-colors"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              Tech Matches
             </Link>
             <Link
               href="/leaderboard"

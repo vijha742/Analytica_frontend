@@ -1,4 +1,4 @@
-import { GithubUser, ContributionTimeSeriesAPI, CodeAnalysis, ReadmeAnalysis, TechAnalysis, UserComparisonResponse } from '@/types/github';
+import { GithubUser, ContributionTimeSeriesAPI, CodeAnalysis, ReadmeAnalysis, TechAnalysis, UserComparisonResponse, SupplementingUserMatch } from '@/types/github';
 import { makeAuthenticatedRequest } from './auth-api';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
@@ -174,7 +174,7 @@ export const refreshUser = async (githubUsername: string, team: string): Promise
 }
 
 export const compareUsers = async (user1: string, user2: string): Promise<UserComparisonResponse> => {
-  const response = await makeAuthenticatedRequest(`${API_BASE_URL}/api/suggested-users/compare?User1=${encodeURIComponent(user1)}&User2=${encodeURIComponent(user2)}`);
+  const response = await makeAuthenticatedRequest(`${API_BASE_URL}/api/public/users/compare?User1=${encodeURIComponent(user1)}&User2=${encodeURIComponent(user2)}`);
 
   if (!response.ok) {
     throw new Error(`API error: ${response.status}`);
@@ -257,3 +257,19 @@ export async function getLeaderboard(scope: string = "global"): Promise<GithubUs
     throw error;
   }
 }
+
+export async function getSupplementingUser(): Promise<SupplementingUserMatch[]> {
+  try {
+    const response = await makeAuthenticatedRequest(`${API_BASE_URL}/api/social/p-match/s`);
+
+    if (!response.ok) {
+      throw new Error(`API error: ${response.status}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching supplementing users:', error);
+    throw error;
+  }
+}
+

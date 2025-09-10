@@ -24,7 +24,7 @@ function SignInPage() {
   const [loading, setLoading] = useState(false);
   const [isDark, setIsDark] = useState(false);
   const searchParams = useSearchParams();
-  const callbackUrl = searchParams.get("callbackUrl") || "/dashboard";
+  const callbackUrl = searchParams.get("callbackUrl") || "/home";
 
   useEffect(() => {
     if (typeof window !== 'undefined') {

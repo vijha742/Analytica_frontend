@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge'
 import LoadingSpinner from '@/components/ui/LoadingSpinner'
 import { Trophy, Medal, Award, Users, GitBranch, Star } from 'lucide-react'
 import AuthGuard from '@/components/AuthGuard'
+import Header from '@/components/ui/Header'
 
 // interface LeaderboardProps {unknown}
 
@@ -54,15 +55,15 @@ export default function LeaderboardPage() {
     }
 
     const formatNumber = (num: number) => {
-        if(num !=null) {
-        console.log(num)
-        if (num >= 1000000) {
-            return (num / 1000000).toFixed(1) + 'M'
-        }
-        if (num >= 1000) {
-            return (num / 1000).toFixed(1) + 'K'
-        }
-        return num.toString()
+        if (num != null) {
+            console.log(num)
+            if (num >= 1000000) {
+                return (num / 1000000).toFixed(1) + 'M'
+            }
+            if (num >= 1000) {
+                return (num / 1000).toFixed(1) + 'K'
+            }
+            return num.toString()
         }
         else return '0'
     }
@@ -101,6 +102,7 @@ export default function LeaderboardPage() {
 
     return (
         <AuthGuard>
+            <Header />
             <div className="container mx-auto py-8 space-y-6">
                 {/* Header */}
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">

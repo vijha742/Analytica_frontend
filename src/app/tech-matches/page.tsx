@@ -104,6 +104,8 @@ export default function TechMatchesPage() {
                             <div className="flex items-center gap-4">
                                 <Avatar className="w-16 h-16">
                                     <Image
+                                        width={64}
+                                        height={64}
                                         src={currentUserMatch.matchedUser.avatarUrl}
                                         alt={currentUserMatch.matchedUser.name}
                                         className="w-full h-full object-cover rounded-full"

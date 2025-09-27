@@ -12,12 +12,20 @@ export const authOptions: NextAuthOptions = {
 		async jwt({ token, account, user }) {
 			if (account) {
 				token.githubAccessToken = account.access_token;
+				// Try multiple sources for the GitHub username
+				token.githubUsername = account.login;
 			}
 			if (user?.backendJWT) {
 				token.backendJWT = user.backendJWT;
 			}
 			if (user?.refreshToken) {
 				token.refreshToken = user.refreshToken;
+			}
+			if (user?.githubUsername) {
+				token.githubUsername = user.githubUsername;
+			}
+			if (user?.userTeams) {
+				token.userTeams = user.userTeams;
 			}
 			return token;
 		},
@@ -30,6 +38,10 @@ export const authOptions: NextAuthOptions = {
 			}
 			if (token.refreshToken) {
 				session.refreshToken = token.refreshToken as string;
+			}
+			session.githubUsername = token.githubUsername as string;
+			if (token.userTeams) {
+				session.userTeams = token.userTeams as string[];
 			}
 			return session;
 		},
@@ -55,11 +67,25 @@ export const authOptions: NextAuthOptions = {
 
 					if (backendResponse.ok) {
 						const backendData = await backendResponse.json();
+						console.log('Backend response data:', {
+							hasJWT: !!backendData.jwtToken,
+							hasRefresh: !!backendData.refreshToken,
+							githubUsername: backendData.githubUsername,
+							hasUserData: !!backendData.userData,
+							teams: backendData.userData?.teams
+						});
+
 						user.backendJWT = backendData.jwtToken;
 						user.refreshToken = backendData.refreshToken;
+						user.githubUsername = backendData.githubUsername;
+						// Extract teams from userData
+						if (backendData.userData && backendData.userData.teams) {
+							user.userTeams = backendData.userData.teams;
+							console.log('Stored user teams:', user.userTeams);
+						}
 						return true;
 					} else {
-						console.error('Backend authentication failed');
+						console.error('Backend authentication failed:', backendResponse.status, await backendResponse.text());
 						return false;
 					}
 				} catch (error) {

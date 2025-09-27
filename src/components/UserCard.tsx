@@ -223,11 +223,6 @@ export default function UserCard({ user, onRefresh, onDelete, isRefreshing: exte
     );
   }
 
-  const commits = currentUser.contributions?.filter(c => c.type === ContributionType.COMMIT)?.reduce((sum, c) => sum + c.count, 0) || 0;
-  const pulls = currentUser.contributions?.filter(c => c.type === ContributionType.PULL_REQUEST)?.reduce((sum, c) => sum + c.count, 0) || 0;
-  const issues = currentUser.contributions?.filter(c => c.type === ContributionType.ISSUE)?.reduce((sum, c) => sum + c.count, 0) || 0;
-
-
   return (
     <Dialog.Root open={open} onOpenChange={setOpen}>
       {/* Notification Toast */}
@@ -458,21 +453,21 @@ export default function UserCard({ user, onRefresh, onDelete, isRefreshing: exte
               <div className="flex flex-col items-center">
                 <FiGitCommit className="w-6 h-6 text-indigo-500 mb-1" />
                 <span className="font-semibold text-gray-900 dark:text-white text-sm">
-                  {commits}
+                  {currentUser.commits}
                 </span>
                 <span className="text-xs text-gray-500 dark:text-gray-400">Commits</span>
               </div>
               <div className="flex flex-col items-center">
                 <FiGitPullRequest className="w-6 h-6 text-indigo-500 mb-1" />
                 <span className="font-semibold text-gray-900 dark:text-white text-sm">
-                  {pulls}
+                  {currentUser.pulls}
                 </span>
                 <span className="text-xs text-gray-500 dark:text-gray-400">Pull Requests</span>
               </div>
               <div className="flex flex-col items-center">
                 <FiAlertCircle className="w-6 h-6 text-indigo-500 mb-1" />
                 <span className="font-semibold text-gray-900 dark:text-white text-sm">
-                  {issues}
+                  {currentUser.issues}
                 </span>
                 <span className="text-xs text-gray-500 dark:text-gray-400">Issues</span>
               </div>

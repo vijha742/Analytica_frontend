@@ -273,3 +273,65 @@ export async function getSupplementingUser(): Promise<SupplementingUserMatch[]> 
   }
 }
 
+export async function createTeam(teamName: string): Promise<string[]> {
+  try {
+    const response = await makeAuthenticatedRequest(`${API_BASE_URL}/api/public/users/team?teamName=${encodeURIComponent(teamName)}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      }
+    });
+    if (!response.ok) {
+      throw new Error(`API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    // Backend returns direct array of team names
+    if (Array.isArray(data)) {
+      return data;
+    }
+
+    // Fallback in case backend structure changes
+    return data.Teams || [];
+  } catch (error) {
+    console.error('Error creating team:', error);
+    throw error;
+  }
+}
+
+export async function getMyData(username: string): Promise<GithubUser> {
+  try {
+    const response = await makeAuthenticatedRequest(`${API_BASE_URL}/api/public/users/${username}`);
+
+    if (!response.ok) {
+      throw new Error(`API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data as GithubUser;
+  } catch (error) {
+    console.error('Error fetching user data:', error);
+    throw error;
+  }
+}
+
+// export async function fetchUserTeams(): Promise<string[]> {
+//   try {
+//     const response = await makeAuthenticatedRequest(`${API_BASE_URL}/api/public/users/teams`, {
+//       method: 'GET',
+//       headers: {
+//         'Content-Type': 'application/json',
+//       }
+//     });
+
+//     if (!response.ok) {
+//       throw new Error(`API error: ${response.status}`);
+//     }
+
+//     const data = await response.json();
+//     return data.teams || [];
+//   } catch (error) {
+//     console.error('Error fetching user teams:', error);
+//     throw error;
+//   }
+// }

@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { searchUsers, suggestUser } from '@/lib/api-client';
+import { useSession } from 'next-auth/react';
+import { searchUsers, suggestUser, createTeam } from '@/lib/api-client';
 import UserCard, { UserCardSkeleton } from '@/components/UserCard';
 import SimpleUserCard from '@/components/SimpleUserCard';
 import { GithubUser } from '@/types/github';
@@ -9,25 +10,27 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useSuggestedUsersHome } from '@/hooks/useSuggestedUsersHome';
 import AuthGuard from '@/components/AuthGuard';
-
 import Header from '@/components/ui/Header';
 import SearchUserCard from '@/components/SearchUserCard';
 import { EmptyGroupCTA } from '@/components/ui/EmptyGroupCTA';
+import { useToast, ToastContainer } from '@/components/ui/toast';
 
 
 export default function HomePage() {
+  const { data: session } = useSession();
   const [searchQuery, setSearchQuery] = useState('');
   const [users, setUsers] = useState<GithubUser[]>([]);
   const [selectedUser, setSelectedUser] = useState<GithubUser | null>(null);
   const [suggestUsername, setSuggestUsername] = useState('');
-  const [selectedGroup, setSelectedGroup] = useState('Classmates');
-  const [groups, setGroups] = useState(['Classmates', 'Colleagues', 'Friends']);
+  const [selectedGroup, setSelectedGroup] = useState('');
+  const [groups, setGroups] = useState<string[]>([]);
   const [showCreateGroup, setShowCreateGroup] = useState(false);
   const [newGroupName, setNewGroupName] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [currentSection, setCurrentSection] = useState<'search' | 'suggested'>('search');
   const [showSearchSection, setShowSearchSection] = useState(false);
+  const { toasts, removeToast, showSuccess, showError, showInfo } = useToast();
 
   // Use refetch from hook with selected group
   const { users: suggestedUsers, isLoading: isInitialLoading, refetch: refetchSuggestedUsers, removeUser } = useSuggestedUsersHome(selectedGroup);
@@ -35,6 +38,33 @@ export default function HomePage() {
 
   // Ref for scrolling to search section
   const searchSectionRef = useRef<HTMLFormElement>(null);
+
+  // Initialize teams from session data
+  useEffect(() => {
+    console.log('Session data:', {
+      userTeams: session?.userTeams,
+      hasSession: !!session,
+      currentGroups: groups,
+      selectedGroup: selectedGroup
+    });
+
+    // Only initialize groups if they are empty (to avoid overriding updates from createTeam)
+    if (groups.length === 0) {
+      if (session?.userTeams && Array.isArray(session.userTeams) && session.userTeams.length > 0) {
+        setGroups(session.userTeams);
+        // Set the first team as selected if no group is selected yet
+        if (!selectedGroup) {
+          setSelectedGroup(session.userTeams[0]);
+        }
+      } else if (session && (!session.userTeams || session.userTeams.length === 0)) {
+        const defaultTeams = ['Classmates', 'Colleagues', 'Friends'];
+        setGroups(defaultTeams);
+        if (!selectedGroup) {
+          setSelectedGroup(defaultTeams[0]);
+        }
+      }
+    }
+  }, [session?.userTeams]);
 
   // Effect to handle group changes
   useEffect(() => {
@@ -74,21 +104,6 @@ export default function HomePage() {
       setLoading(false);
     }
   };
-
-  // const handleUserSelect = async (username: string) => {
-  //   setLoading(true);
-  //   setError(null);
-
-  //   try {
-  //     const userData = await fetchUser(username);
-  //     setSelectedUser(userData);
-  //     setCurrentSection('search'); // Set current section to search when selecting from search results
-  //   } catch {
-  //     setError('Failed to fetch user data. Please try again.');
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
 
   // Navigate between users in the current section
   const handleUserNavigation = (direction: 'prev' | 'next') => {
@@ -130,21 +145,75 @@ export default function HomePage() {
       setSuggestUsername('');
       setIsRefetchingSuggested(true);
       await refetchSuggestedUsers();
-    } catch {
-      setError('Failed to suggest user. Please try again.');
+      showSuccess('User suggested successfully!');
+    } catch (err) {
+      // Extract error message from the backend response
+      let errorMessage = 'Failed to suggest user. Please try again.';
+      if (err instanceof Error) {
+        errorMessage = err.message;
+      }
+      // Check if it's a backend error with specific message
+      if (typeof err === 'object' && err !== null && 'message' in err) {
+        errorMessage = err.message as string;
+      }
+
+      // Show specific error messages based on common scenarios
+      if (errorMessage.includes('404') || errorMessage.includes('not found')) {
+        errorMessage = 'User not found. Please check the username spelling.';
+      } else if (errorMessage.includes('already exists') || errorMessage.includes('duplicate')) {
+        errorMessage = 'User already exists in this group.';
+      } else if (errorMessage.includes('API error')) {
+        errorMessage = 'Failed to suggest user. Make sure there is no misspelling.';
+      }
+
+      showError(errorMessage);
+      setError(errorMessage);
     } finally {
       setLoading(false);
       setIsRefetchingSuggested(false);
     }
   };
 
-  const handleCreateGroup = (e: React.FormEvent) => {
+  const handleCreateGroup = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (newGroupName.trim() && !groups.includes(newGroupName.trim())) {
-      setGroups([...groups, newGroupName.trim()]);
-      setSelectedGroup(newGroupName.trim());
-      setNewGroupName('');
-      setShowCreateGroup(false);
+    if (!newGroupName.trim()) return;
+
+    if (groups.includes(newGroupName.trim())) {
+      showError('Group name already exists. Please choose a different name.');
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const result = await createTeam(newGroupName.trim());
+
+      if (Array.isArray(result) && result.length > 0) {
+        // Update groups with the response from backend which contains all teams
+        setGroups(result);
+        setSelectedGroup(newGroupName.trim());
+        setNewGroupName('');
+        setShowCreateGroup(false);
+        showSuccess(`Group "${newGroupName.trim()}" created successfully!`);
+
+        console.log('Updated teams from backend:', result);
+      } else {
+        showError('Failed to create group. Please try again.');
+      }
+    } catch (err) {
+      let errorMessage = 'Failed to create group. Please try again.';
+      if (err instanceof Error) {
+        errorMessage = err.message;
+      }
+      // Handle specific error cases
+      if (errorMessage.includes('already exists')) {
+        errorMessage = 'Group name already exists. Please choose a different name.';
+      } else if (errorMessage.toLowerCase().includes('invalid')) {
+        errorMessage = 'Invalid group name. Please use alphanumeric characters only.';
+      }
+      showError(errorMessage);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -179,6 +248,7 @@ export default function HomePage() {
     <AuthGuard>
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
         <Header />
+        <ToastContainer toasts={toasts} onRemove={removeToast} />
         <main className="py-12 px-4 sm:px-6 lg:px-8">
           <div className="max-w-7xl mx-auto">
             {/* <div className="text-center mb-12">
@@ -218,13 +288,18 @@ export default function HomePage() {
                   value={selectedGroup}
                   onChange={(e) => setSelectedGroup(e.target.value)}
                   className="flex-1 px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  disabled={groups.length === 0}
                 >
-                  {groups.map((group) => (
-                    <option key={group} value={group}>{group}</option>
-                  ))}
+                  {groups.length === 0 ? (
+                    <option value="">Loading teams...</option>
+                  ) : (
+                    groups.map((group) => (
+                      <option key={group} value={group}>{group}</option>
+                    ))
+                  )}
                 </select>
-                <Button type="submit" disabled={loading} className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 disabled:opacity-50">
-                  Suggest User
+                <Button type="submit" disabled={loading || groups.length === 0} className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 disabled:opacity-50">
+                  {groups.length === 0 ? 'Loading...' : 'Suggest User'}
                 </Button>
               </div>
             </form>
@@ -291,8 +366,24 @@ export default function HomePage() {
                               await suggestUser(user.githubUsername, selectedGroup);
                               setIsRefetchingSuggested(true);
                               await refetchSuggestedUsers();
-                            } catch {
-                              setError('Failed to suggest user. Please try again.');
+                              showSuccess(`${user.githubUsername} suggested successfully!`);
+                            } catch (err) {
+                              let errorMessage = 'Failed to suggest user. Please try again.';
+                              if (err instanceof Error) {
+                                errorMessage = err.message;
+                              }
+
+                              // Check for specific error types
+                              if (errorMessage.includes('404') || errorMessage.includes('not found')) {
+                                errorMessage = 'User not found. Please check the username spelling.';
+                              } else if (errorMessage.includes('already exists') || errorMessage.includes('duplicate')) {
+                                errorMessage = 'User already exists in this group.';
+                              } else if (errorMessage.includes('API error')) {
+                                errorMessage = 'Failed to suggest user. Make sure there is no misspelling.';
+                              }
+
+                              showError(errorMessage);
+                              setError(errorMessage);
                             } finally {
                               setLoading(false);
                               setIsRefetchingSuggested(false);
@@ -360,9 +451,15 @@ export default function HomePage() {
                         className="w-32 h-8 text-sm"
                         autoFocus
                         required
+                        disabled={loading}
                       />
-                      <Button type="submit" size="sm" className="h-8 px-2">
-                        ✓
+                      <Button
+                        type="submit"
+                        size="sm"
+                        className="h-8 px-2"
+                        disabled={loading || !newGroupName.trim()}
+                      >
+                        {loading ? '...' : '✓'}
                       </Button>
                       <Button
                         type="button"
@@ -373,6 +470,7 @@ export default function HomePage() {
                           setNewGroupName('');
                         }}
                         className="h-8 px-2"
+                        disabled={loading}
                       >
                         ✕
                       </Button>

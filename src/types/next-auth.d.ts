@@ -6,20 +6,27 @@ declare module "next-auth" {
     githubAccessToken?: string;
     backendJWT?: string;
     refreshToken?: string;
+    githubUsername?: string;
+    userTeams?: string[];
   }
 
   interface JWT {
     githubAccessToken?: string;
     backendJWT?: string;
     refreshToken?: string;
+    githubUsername?: string;
+    userTeams?: string[];
   }
 
   interface User {
     backendJWT?: string;
     refreshToken?: string;
+    githubUsername?: string;
+    userTeams?: string[];
   }
 
   interface Profile {
     id?: string;
+    login?: string;
   }
 }

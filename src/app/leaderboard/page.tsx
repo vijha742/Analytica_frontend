@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { getLeaderboard } from '@/lib/api-client'
 import { GithubUser } from '@/types/github'
 import { Card, CardContent } from '@/components/ui/card'
@@ -20,11 +20,7 @@ export default function LeaderboardPage() {
     const [error, setError] = useState<string | null>(null)
     const [scope, setScope] = useState<string>('global')
 
-    useEffect(() => {
-        fetchLeaderboardData()
-    }, [scope])
-
-    const fetchLeaderboardData = async () => {
+    const fetchLeaderboardData = useCallback(async () => {
         try {
             setLoading(true)
             setError(null)
@@ -35,7 +31,11 @@ export default function LeaderboardPage() {
         } finally {
             setLoading(false)
         }
-    }
+    }, [scope])
+
+    useEffect(() => {
+        fetchLeaderboardData()
+    }, [fetchLeaderboardData])
 
     const getRankIcon = (rank: number) => {
         switch (rank) {

@@ -30,7 +30,7 @@ export default function HomePage() {
   const [error, setError] = useState<string | null>(null);
   const [currentSection, setCurrentSection] = useState<'search' | 'suggested'>('search');
   const [showSearchSection, setShowSearchSection] = useState(false);
-  const { toasts, removeToast, showSuccess, showError, showInfo } = useToast();
+  const { toasts, removeToast, showSuccess, showError } = useToast();
 
   // Use refetch from hook with selected group
   const { users: suggestedUsers, isLoading: isInitialLoading, refetch: refetchSuggestedUsers, removeUser } = useSuggestedUsersHome(selectedGroup);
@@ -64,7 +64,7 @@ export default function HomePage() {
         }
       }
     }
-  }, [session?.userTeams]);
+  }, [session, session?.userTeams, groups, selectedGroup]);
 
   // Effect to handle group changes
   useEffect(() => {

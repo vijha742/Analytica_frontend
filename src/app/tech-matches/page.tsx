@@ -202,7 +202,7 @@ export default function TechMatchesPage() {
                                         <div className="flex items-start justify-between">
                                             <div className="flex items-center gap-3">
                                                 <Avatar className="w-12 h-12">
-                                                    <img
+                                                    <Image
                                                         src={match.matchedUser.avatarUrl}
                                                         alt={match.matchedUser.name}
                                                         className="w-full h-full object-cover rounded-full"

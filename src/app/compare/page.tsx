@@ -9,11 +9,10 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import LoadingSpinner from '@/components/ui/LoadingSpinner'
-import { Progress } from '@/components/ui/progress'
 import { Separator } from '@/components/ui/separator'
 import {
-    Users, Trophy, GitBranch, Star, Users2, MessageSquare, GitCommit,
-    Crown, Zap, Target, TrendingUp, Code, Globe, Heart, GitPullRequest,
+    Users, Trophy, Star, Users2, MessageSquare, GitCommit,
+    Crown, Zap, Target, TrendingUp, Heart, GitPullRequest,
     AlertCircle, CheckCircle, Award, Activity
 } from 'lucide-react'
 import AuthGuard from '@/components/AuthGuard'
@@ -306,7 +305,7 @@ export default function ComparePage() {
                                                     {overallResult.winner === 'It\'s a tie!' && (
                                                         <>
                                                             <Users2 className="h-6 w-6" />
-                                                            It's a Perfect Tie!
+                                                            It&apos;s a Perfect Tie!
                                                         </>
                                                     )}
                                                 </div>

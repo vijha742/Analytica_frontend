@@ -135,8 +135,8 @@ export async function suggestUser(githubUsername: string, team: string = 'Classm
       method: 'POST',
     }
   );
-  if (!response.ok) {
-    throw new Error('Failed to suggest user');
+  if (!response.ok && response.status === 400) {
+    throw new Error('Failed to suggest user. Make sure the username is correct.');
   }
 }
 

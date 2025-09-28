@@ -1,4 +1,4 @@
-import { GithubUser, ContributionType, TimeFrame } from '@/types/github';
+import { GithubUser, TimeFrame } from '@/types/github';
 import * as Dialog from '@radix-ui/react-dialog';
 import { Line } from 'react-chartjs-2';
 import { Chart as ChartJS, LineElement, PointElement, LinearScale, Title, Tooltip, Legend, CategoryScale } from 'chart.js';

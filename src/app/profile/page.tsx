@@ -83,7 +83,7 @@ function ProfileContent() {
     };
 
     useEffect(() => {
-        let username = session?.githubUsername;
+        const username = session?.githubUsername;
         if (!username && session?.githubAccessToken) {
             console.log('No githubUsername found, trying to fetch from GitHub API...');
             fetchGitHubUsername(session.githubAccessToken).then((fetchedUsername) => {

@@ -40,7 +40,7 @@ function AuthErrorPage() {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
             <Card className="w-full max-w-md mx-4 shadow-xl">
                 <CardHeader className="text-center space-y-4">
                     <div className="flex justify-center">

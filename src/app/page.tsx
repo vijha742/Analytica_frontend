@@ -9,7 +9,7 @@ import TechStackSection from '@/components/ui/TechStackSection';
 import RoadmapSection from '@/components/ui/RoadmapSection';
 import PreviewSection from '@/components/ui/PreviewSection';
 import Footer from '@/components/ui/Footer';
-import ThemeToggle from '@/components/ui/ThemeToggle';
+
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 
@@ -43,7 +43,7 @@ export default function LandingPage() {
           />
         </Link>
         <div className="flex items-center">
-          <ThemeToggle />
+
         </div>
       </div>
 

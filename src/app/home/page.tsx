@@ -246,7 +246,7 @@ export default function HomePage() {
 
   return (
     <AuthGuard>
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
         <Header />
         <ToastContainer toasts={toasts} onRemove={removeToast} />
         <main className="py-12 px-4 sm:px-6 lg:px-8">
@@ -265,7 +265,7 @@ export default function HomePage() {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Search for peers..."
-                  className="flex-1 px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-input"
+                  className="flex-1 px-4 py-2 rounded-lg border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-input"
                   required
                 />
                 <Button type="submit" disabled={loading} className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50">
@@ -281,13 +281,13 @@ export default function HomePage() {
                   value={suggestUsername}
                   onChange={(e) => setSuggestUsername(e.target.value)}
                   placeholder="GitHub username to suggest..."
-                  className="flex-1 px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 bg-input"
+                  className="flex-1 px-4 py-2 rounded-lg border border-gray-700 bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 bg-input"
                   required
                 />
                 <select
                   value={selectedGroup}
                   onChange={(e) => setSelectedGroup(e.target.value)}
-                  className="flex-1 px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="flex-1 px-4 py-2 rounded-lg border border-gray-700 bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                   disabled={groups.length === 0}
                 >
                   {groups.length === 0 ? (
@@ -313,19 +313,19 @@ export default function HomePage() {
             {showSearchSection && (
               <div className="mb-8 transition-all duration-300 ease-in-out">
                 <div className="flex justify-between items-center mb-6">
-                  <h2 className="text-3xl font-bold text-gray-900 dark:text-white bg-text-highlight">Search Results</h2>
+                  <h2 className="text-3xl font-bold text-white bg-text-highlight">Search Results</h2>
                   <Button
                     onClick={handleCloseSearchSection}
                     variant="outline"
                     size="sm"
-                    className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-red-50 dark:hover:bg-red-900/20 border-gray-300 dark:border-gray-600"
+                    className="text-gray-400 hover:text-gray-200 hover:bg-red-900/60 border-gray-600"
                   >
                     ✕ Close
                   </Button>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                   <div className="lg:col-span-1">
-                    <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4 bg-text-highlight">Results</h3>
+                    <h3 className="text-xl font-semibold text-white mb-4 bg-text-highlight">Results</h3>
                     <div className="h-[480px] overflow-y-auto pr-2 space-y-4 rounded-lg bg-gray-50 dark:bg-gray-900/50 p-4">
                       {loading ? (
                         Array.from({ length: 3 }).map((_, idx) => (
@@ -354,7 +354,7 @@ export default function HomePage() {
 
                   {/* Selected User Details Column */}
                   <div className="lg:col-span-1">
-                    <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4 bg-text-highlight">User Details</h3>
+                    <h3 className="text-xl font-semibold text-white mb-4 bg-text-highlight">User Details</h3>
                     <div className="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-4">
                       {selectedUser ? (
                         <SearchUserCard
@@ -391,7 +391,7 @@ export default function HomePage() {
                           }}
                         />
                       ) : (
-                        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 text-center">
+                        <div className="bg-gray-800 rounded-lg shadow-md p-6 text-center">
                           <p className="text-gray-600 dark:text-gray-300">
                             Select a user to view their details
                           </p>
@@ -406,7 +406,7 @@ export default function HomePage() {
             {/* Suggested Users Section */}
             <div className={`${showSearchSection ? 'mt-12' : 'mt-8'} mb-12`}>
               <div className="flex items-center gap-2 mb-6">
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-white bg-text-highlight">Suggested Users</h2>
+                <h2 className="text-2xl font-bold text-white bg-text-highlight">Suggested Users</h2>
                 {isRefetchingSuggested && (
                   <span className="ml-2 inline-block align-middle">
                     <svg className="animate-spin h-5 w-5 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">

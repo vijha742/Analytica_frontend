@@ -217,8 +217,8 @@ export default function UserCard({ user, onRefresh, onDelete, isRefreshing: exte
 
   if (!currentUser) {
     return (
-      <div className="p-4 bg-gray-100 dark:bg-gray-800 rounded-lg text-center">
-        <p className="text-gray-600 dark:text-gray-300">User data not available</p>
+      <div className="p-4 bg-gray-800 rounded-lg text-center">
+        <p className="text-gray-300">User data not available</p>
       </div>
     );
   }
@@ -235,7 +235,7 @@ export default function UserCard({ user, onRefresh, onDelete, isRefreshing: exte
         </div>
       )}
 
-      <div className="space-y-4 max-w-xl mx-auto bg-gray-50 absolute dark:bg-gray-900 rounded-xl shadow-lg p-4 border border-gray-200 dark:border-gray-800 flex flex-col relative transition-colors">
+      <div className="space-y-4 max-w-xl mx-auto bg-gray-900 absolute rounded-xl shadow-lg p-4 border border-gray-800 flex flex-col relative transition-colors">
         {/* Mac-style Close Button */}
         <button
           onClick={handleDelete}
@@ -262,25 +262,25 @@ export default function UserCard({ user, onRefresh, onDelete, isRefreshing: exte
                 alt={`${currentUser.name || currentUser.githubUsername}'s avatar`}
                 width={64}
                 height={64}
-                className="w-16 h-16 rounded-full object-cover border-2 border-indigo-200 dark:border-indigo-800"
+                className="w-16 h-16 rounded-full object-cover border-2 border-indigo-800"
               />
             </div>
           ) : (
-            <div className="w-16 h-16 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center shrink-0">
-              <FiUsers className="w-8 h-8 text-gray-400 dark:text-gray-500" />
+            <div className="w-16 h-16 rounded-full bg-gray-700 flex items-center justify-center shrink-0">
+              <FiUsers className="w-8 h-8 text-gray-500" />
             </div>
           )}
           <div className="flex-1 min-w-0">
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white truncate">
+            <h2 className="text-xl font-bold text-white truncate">
               {currentUser.name || currentUser.githubUsername}
             </h2>
-            <p className="text-indigo-600 dark:text-indigo-400 font-medium truncate">@{currentUser.githubUsername}</p>
+            <p className="text-indigo-400 font-medium truncate">@{currentUser.githubUsername}</p>
             {currentUser.bio ? (
-              <p className="mt-1 text-gray-600 dark:text-gray-300 text-sm line-clamp-2 min-h-[2.5rem]">
+              <p className="mt-1 text-gray-300 text-sm line-clamp-2 min-h-[2.5rem]">
                 {currentUser.bio}
               </p>
             ) : (
-              <p className="mt-1 text-gray-600 dark:text-gray-300 text-sm min-h-[2.5rem]">
+              <p className="mt-1 text-gray-300 text-sm min-h-[2.5rem]">
                 {/* Empty bio placeholder */}
               </p>
             )}
@@ -307,33 +307,33 @@ export default function UserCard({ user, onRefresh, onDelete, isRefreshing: exte
         </div>
 
         {/* Stats */}
-        <div className="mt-2 grid grid-cols-4 gap-2 bg-white/70 dark:bg-gray-800/70 rounded-lg p-2">
+        <div className="mt-2 grid grid-cols-4 gap-2 bg-gray-800/70 rounded-lg p-2">
           <div className="flex flex-col items-center">
             <FiUsers className="w-4 h-4 text-indigo-500 mb-0.5" />
-            <span className="font-semibold text-gray-900 dark:text-white text-sm">{currentUser.followersCount || 0}</span>
-            <span className="text-xs text-gray-500 dark:text-gray-400">Followers</span>
+            <span className="font-semibold text-white text-sm">{currentUser.followersCount || 0}</span>
+            <span className="text-xs text-gray-400">Followers</span>
           </div>
           <div className="flex flex-col items-center">
             <FiUsers className="w-4 h-4 text-indigo-500 mb-0.5" />
-            <span className="font-semibold text-gray-900 dark:text-white text-sm">{currentUser.followingCount || 0}</span>
-            <span className="text-xs text-gray-500 dark:text-gray-400">Following</span>
+            <span className="font-semibold text-white text-sm">{currentUser.followingCount || 0}</span>
+            <span className="text-xs text-gray-400">Following</span>
           </div>
           <div className="flex flex-col items-center">
             <FiGitBranch className="w-4 h-4 text-indigo-500 mb-0.5" />
-            <span className="font-semibold text-gray-900 dark:text-white text-sm">{currentUser.publicReposCount || 0}</span>
-            <span className="text-xs text-gray-500 dark:text-gray-400">Repos</span>
+            <span className="font-semibold text-white text-sm">{currentUser.publicReposCount || 0}</span>
+            <span className="text-xs text-gray-400">Repos</span>
           </div>
           <div className="flex flex-col items-center">
             <FiStar className="w-4 h-4 text-indigo-500 mb-0.5" />
-            <span className="font-semibold text-gray-900 dark:text-white text-sm">{currentUser.totalContributions}</span>
-            <span className="text-xs text-gray-500 dark:text-gray-400">Contribs</span>
+            <span className="font-semibold text-white text-sm">{currentUser.totalContributions}</span>
+            <span className="text-xs text-gray-400">Contribs</span>
           </div>
         </div>
         {/* Most Used Languages */}
         {languageStats.length > 0 && (
           <div className="flex flex-wrap gap-2 mt-2">
             {languageStats.map(([lang, count]) => (
-              <span key={lang} className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-indigo-100 dark:bg-indigo-900 text-indigo-800 dark:text-indigo-200">
+              <span key={lang} className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-indigo-900 text-indigo-200">
                 {lang} <span className="ml-1 text-[10px]">({count})</span>
               </span>
             ))}
@@ -341,24 +341,24 @@ export default function UserCard({ user, onRefresh, onDelete, isRefreshing: exte
         )}
         {/* Recently Updated Repo */}
         {recentRepo && (
-          <div className="mt-2 p-2 rounded-lg bg-gray-100 dark:bg-gray-800">
+          <div className="mt-2 p-2 rounded-lg bg-gray-800">
             <div className="flex items-center justify-between">
-              <span className="font-semibold text-gray-900 dark:text-white text-sm">Recently Updated Repo:</span>
-              <span className="text-xs text-gray-500 dark:text-gray-400">{formatDate(recentRepo.updatedAt)}</span>
+              <span className="font-semibold text-white text-sm">Recently Updated Repo:</span>
+              <span className="text-xs text-gray-400">{formatDate(recentRepo.updatedAt)}</span>
             </div>
             <div className="mt-1">
-              <span className="font-semibold text-indigo-700 dark:text-indigo-300 text-sm">{recentRepo.name}</span>
+              <span className="font-semibold text-indigo-300 text-sm">{recentRepo.name}</span>
               {recentRepo.language && (
-                <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-indigo-100 dark:bg-indigo-900 text-indigo-800 dark:text-indigo-200">
+                <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-indigo-900 text-indigo-200">
                   {recentRepo.language}
                 </span>
               )}
               {recentRepo.description ? (
-                <p className="text-xs text-gray-600 dark:text-gray-300 mt-1 line-clamp-2 min-h-[2.5rem]">
+                <p className="text-xs text-gray-300 mt-1 line-clamp-2 min-h-[2.5rem]">
                   {recentRepo.description}
                 </p>
               ) : (
-                <p className="text-xs text-gray-600 dark:text-gray-300 mt-1 min-h-[2.5rem]">
+                <p className="text-xs text-gray-300 mt-1 min-h-[2.5rem]">
                   {/* Empty repo description placeholder */}
                 </p>
               )}
@@ -399,7 +399,7 @@ export default function UserCard({ user, onRefresh, onDelete, isRefreshing: exte
           </div>
 
 
-          {currentUser.bio && <p className="mb-2 text-gray-600 dark:text-gray-300">{currentUser.bio}</p>}
+          {currentUser.bio && <p className="mb-2 text-gray-300">{currentUser.bio}</p>}
           <div className="mb-4 flex flex-wrap gap-2">
             {languageStats.map(([lang, count]) => (
               <span key={lang} className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-indigo-100 dark:bg-indigo-900 text-indigo-800 dark:text-indigo-200">
@@ -470,7 +470,7 @@ export default function UserCard({ user, onRefresh, onDelete, isRefreshing: exte
                   {currentUser.issues}
                 </span>
                 <span className="text-xs text-gray-500 dark:text-gray-400">Issues</span>
-              </div>
+              </div>butions
             </div>
           </div>
 
@@ -490,7 +490,7 @@ export default function UserCard({ user, onRefresh, onDelete, isRefreshing: exte
                         <div className="flex-1 min-w-0">
                           <h4 className="font-semibold text-gray-900 dark:text-white text-sm truncate">{repo.name}</h4>
                           {repo.description && (
-                            <p className="text-xs text-gray-600 dark:text-gray-300 mt-1 line-clamp-2">
+                            <p className="text-xs text-gray-300 mt-1 line-clamp-2">
                               {repo.description}
                             </p>
                           )}
@@ -498,11 +498,11 @@ export default function UserCard({ user, onRefresh, onDelete, isRefreshing: exte
                         <div className="flex items-center space-x-3 ml-3">
                           <div className="text-center">
                             <p className="text-gray-900 dark:text-white text-sm font-semibold">{repo.stargazerCount || 0}</p>
-                            <p className="text-xs text-gray-600 dark:text-gray-300">Stars</p>
+                            <p className="text-xs text-gray-300">Stars</p>
                           </div>
                           <div className="text-center">
                             <p className="text-gray-900 dark:text-white text-sm font-semibold">{repo.forkCount || 0}</p>
-                            <p className="text-xs text-gray-600 dark:text-gray-300">Forks</p>
+                            <p className="text-xs text-gray-300">Forks</p>
                           </div>
                         </div>
                       </div>

@@ -125,7 +125,7 @@ export default function ComparePage() {
 
     return (
         <AuthGuard>
-            <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
+            <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800">
                 <Header />
                 <div className="container mx-auto py-8 px-4 space-y-8">
                     {/* Hero Section */}

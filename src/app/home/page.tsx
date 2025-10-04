@@ -17,7 +17,7 @@ import { useToast, ToastContainer } from '@/components/ui/toast';
 
 
 export default function HomePage() {
-  const { data: session } = useSession();
+  const { data: session, update: updateSession } = useSession();
   const [searchQuery, setSearchQuery] = useState('');
   const [users, setUsers] = useState<GithubUser[]>([]);
   const [selectedUser, setSelectedUser] = useState<GithubUser | null>(null);
@@ -26,18 +26,33 @@ export default function HomePage() {
   const [groups, setGroups] = useState<string[]>([]);
   const [showCreateGroup, setShowCreateGroup] = useState(false);
   const [newGroupName, setNewGroupName] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [suggestLoading, setSuggestLoading] = useState(false);
+  const [groupLoading, setGroupLoading] = useState(false);
+  const [groupSwitchLoading, setGroupSwitchLoading] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [currentSection, setCurrentSection] = useState<'search' | 'suggested'>('search');
   const [showSearchSection, setShowSearchSection] = useState(false);
+  const [teamsManuallyUpdated, setTeamsManuallyUpdated] = useState(false);
   const { toasts, removeToast, showSuccess, showError } = useToast();
 
   // Use refetch from hook with selected group
-  const { users: suggestedUsers, isLoading: isInitialLoading, refetch: refetchSuggestedUsers, removeUser } = useSuggestedUsersHome(selectedGroup);
+  const { users: suggestedUsers, isLoading: isInitialLoading, refetch: refetchSuggestedUsers, removeUser, addUser } = useSuggestedUsersHome(selectedGroup);
   const [isRefetchingSuggested, setIsRefetchingSuggested] = useState(false);
 
   // Ref for scrolling to search section
   const searchSectionRef = useRef<HTMLFormElement>(null);
+
+  // Handle group switching with loading state
+  const handleGroupSwitch = async (newGroup: string) => {
+    if (newGroup === selectedGroup) return;
+
+    setGroupSwitchLoading(newGroup);
+    // Small delay to show loading state
+    await new Promise(resolve => setTimeout(resolve, 200));
+    setSelectedGroup(newGroup);
+    setGroupSwitchLoading(null);
+  };
 
   // Initialize teams from session data
   useEffect(() => {
@@ -45,18 +60,39 @@ export default function HomePage() {
       userTeams: session?.userTeams,
       hasSession: !!session,
       currentGroups: groups,
-      selectedGroup: selectedGroup
+      selectedGroup: selectedGroup,
+      teamsManuallyUpdated: teamsManuallyUpdated
     });
 
-    // Only initialize groups if they are empty (to avoid overriding updates from createTeam)
-    if (groups.length === 0) {
-      if (session?.userTeams && Array.isArray(session.userTeams) && session.userTeams.length > 0) {
+    if (!session) {
+      // No session yet, don't do anything
+      return;
+    }
+
+    // Reset manual update flag when session changes (new login)
+    if (session && teamsManuallyUpdated) {
+      setTeamsManuallyUpdated(false);
+    }
+
+    // Check if we have session data with teams
+    if (session.userTeams && Array.isArray(session.userTeams) && session.userTeams.length > 0) {
+      // Always update from session if we have real teams (not the default ones)
+      const isCurrentlyDefault = JSON.stringify([...groups].sort()) === JSON.stringify(['Classmates', 'Colleagues', 'Friends'].sort());
+      const sessionTeamsStr = JSON.stringify([...session.userTeams].sort());
+      const currentGroupsStr = JSON.stringify([...groups].sort());
+
+      if (isCurrentlyDefault || sessionTeamsStr !== currentGroupsStr) {
+        console.log('Updating groups from session:', session.userTeams);
         setGroups(session.userTeams);
-        // Set the first team as selected if no group is selected yet
-        if (!selectedGroup) {
+        // Set the first team as selected if no group is selected yet or if current selection is not in the new teams
+        if (!selectedGroup || !session.userTeams.includes(selectedGroup)) {
           setSelectedGroup(session.userTeams[0]);
         }
-      } else if (session && (!session.userTeams || session.userTeams.length === 0)) {
+      }
+    } else if (!session.userTeams || session.userTeams.length === 0) {
+      // Only set default teams if we have a session but no teams
+      if (groups.length === 0 || !teamsManuallyUpdated) {
+        console.log('Setting default teams');
         const defaultTeams = ['Classmates', 'Colleagues', 'Friends'];
         setGroups(defaultTeams);
         if (!selectedGroup) {
@@ -64,7 +100,7 @@ export default function HomePage() {
         }
       }
     }
-  }, [session, session?.userTeams, groups, selectedGroup]);
+  }, [session]);
 
   // Effect to handle group changes
   useEffect(() => {
@@ -77,7 +113,7 @@ export default function HomePage() {
       return;
     }
 
-    setLoading(true);
+    setSearchLoading(true);
     setError(null);
     setUsers([]);
     setShowSearchSection(true);
@@ -101,7 +137,7 @@ export default function HomePage() {
       setError('Unable to perform search. Please check your connection and try again.');
       setShowSearchSection(true); // Show search section even when there's an error so user can see the error message
     } finally {
-      setLoading(false);
+      setSearchLoading(false);
     }
   };
 
@@ -137,16 +173,58 @@ export default function HomePage() {
 
   const handleSuggestUser = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
+    const username = suggestUsername.trim();
+    if (!username) return;
+
+    setSuggestLoading(true);
     setError(null);
 
     try {
-      await suggestUser(suggestUsername, selectedGroup);
+      // Optimistically create a user object (this will be replaced with real data on success)
+      const optimisticUser: GithubUser = {
+        id: `temp-${Date.now()}`,
+        githubUsername: username,
+        name: username,
+        avatarUrl: `https://github.com/${username}.png`,
+        bio: undefined,
+        followersCount: 0,
+        followingCount: 0,
+        publicReposCount: 0,
+        totalContributions: 0,
+        lastUpdated: new Date().toISOString(),
+        repositories: [],
+        contributions: [],
+        technicalProfile: {
+          primaryLanguages: [],
+          frameworksUsed: [],
+          librariesUsed: [],
+          toolingPreferences: [],
+          specializationScore: 0,
+          versatilityScore: 0,
+          learningRate: 0,
+          experimentationFrequency: 0
+        },
+        userTech: {
+          projectTimeList: [],
+          technologyUsageList: []
+        }
+      };
+
+      // Add optimistic update
+      addUser && addUser(optimisticUser);
       setSuggestUsername('');
-      setIsRefetchingSuggested(true);
+      showSuccess('User suggestion in progress...');
+
+      // Make the actual API call
+      await suggestUser(username, selectedGroup);
+
+      // Refresh to get real data (this will replace the optimistic update)
       await refetchSuggestedUsers();
       showSuccess('User suggested successfully!');
     } catch (err) {
+      // Remove optimistic update on error
+      removeUser && removeUser(`temp-${Date.now()}`);
+
       // Extract error message from the backend response
       let errorMessage = 'Failed to suggest user. Please try again.';
       if (err instanceof Error) {
@@ -169,8 +247,7 @@ export default function HomePage() {
       showError(errorMessage);
       setError(errorMessage);
     } finally {
-      setLoading(false);
-      setIsRefetchingSuggested(false);
+      setSuggestLoading(false);
     }
   };
 
@@ -183,7 +260,7 @@ export default function HomePage() {
       return;
     }
 
-    setLoading(true);
+    setGroupLoading(true);
 
     try {
       const result = await createTeam(newGroupName.trim());
@@ -194,9 +271,18 @@ export default function HomePage() {
         setSelectedGroup(newGroupName.trim());
         setNewGroupName('');
         setShowCreateGroup(false);
+        setTeamsManuallyUpdated(true); // Mark as manually updated
         showSuccess(`Group "${newGroupName.trim()}" created successfully!`);
 
         console.log('Updated teams from backend:', result);
+
+        // Force session refresh to get updated teams from backend
+        try {
+          await updateSession();
+          console.log('Session refreshed with new teams');
+        } catch (sessionError) {
+          console.error('Failed to refresh session:', sessionError);
+        }
       } else {
         showError('Failed to create group. Please try again.');
       }
@@ -213,7 +299,7 @@ export default function HomePage() {
       }
       showError(errorMessage);
     } finally {
-      setLoading(false);
+      setGroupLoading(false);
     }
   };
 
@@ -258,6 +344,7 @@ export default function HomePage() {
             </p>
           </div> */}
 
+
             <form onSubmit={handleSearch} className="mb-8" ref={searchSectionRef}>
               <div className="flex flex-col sm:flex-row gap-4">
                 <Input
@@ -267,9 +354,10 @@ export default function HomePage() {
                   placeholder="Search for peers..."
                   className="flex-1 px-4 py-2 rounded-lg border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-input"
                   required
+                  disabled={searchLoading}
                 />
-                <Button type="submit" disabled={loading} className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50">
-                  {loading ? 'Loading...' : 'Search'}
+                <Button type="submit" disabled={searchLoading} className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50">
+                  {searchLoading ? 'Searching...' : 'Search'}
                 </Button>
               </div>
             </form>
@@ -283,23 +371,26 @@ export default function HomePage() {
                   placeholder="GitHub username to suggest..."
                   className="flex-1 px-4 py-2 rounded-lg border border-gray-700 bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 bg-input"
                   required
+                  disabled={suggestLoading}
                 />
                 <select
                   value={selectedGroup}
-                  onChange={(e) => setSelectedGroup(e.target.value)}
-                  className="flex-1 px-4 py-2 rounded-lg border border-gray-700 bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  disabled={groups.length === 0}
+                  onChange={(e) => handleGroupSwitch(e.target.value)}
+                  className="flex-1 px-4 py-2 rounded-lg border border-gray-700 bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+                  disabled={groups.length === 0 || groupSwitchLoading !== null}
                 >
                   {groups.length === 0 ? (
                     <option value="">Loading teams...</option>
                   ) : (
                     groups.map((group) => (
-                      <option key={group} value={group}>{group}</option>
+                      <option key={group} value={group}>
+                        {group} {groupSwitchLoading === group ? '(Loading...)' : ''}
+                      </option>
                     ))
                   )}
                 </select>
-                <Button type="submit" disabled={loading || groups.length === 0} className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 disabled:opacity-50">
-                  {groups.length === 0 ? 'Loading...' : 'Suggest User'}
+                <Button type="submit" disabled={suggestLoading || groups.length === 0 || groupSwitchLoading !== null} className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 disabled:opacity-50">
+                  {suggestLoading ? 'Suggesting...' : groups.length === 0 ? 'Loading...' : 'Suggest User'}
                 </Button>
               </div>
             </form>
@@ -327,7 +418,7 @@ export default function HomePage() {
                   <div className="lg:col-span-1">
                     <h3 className="text-xl font-semibold text-white mb-4 bg-text-highlight">Results</h3>
                     <div className="h-[480px] overflow-y-auto pr-2 space-y-4 rounded-lg bg-gray-50 dark:bg-gray-900/50 p-4">
-                      {loading ? (
+                      {searchLoading ? (
                         Array.from({ length: 3 }).map((_, idx) => (
                           <div key={idx} className="w-full">
                             <UserCardSkeleton />
@@ -360,14 +451,25 @@ export default function HomePage() {
                         <SearchUserCard
                           user={selectedUser}
                           onSuggestUser={async (user) => {
-                            setLoading(true);
-                            setError(null);
+                            // Create a temporary ID for optimistic update
+                            const tempId = `temp-search-${Date.now()}`;
+                            const tempUser: GithubUser = {
+                              ...user,
+                              id: tempId
+                            };
+
                             try {
+                              // Add optimistic update
+                              addUser && addUser(tempUser);
+                              showSuccess('User suggestion in progress...');
+
                               await suggestUser(user.githubUsername, selectedGroup);
-                              setIsRefetchingSuggested(true);
                               await refetchSuggestedUsers();
                               showSuccess(`${user.githubUsername} suggested successfully!`);
                             } catch (err) {
+                              // Remove optimistic update on error
+                              removeUser && removeUser(tempId);
+
                               let errorMessage = 'Failed to suggest user. Please try again.';
                               if (err instanceof Error) {
                                 errorMessage = err.message;
@@ -384,9 +486,6 @@ export default function HomePage() {
 
                               showError(errorMessage);
                               setError(errorMessage);
-                            } finally {
-                              setLoading(false);
-                              setIsRefetchingSuggested(false);
                             }
                           }}
                         />
@@ -426,10 +525,14 @@ export default function HomePage() {
                       key={group}
                       variant={selectedGroup === group ? "default" : "outline"}
                       size="sm"
-                      onClick={() => setSelectedGroup(group)}
-                      className="text-sm"
+                      onClick={() => handleGroupSwitch(group)}
+                      className="text-sm relative"
+                      disabled={groupSwitchLoading !== null}
                     >
                       {group}
+                      {groupSwitchLoading === group && (
+                        <span className="ml-2 inline-block animate-spin rounded-full h-3 w-3 border-b-2 border-current"></span>
+                      )}
                     </Button>
                   ))}
                   {!showCreateGroup ? (
@@ -451,15 +554,19 @@ export default function HomePage() {
                         className="w-32 h-8 text-sm"
                         autoFocus
                         required
-                        disabled={loading}
+                        disabled={groupLoading}
                       />
                       <Button
                         type="submit"
                         size="sm"
                         className="h-8 px-2"
-                        disabled={loading || !newGroupName.trim()}
+                        disabled={groupLoading || !newGroupName.trim()}
                       >
-                        {loading ? '...' : '✓'}
+                        {groupLoading ? (
+                          <span className="inline-block animate-spin rounded-full h-3 w-3 border-b-2 border-current"></span>
+                        ) : (
+                          '✓'
+                        )}
                       </Button>
                       <Button
                         type="button"
@@ -470,7 +577,7 @@ export default function HomePage() {
                           setNewGroupName('');
                         }}
                         className="h-8 px-2"
-                        disabled={loading}
+                        disabled={groupLoading}
                       >
                         ✕
                       </Button>

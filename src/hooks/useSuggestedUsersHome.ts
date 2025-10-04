@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { usePathname } from 'next/navigation';
 import { getSuggestedUsers } from '@/lib/api-client';
 import { GithubUser } from '@/types/github';
@@ -67,9 +67,16 @@ export function useSuggestedUsersHome(group: string = 'Classmates') {
     const [users, setUsers] = useState<GithubUser[]>(cached);
     const [isLoading, setIsLoading] = useState(false);
 
+    // Track current request to handle race conditions
+    const currentRequestRef = useRef<string | null>(null);
+
     const fetchSuggestedUsers = useCallback(async (bypassCache = false) => {
         // Only fetch if we're on the home page
         if (!isHomePage) return;
+
+        // Create unique request ID to handle race conditions
+        const requestId = `${group}-${Date.now()}`;
+        currentRequestRef.current = requestId;
 
         setIsLoading(true);
 
@@ -77,28 +84,41 @@ export function useSuggestedUsersHome(group: string = 'Classmates') {
         if (!bypassCache) {
             const cachedData = getSuggestedUsersCache(group);
             if (cachedData && cachedData.length > 0) {
-                setUsers(cachedData);
-                setIsLoading(false);
+                // Only update if this is still the current request
+                if (currentRequestRef.current === requestId) {
+                    setUsers(cachedData);
+                    setIsLoading(false);
+                }
                 return;
             }
         }
 
         try {
             const fetchedUsers = await getSuggestedUsers(group);
-            if (Array.isArray(fetchedUsers)) {
-                setSuggestedUsersCache(group, fetchedUsers);
-                setUsers(fetchedUsers);
-            } else {
-                // If fetch fails or returns empty, set empty array for this group
-                setUsers([]);
-                setSuggestedUsersCache(group, []); // Cache empty result to avoid repeated requests
+            
+            // Only update if this is still the current request (prevents race conditions)
+            if (currentRequestRef.current === requestId) {
+                if (Array.isArray(fetchedUsers)) {
+                    setSuggestedUsersCache(group, fetchedUsers);
+                    setUsers(fetchedUsers);
+                } else {
+                    // If fetch fails or returns empty, set empty array for this group
+                    setUsers([]);
+                    setSuggestedUsersCache(group, []); // Cache empty result to avoid repeated requests
+                }
             }
         } catch (error) {
             console.error('Failed to fetch suggested users:', error);
-            setUsers([]);
-            // Don't cache error results to allow retry
+            // Only update if this is still the current request
+            if (currentRequestRef.current === requestId) {
+                setUsers([]);
+                // Don't cache error results to allow retry
+            }
         } finally {
-            setIsLoading(false);
+            // Only update loading state if this is still the current request
+            if (currentRequestRef.current === requestId) {
+                setIsLoading(false);
+            }
         }
     }, [group, isHomePage]);
 
@@ -109,12 +129,14 @@ export function useSuggestedUsersHome(group: string = 'Classmates') {
             return;
         }
 
-        // Fetch data when on home page and group changes or on initial load
+        // Immediately show cached data if available
         const cachedForGroup = getSuggestedUsersCache(group) || [];
+        setUsers(cachedForGroup);
+
+        // Fetch data when on home page and group changes or on initial load
         if (cachedForGroup.length === 0) {
             fetchSuggestedUsers(false);
         } else {
-            setUsers(cachedForGroup);
             setIsLoading(false);
         }
     }, [group, isHomePage, fetchSuggestedUsers]);
@@ -138,12 +160,38 @@ export function useSuggestedUsersHome(group: string = 'Classmates') {
         });
     }, [group]);
 
+    const addUser = useCallback((user: GithubUser) => {
+        setUsers(prevUsers => {
+            // Check if user already exists to prevent duplicates
+            const userExists = prevUsers.some(u => u.githubUsername === user.githubUsername);
+            if (userExists) {
+                return prevUsers;
+            }
+            const updatedUsers = [...prevUsers, user];
+            // Update cache with the new user added
+            setSuggestedUsersCache(group, updatedUsers);
+            return updatedUsers;
+        });
+    }, [group]);
+
+    const updateUser = useCallback((updatedUser: GithubUser) => {
+        setUsers(prevUsers => {
+            const updatedUsers = prevUsers.map(user => 
+                user.githubUsername === updatedUser.githubUsername ? updatedUser : user
+            );
+            setSuggestedUsersCache(group, updatedUsers);
+            return updatedUsers;
+        });
+    }, [group]);
+
     return {
         users: isHomePage ? users : [],
         isLoading: isHomePage ? isLoading : false,
         refetch,
         clearCache,
-        removeUser
+        removeUser,
+        addUser,
+        updateUser
     };
 }
 

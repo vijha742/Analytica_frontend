@@ -100,7 +100,7 @@ export default function HomePage() {
         }
       }
     }
-  }, [session]);
+  }, [session, groups, selectedGroup, teamsManuallyUpdated]);
 
   // Effect to handle group changes
   useEffect(() => {
@@ -211,7 +211,9 @@ export default function HomePage() {
       };
 
       // Add optimistic update
-      addUser && addUser(optimisticUser);
+      if (addUser) {
+        addUser(optimisticUser);
+      }
       setSuggestUsername('');
       showSuccess('User suggestion in progress...');
 
@@ -219,11 +221,16 @@ export default function HomePage() {
       await suggestUser(username, selectedGroup);
 
       // Refresh to get real data (this will replace the optimistic update)
+      setIsRefetchingSuggested(true);
       await refetchSuggestedUsers();
+      setIsRefetchingSuggested(false);
       showSuccess('User suggested successfully!');
     } catch (err) {
       // Remove optimistic update on error
-      removeUser && removeUser(`temp-${Date.now()}`);
+      if (removeUser) {
+        removeUser(`temp-${Date.now()}`);
+      }
+      setIsRefetchingSuggested(false);
 
       // Extract error message from the backend response
       let errorMessage = 'Failed to suggest user. Please try again.';
@@ -460,15 +467,22 @@ export default function HomePage() {
 
                             try {
                               // Add optimistic update
-                              addUser && addUser(tempUser);
+                              if (addUser) {
+                                addUser(tempUser);
+                              }
                               showSuccess('User suggestion in progress...');
 
                               await suggestUser(user.githubUsername, selectedGroup);
+                              setIsRefetchingSuggested(true);
                               await refetchSuggestedUsers();
+                              setIsRefetchingSuggested(false);
                               showSuccess(`${user.githubUsername} suggested successfully!`);
                             } catch (err) {
                               // Remove optimistic update on error
-                              removeUser && removeUser(tempId);
+                              if (removeUser) {
+                                removeUser(tempId);
+                              }
+                              setIsRefetchingSuggested(false);
 
                               let errorMessage = 'Failed to suggest user. Please try again.';
                               if (err instanceof Error) {

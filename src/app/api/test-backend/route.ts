@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
             return NextResponse.json({ error: 'No JWT token found' }, { status: 401 });
         }
         try {
-            const backendResponse = await fetch(`${process.env.SPRING_BOOT_BACKEND_URL}/api/validate`, {
+            const backendResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/validate`, {
                 method: 'GET',
                 headers: {
                     'Authorization': `Bearer ${jwt}`,

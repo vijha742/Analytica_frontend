@@ -506,14 +506,14 @@ export default function ComparePage() {
                                                     <span className="text-muted-foreground">Specialization Score:</span>
                                                     <span className="font-medium">
                                                         {comparisonResult.user1.technicalProfile?.specializationScore ?
-                                                            `${comparisonResult.user1.technicalProfile.specializationScore}/10` : 'N/A'}
+                                                            `${comparisonResult.user1.technicalProfile.specializationScore * 10}/10` : 'N/A'}
                                                     </span>
                                                 </div>
                                                 <div className="flex justify-between">
                                                     <span className="text-muted-foreground">Versatility Score:</span>
                                                     <span className="font-medium">
                                                         {comparisonResult.user1.technicalProfile?.versatilityScore ?
-                                                            `${comparisonResult.user1.technicalProfile.versatilityScore}/10` : 'N/A'}
+                                                            `${comparisonResult.user1.technicalProfile.versatilityScore * 10}/10` : 'N/A'}
                                                     </span>
                                                 </div>
                                             </div>
@@ -534,14 +534,14 @@ export default function ComparePage() {
                                                     <span className="text-muted-foreground">Specialization Score:</span>
                                                     <span className="font-medium">
                                                         {comparisonResult.user2.technicalProfile?.specializationScore ?
-                                                            `${comparisonResult.user2.technicalProfile.specializationScore}/10` : 'N/A'}
+                                                            `${comparisonResult.user2.technicalProfile.specializationScore * 10}/10` : 'N/A'}
                                                     </span>
                                                 </div>
                                                 <div className="flex justify-between">
                                                     <span className="text-muted-foreground">Versatility Score:</span>
                                                     <span className="font-medium">
                                                         {comparisonResult.user2.technicalProfile?.versatilityScore ?
-                                                            `${comparisonResult.user2.technicalProfile.versatilityScore}/10` : 'N/A'}
+                                                            `${comparisonResult.user2.technicalProfile.versatilityScore * 10}/10` : 'N/A'}
                                                     </span>
                                                 </div>
                                             </div>

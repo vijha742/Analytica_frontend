@@ -9,7 +9,7 @@ export const authOptions: NextAuthOptions = {
 		})
 	],
 	callbacks: {
-		async jwt({ token, account, user }) {
+		async jwt({ token, account, user, trigger }) {
 			if (account) {
 				token.githubAccessToken = account.access_token;
 				// Try multiple sources for the GitHub username
@@ -27,6 +27,41 @@ export const authOptions: NextAuthOptions = {
 			if (user?.userTeams) {
 				token.userTeams = user.userTeams;
 			}
+
+			// Check if JWT is expired and refresh if needed
+			if (token.backendJWT && token.refreshToken && trigger !== "signIn") {
+				try {
+					// Basic JWT expiration check (decode without verification)
+					const jwtString = token.backendJWT as string;
+					const [, payload] = jwtString.split('.');
+					const decodedPayload = JSON.parse(Buffer.from(payload, 'base64').toString());
+					const now = Math.floor(Date.now() / 1000);
+
+					// If JWT expires in less than 5 minutes, refresh it
+					if (decodedPayload.exp && decodedPayload.exp - now < 300) {
+						const refreshResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/refresh-jwt`, {
+							method: 'POST',
+							headers: {
+								'Content-Type': 'application/json',
+								'Cookie': `refreshToken=${token.refreshToken as string}`
+							}
+						});
+
+						if (refreshResponse.ok) {
+							const refreshData = await refreshResponse.json();
+							if (refreshData.jwtToken) {
+								token.backendJWT = refreshData.jwtToken;
+							}
+							if (refreshData.refreshToken) {
+								token.refreshToken = refreshData.refreshToken;
+							}
+						}
+					}
+				} catch (error) {
+					console.error('Error refreshing JWT in NextAuth callback:', error);
+				}
+			}
+
 			return token;
 		},
 		async session({ session, token }) {
@@ -97,7 +132,8 @@ export const authOptions: NextAuthOptions = {
 		}
 	},
 	session: {
-		strategy: "jwt"
+		strategy: "jwt",
+		maxAge: 24 * 60 * 60, // 24 hours (matches your backend JWT expiration)
 	},
 	pages: {
 		signIn: "/auth/signin",

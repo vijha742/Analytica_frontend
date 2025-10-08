@@ -1,7 +1,44 @@
 import { getSession } from "next-auth/react";
 
-export async function makeAuthenticatedRequest(url: string, options: RequestInit = {}) {
+let isRefreshing = false;
+let refreshPromise: Promise<boolean> | null = null;
 
+async function refreshJWT(): Promise<boolean> {
+    if (isRefreshing && refreshPromise) {
+        return refreshPromise;
+    }
+
+    isRefreshing = true;
+    refreshPromise = (async () => {
+        try {
+            const response = await fetch('/api/auth/refresh-jwt', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                credentials: 'include',
+            });
+
+            if (response.ok) {
+                // Force NextAuth to refetch the session with new tokens
+                const event = new Event('visibilitychange');
+                document.dispatchEvent(event);
+                return true;
+            }
+            return false;
+        } catch (error) {
+            console.error('Error refreshing JWT:', error);
+            return false;
+        } finally {
+            isRefreshing = false;
+            refreshPromise = null;
+        }
+    })();
+
+    return refreshPromise;
+}
+
+export async function makeAuthenticatedRequest(url: string, options: RequestInit = {}, retryCount = 0): Promise<Response> {
     const session = await getSession();
 
     const defaultHeaders: Record<string, string> = {
@@ -19,6 +56,16 @@ export async function makeAuthenticatedRequest(url: string, options: RequestInit
         credentials: 'include',
     });
 
+    // If we get a 401 and haven't retried yet, try to refresh the JWT
+    if (response.status === 401 && retryCount === 0 && session?.refreshToken) {
+        const refreshSuccess = await refreshJWT();
+
+        if (refreshSuccess) {
+            // Retry the request with new JWT
+            return makeAuthenticatedRequest(url, options, 1);
+        }
+    }
+
     if (response.status === 401) {
         throw new Error('Authentication required');
     }
@@ -31,7 +78,7 @@ export async function apiRequest<T>(endpoint: string, options: RequestInit = {})
     let url = endpoint;
     if (endpoint.startsWith('/api/') && !endpoint.startsWith('/api/auth/')) {
         // This is a backend API call, prepend the backend URL
-        const backendUrl = process.env.NEXT_PUBLIC_SPRING_BOOT_BACKEND_URL || 'http://localhost:8080';
+        const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
         url = `${backendUrl}${endpoint}`;
     } else if (!endpoint.startsWith('http')) {
         // This is a frontend API call
@@ -48,15 +95,15 @@ export async function apiRequest<T>(endpoint: string, options: RequestInit = {})
     return response.json();
 }
 
-// Specific function for backend API calls with automatic JWT inclusion
-export async function backendApiRequest<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
+// Specific function for backend API calls with automatic JWT inclusion and refresh
+export async function backendApiRequest<T>(endpoint: string, options: RequestInit = {}, retryCount = 0): Promise<T> {
     const session = await getSession();
 
     if (!session?.backendJWT) {
         throw new Error('No backend JWT token available');
     }
 
-    const backendUrl = process.env.NEXT_PUBLIC_SPRING_BOOT_BACKEND_URL || 'http://localhost:8080';
+    const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
     const url = endpoint.startsWith('http') ? endpoint : `${backendUrl}${endpoint}`;
 
     const defaultHeaders: Record<string, string> = {
@@ -68,7 +115,19 @@ export async function backendApiRequest<T>(endpoint: string, options: RequestIni
     const response = await fetch(url, {
         ...options,
         headers: defaultHeaders,
+        credentials: 'include',
     });
+
+    // If we get a 401 and haven't retried yet, try to refresh the JWT
+    if (response.status === 401 && retryCount === 0 && session?.refreshToken) {
+        const refreshSuccess = await refreshJWT();
+
+        if (refreshSuccess) {
+            // Retry the request with new JWT
+            return backendApiRequest<T>(endpoint, options, 1);
+        }
+        throw new Error('Backend authentication failed - JWT refresh failed');
+    }
 
     if (response.status === 401) {
         throw new Error('Backend authentication failed - JWT may be expired');

@@ -23,7 +23,7 @@ export default function HeroSection() {
       scrollTrigger: {
         trigger: parentRef.current,
         start: "top top",
-        end: "30%",
+        end: "50%",
         scrub: true,
       },
     });
@@ -39,7 +39,7 @@ export default function HeroSection() {
         scrollTrigger: {
           trigger: parentRef.current,
           start: "top top",
-          end: "20%",
+          end: "40%",
           scrub: true,
         },
       }

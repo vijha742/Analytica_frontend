@@ -64,7 +64,9 @@ export default function FeaturesSection() {
       });
     }
 
-    return () => tl?.kill();
+    return () => {
+      tl?.kill();
+    };
   }, [isHovered]);
 
   // Duplicate cards array for seamless scroll

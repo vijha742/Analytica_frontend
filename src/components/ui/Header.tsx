@@ -1,4 +1,4 @@
-'use client';
+"use client";
 import Image from "next/image";
 
 import { useState, useEffect } from "react";
@@ -22,26 +22,29 @@ export default function Header() {
   };
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      setIsDark(document.documentElement.classList.contains('dark'));
+    if (typeof window !== "undefined") {
+      setIsDark(document.documentElement.classList.contains("dark"));
     }
     const observer = new MutationObserver(() => {
-      setIsDark(document.documentElement.classList.contains('dark'));
+      setIsDark(document.documentElement.classList.contains("dark"));
     });
-    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
 
     // Close user menu when clicking outside
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as Element;
-      if (userMenuOpen && !target.closest('.user-menu-container')) {
+      if (userMenuOpen && !target.closest(".user-menu-container")) {
         setUserMenuOpen(false);
       }
     };
 
-    document.addEventListener('click', handleClickOutside);
+    document.addEventListener("click", handleClickOutside);
     return () => {
       observer.disconnect();
-      document.removeEventListener('click', handleClickOutside);
+      document.removeEventListener("click", handleClickOutside);
     };
   }, [userMenuOpen]);
 
@@ -54,7 +57,7 @@ export default function Header() {
               src="/image2vector(1).svg"
               alt="Analytica Logo"
               className="max-h-12 w-auto"
-              style={isDark ? { filter: 'invert(1)' } : {}}
+              style={isDark ? { filter: "invert(1)" } : {}}
               width={48}
               height={48}
               priority
@@ -151,7 +154,7 @@ export default function Header() {
                     <button
                       onClick={() => {
                         setUserMenuOpen(false);
-                        signOut({ callbackUrl: '/' });
+                        signOut({ callbackUrl: "/" });
                       }}
                       className="flex items-center w-full px-4 py-2 text-sm hover:bg-accent"
                     >
@@ -177,7 +180,11 @@ export default function Header() {
             className="md:hidden"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           >
-            {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            {mobileMenuOpen ? (
+              <X className="h-5 w-5" />
+            ) : (
+              <Menu className="h-5 w-5" />
+            )}
           </Button>
         </div>
       </div>

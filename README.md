@@ -5,6 +5,7 @@
 A web platform that helps you monitor GitHub activity of developers you want to learn from - classmates, mentors, or inspiring creators. Get insights into their tech stack, contribution patterns, and project activity in one unified dashboard.
 
 **Live Demo:**[Analytica](https://www.analytica-frontend.vercel.app)
+
 **Tech Stack:** Spring Boot, Next.js, TypeScript, PostgreSQL
 
 ---

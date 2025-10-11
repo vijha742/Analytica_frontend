@@ -76,9 +76,9 @@ export default function FeaturesSection() {
         backgroundImage:
           "linear-gradient(180deg, #ffffff 0%, #443c8fff 50%, #051131ff 100%)",
       }}
-      className="relative p-20 bg-secondary/50 overflow-hidden"
+      className="relative md:p-15 p-2 pb-10 bg-secondary/50 overflow-hidden"
     >
-      <div className="text-center text-black max-w-2xl mx-auto mb-16">
+      <div className="text-center text-black max-w-2xl mx-auto md:mb-8">
         <h2 className="text-3xl font-bold mb-4">Core Features</h2>
         <p className="text-muted-foreground">
           Comprehensive tools to analyze, visualize, and enhance your GitHub
@@ -93,11 +93,11 @@ export default function FeaturesSection() {
       <div
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
-        className="relative flex items-end z-10 h-[50vh] overflow-hidden"
+        className="relative flex items-end z-10 h-[43vh] overflow-hidden"
       >
         <div
           ref={scrollRef}
-          className="flex gap-8 w-max cursor-grab select-none"
+          className="flex  gap-8 w-max cursor-grab select-none"
         >
           {duplicatedFeatures.map((feature, index) => (
             <div

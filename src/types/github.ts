@@ -76,9 +76,9 @@ export interface GithubUser {
   technicalProfile: TechnicalProfile;
   userTech: UserTech;
   repositories?: Repository[];
-  commits?: number;
-  pulls?: number;
-  issues?: number;
+  commitsCount?: number;
+  pullRequestsCount?: number;
+  issuesCount?: number;
   contributions?: Contribution[];
   team?: string;
   teams?: string[];

@@ -453,24 +453,24 @@ export default function UserCard({ user, onRefresh, onDelete, isRefreshing: exte
               <div className="flex flex-col items-center">
                 <FiGitCommit className="w-6 h-6 text-indigo-500 mb-1" />
                 <span className="font-semibold text-gray-900 dark:text-white text-sm">
-                  {currentUser.commits}
+                  {currentUser.commitsCount}
                 </span>
                 <span className="text-xs text-gray-500 dark:text-gray-400">Commits</span>
               </div>
               <div className="flex flex-col items-center">
                 <FiGitPullRequest className="w-6 h-6 text-indigo-500 mb-1" />
                 <span className="font-semibold text-gray-900 dark:text-white text-sm">
-                  {currentUser.pulls}
+                  {currentUser.pullRequestsCount}
                 </span>
                 <span className="text-xs text-gray-500 dark:text-gray-400">Pull Requests</span>
               </div>
               <div className="flex flex-col items-center">
                 <FiAlertCircle className="w-6 h-6 text-indigo-500 mb-1" />
                 <span className="font-semibold text-gray-900 dark:text-white text-sm">
-                  {currentUser.issues}
+                  {currentUser.issuesCount}
                 </span>
                 <span className="text-xs text-gray-500 dark:text-gray-400">Issues</span>
-              </div>butions
+              </div>
             </div>
           </div>
 

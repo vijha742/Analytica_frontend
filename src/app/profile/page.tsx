@@ -263,22 +263,6 @@ function ProfileContent() {
                     </div>
                 )}
 
-                {!session?.githubUsername && !loading && session && (
-                    <div className="text-center py-12">
-                        <p className="text-muted-foreground mb-4">
-                            Unable to load profile. GitHub username not found in session.
-                        </p>
-                        <p className="text-sm text-muted-foreground">
-                            Please sign out and sign in again to refresh your session.
-                        </p>
-                        {session?.githubAccessToken && (
-                            <p className="text-xs text-muted-foreground mt-2">
-                                Fallback: Trying to fetch username from GitHub API...
-                            </p>
-                        )}
-                    </div>
-                )}
-
                 {!session && !loading && (
                     <div className="text-center py-12">
                         <p className="text-muted-foreground">

@@ -20,7 +20,7 @@ export function StatsGrid({ user, codeAnalysis }: StatsGridProps) {
     {
       title: 'Total Contributions',
       // TODO: Replace with actual calculation of total contributions (commits, PRs, issues) when available.
-      value: 0,
+      value: user.totalContributions,
       icon: Activity,
       description: 'Commits, PRs, and Issues',
       color: 'text-blue-500'

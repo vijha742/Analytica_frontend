@@ -18,6 +18,7 @@ interface UserCardProps {
   isRefreshing?: boolean;
   isDialogOpen?: boolean;
   onDialogOpenChange?: (open: boolean) => void;
+  selectedGroup?: string;
 }
 
 function formatDate(dateStr: string | Date | null | undefined) {
@@ -28,7 +29,7 @@ function formatDate(dateStr: string | Date | null | undefined) {
 }
 
 
-export default function UserCard({ user, onRefresh, onDelete, isRefreshing: externalIsRefreshing, onUserNavigation, isDialogOpen, onDialogOpenChange }: UserCardProps) {
+export default function UserCard({ user, onRefresh, onDelete, isRefreshing: externalIsRefreshing, onUserNavigation, isDialogOpen, onDialogOpenChange, selectedGroup }: UserCardProps) {
 
   const [internalOpen, setInternalOpen] = useState(false);
   const open = isDialogOpen !== undefined ? isDialogOpen : internalOpen;
@@ -57,12 +58,24 @@ export default function UserCard({ user, onRefresh, onDelete, isRefreshing: exte
     if (isRefreshing) return;
     setLocalIsRefreshing(true);
     try {
-      const refreshedUser = await refreshUser(user.githubUsername, user.team || 'Classmates');
+      const refreshedUser = await refreshUser(user.githubUsername, selectedGroup || user.team || 'Classmates');
+      // Update local state immediately with the refreshed data
+      setCurrentUser(refreshedUser);
       if (onRefresh) {
         onRefresh(refreshedUser);
       }
+      // Show success notification
+      setNotificationMessage('User data refreshed successfully');
+      setNotificationType('success');
+      setShowNotification(true);
+      setTimeout(() => setShowNotification(false), 3000);
     } catch (error) {
       console.error('Failed to refresh user:', error);
+      // Show error notification
+      setNotificationMessage('Failed to refresh user data');
+      setNotificationType('error');
+      setShowNotification(true);
+      setTimeout(() => setShowNotification(false), 3000);
     } finally {
       setLocalIsRefreshing(false);
     }
@@ -99,6 +112,7 @@ export default function UserCard({ user, onRefresh, onDelete, isRefreshing: exte
     }
   };
 
+  // Update currentUser when user prop changes (important for when refresh updates the data)
   useEffect(() => {
     if (user) {
       setCurrentUser(user);

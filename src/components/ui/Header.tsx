@@ -3,6 +3,7 @@ import Image from "next/image";
 
 import { useState, useEffect } from "react";
 import { useSession, signOut } from "next-auth/react";
+import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 
 import { Menu, X, User, LogOut } from "lucide-react";
@@ -14,6 +15,11 @@ export default function Header() {
 
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const { data: session } = useSession();
+  const pathname = usePathname();
+
+  const isActiveLink = (href: string) => {
+    return pathname === href;
+  };
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -41,7 +47,7 @@ export default function Header() {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/70 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-16 items-center justify-between">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex h-16 items-center justify-between">
         <div className="flex items-center gap-2">
           <Link href="/home" className="flex items-center space-x-2">
             <Image
@@ -58,22 +64,58 @@ export default function Header() {
 
         {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center gap-6">
-          <Link href="/home" className="text-sm font-medium hover:text-primary transition-colors">
+          <Link
+            href="/home"
+            className={`text-sm font-medium transition-colors ${isActiveLink('/home')
+              ? 'text-primary border-b-2 border-primary pb-1'
+              : 'hover:text-primary'
+              }`}
+          >
             Home
           </Link>
-          <Link href="/dashboard" className="text-sm font-medium hover:text-primary transition-colors">
+          <Link
+            href="/dashboard"
+            className={`text-sm font-medium transition-colors ${isActiveLink('/dashboard')
+              ? 'text-primary border-b-2 border-primary pb-1'
+              : 'hover:text-primary'
+              }`}
+          >
             Dashboard
           </Link>
-          <Link href="/tech-matches" className="text-sm font-medium hover:text-primary transition-colors">
+          <Link
+            href="/tech-matches"
+            className={`text-sm font-medium transition-colors ${isActiveLink('/tech-matches')
+              ? 'text-primary border-b-2 border-primary pb-1'
+              : 'hover:text-primary'
+              }`}
+          >
             Tech Matches
           </Link>
-          <Link href="/leaderboard" className="text-sm font-medium hover:text-primary transition-colors">
+          <Link
+            href="/leaderboard"
+            className={`text-sm font-medium transition-colors ${isActiveLink('/leaderboard')
+              ? 'text-primary border-b-2 border-primary pb-1'
+              : 'hover:text-primary'
+              }`}
+          >
             Leaderboard
           </Link>
-          <Link href="/compare" className="text-sm font-medium hover:text-primary transition-colors">
+          <Link
+            href="/compare"
+            className={`text-sm font-medium transition-colors ${isActiveLink('/compare')
+              ? 'text-primary border-b-2 border-primary pb-1'
+              : 'hover:text-primary'
+              }`}
+          >
             Compare
           </Link>
-          <Link href="/about" className="text-sm font-medium hover:text-primary transition-colors">
+          <Link
+            href="/about"
+            className={`text-sm font-medium transition-colors ${isActiveLink('/about')
+              ? 'text-primary border-b-2 border-primary pb-1'
+              : 'hover:text-primary'
+              }`}
+          >
             About
           </Link>
         </nav>
@@ -96,7 +138,7 @@ export default function Header() {
               </button>
 
               {userMenuOpen && (
-                <div className="absolute right-0 mt-2 w-48 bg-card border border-border rounded-md shadow-lg z-50">
+                <div className="absolute right-0 mt-2 w-48 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60 border border-border rounded-md shadow-lg z-50">
                   <div className="py-1">
                     <Link
                       href="/profile"
@@ -143,54 +185,63 @@ export default function Header() {
       {/* Mobile menu */}
       {mobileMenuOpen && (
         <div className="md:hidden border-t border-border/40">
-          <div className="container py-4 space-y-3">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 space-y-3">
             <Link
               href="/home"
-              className="block py-2 text-sm font-medium hover:text-primary transition-colors"
+              className={`block py-2 text-sm font-medium transition-colors ${isActiveLink('/home')
+                ? 'text-primary font-semibold'
+                : 'hover:text-primary'
+                }`}
               onClick={() => setMobileMenuOpen(false)}
             >
               Home
             </Link>
             <Link
               href="/dashboard"
-              className="block py-2 text-sm font-medium hover:text-primary transition-colors"
+              className={`block py-2 text-sm font-medium transition-colors ${isActiveLink('/dashboard')
+                ? 'text-primary font-semibold'
+                : 'hover:text-primary'
+                }`}
               onClick={() => setMobileMenuOpen(false)}
             >
               Dashboard
             </Link>
             <Link
               href="/tech-matches"
-              className="block py-2 text-sm font-medium hover:text-primary transition-colors"
+              className={`block py-2 text-sm font-medium transition-colors ${isActiveLink('/tech-matches')
+                ? 'text-primary font-semibold'
+                : 'hover:text-primary'
+                }`}
               onClick={() => setMobileMenuOpen(false)}
             >
               Tech Matches
             </Link>
             <Link
               href="/leaderboard"
-              className="block py-2 text-sm font-medium hover:text-primary transition-colors"
+              className={`block py-2 text-sm font-medium transition-colors ${isActiveLink('/leaderboard')
+                ? 'text-primary font-semibold'
+                : 'hover:text-primary'
+                }`}
               onClick={() => setMobileMenuOpen(false)}
             >
               Leaderboard
             </Link>
             <Link
               href="/compare"
-              className="block py-2 text-sm font-medium hover:text-primary transition-colors"
+              className={`block py-2 text-sm font-medium transition-colors ${isActiveLink('/compare')
+                ? 'text-primary font-semibold'
+                : 'hover:text-primary'
+                }`}
               onClick={() => setMobileMenuOpen(false)}
             >
               Compare
             </Link>
-            {session && (
-              <Link
-                href="/profile"
-                className="block py-2 text-sm font-medium hover:text-primary transition-colors"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Profile
-              </Link>
-            )}
             <Link
               href="/about"
-              className="block py-2 text-sm font-medium hover:text-primary transition-colors"
+              className={`block py-2 text-sm font-medium transition-colors ${isActiveLink('/about')
+                ? 'text-primary font-semibold'
+                : 'hover:text-primary'
+                }`}
               onClick={() => setMobileMenuOpen(false)}
             >
               About

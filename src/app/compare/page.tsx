@@ -143,9 +143,9 @@ export default function ComparePage() {
                     </div>
 
                     {/* User Selection Cards */}
-                    <div className="relative grid grid-cols-1 lg:grid-cols-2 gap-6 max-w-4xl mx-auto">
+                    <div className="relative flex gap-6 max-w-4xl mx-auto justify-center items-start lg:items-center flex-col lg:flex-row">
                         {/* User 1 Input */}
-                        <Card className="relative overflow-hidden border-2 hover:border-emerald-300 dark:hover:border-emerald-600 transition-all duration-300 group">
+                        <Card className="relative w-full md:w-[20vw] overflow-hidden border-2 hover:border-emerald-300 dark:hover:border-emerald-600 transition-all duration-300 group">
                             <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-teal-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                             <CardHeader className="relative">
                                 <CardTitle className="flex items-center gap-3 text-xl">
@@ -181,19 +181,12 @@ export default function ComparePage() {
                             </CardContent>
                         </Card>
 
-                        {/* VS Divider */}
-                        <div className="lg:hidden flex items-center justify-center py-4">
-                            <div className="flex items-center gap-4">
-                                <div className="h-px bg-gradient-to-r from-transparent via-border to-transparent w-16" />
-                                <div className="px-4 py-2 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold text-sm">
-                                    VS
-                                </div>
-                                <div className="h-px bg-gradient-to-r from-transparent via-border to-transparent w-16" />
-                            </div>
-                        </div>
+
+
+                        <div className='flex justify-center w-full md:w-[2vw] text-3xl font-bold'>VS</div>
 
                         {/* User 2 Input */}
-                        <Card className="relative overflow-hidden border-2 hover:border-blue-300 dark:hover:border-blue-600 transition-all duration-300 group">
+                        <Card className="relative w-full md:w-[20vw]  overflow-hidden border-2 hover:border-blue-300 dark:hover:border-blue-600 transition-all duration-300 group">
                             <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-cyan-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                             <CardHeader className="relative">
                                 <CardTitle className="flex items-center gap-3 text-xl">
@@ -231,11 +224,7 @@ export default function ComparePage() {
                     </div>
 
                     {/* VS Divider for Desktop */}
-                    <div className="hidden lg:flex lg:justify-center lg:items-center lg:relative lg:-mt-8 lg:mb-8">
-                        <div className="w-16 h-16 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center shadow-xl border-4 border-background">
-                            <span className="text-white font-bold text-lg">VS</span>
-                        </div>
-                    </div>
+
 
                     {/* Compare Button */}
                     <div className="text-center">

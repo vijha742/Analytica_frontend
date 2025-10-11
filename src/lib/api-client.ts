@@ -299,6 +299,32 @@ export async function createTeam(teamName: string): Promise<string[]> {
   }
 }
 
+export async function deleteTeam(teamName: string): Promise<string[]> {
+  try {
+    const response = await makeAuthenticatedRequest(`${API_BASE_URL}/api/public/users/team?teamName=${encodeURIComponent(teamName)}`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+      }
+    });
+    if (!response.ok) {
+      throw new Error(`API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    // Backend returns direct array of team names
+    if (Array.isArray(data)) {
+      return data;
+    }
+
+    // Fallback in case backend structure changes
+    return data.Teams || [];
+  } catch (error) {
+    console.error('Error deleting team:', error);
+    throw error;
+  }
+}
+
 export async function getMyData(username: string): Promise<GithubUser> {
   try {
     const response = await makeAuthenticatedRequest(`${API_BASE_URL}/api/public/users/${username}`);

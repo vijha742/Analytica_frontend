@@ -2,13 +2,13 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useSession } from 'next-auth/react';
-import { searchUsers, suggestUser, createTeam } from '@/lib/api-client';
+import { searchUsers, suggestUser, createTeam, deleteTeam } from '@/lib/api-client';
 import UserCard, { UserCardSkeleton } from '@/components/UserCard';
 import SimpleUserCard from '@/components/SimpleUserCard';
 import { GithubUser } from '@/types/github';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { useSuggestedUsersHome } from '@/hooks/useSuggestedUsersHome';
+import { useSuggestedUsersHome, clearSuggestedUsersCache } from '@/hooks/useSuggestedUsersHome';
 import AuthGuard from '@/components/AuthGuard';
 import Header from '@/components/ui/Header';
 import SearchUserCard from '@/components/SearchUserCard';
@@ -30,6 +30,7 @@ export default function HomePage() {
   const [suggestLoading, setSuggestLoading] = useState(false);
   const [groupLoading, setGroupLoading] = useState(false);
   const [groupSwitchLoading, setGroupSwitchLoading] = useState<string | null>(null);
+  const [deletingGroup, setDeletingGroup] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [currentSection, setCurrentSection] = useState<'search' | 'suggested'>('search');
   const [showSearchSection, setShowSearchSection] = useState(false);
@@ -37,7 +38,7 @@ export default function HomePage() {
   const { toasts, removeToast, showSuccess, showError } = useToast();
 
   // Use refetch from hook with selected group
-  const { users: suggestedUsers, isLoading: isInitialLoading, refetch: refetchSuggestedUsers, removeUser, addUser } = useSuggestedUsersHome(selectedGroup);
+  const { users: suggestedUsers, isLoading: isInitialLoading, refetch: refetchSuggestedUsers, removeUser, addUser, updateUser, clearCache } = useSuggestedUsersHome(selectedGroup);
   const [isRefetchingSuggested, setIsRefetchingSuggested] = useState(false);
 
   // Ref for scrolling to search section
@@ -46,6 +47,13 @@ export default function HomePage() {
   // Handle group switching with loading state
   const handleGroupSwitch = async (newGroup: string) => {
     if (newGroup === selectedGroup) return;
+
+    // Validate that the group still exists
+    if (!groups.includes(newGroup)) {
+      console.warn(`Attempted to switch to non-existent group: ${newGroup}`);
+      showError('Selected group no longer exists. Please select another group.');
+      return;
+    }
 
     setGroupSwitchLoading(newGroup);
     // Small delay to show loading state
@@ -69,9 +77,10 @@ export default function HomePage() {
       return;
     }
 
-    // Reset manual update flag when session changes (new login)
-    if (session && teamsManuallyUpdated) {
-      setTeamsManuallyUpdated(false);
+    // Don't override if teams were manually updated (like after deletion) unless session has truly changed
+    if (teamsManuallyUpdated) {
+      console.log('Teams were manually updated, avoiding session override');
+      return;
     }
 
     // Check if we have session data with teams
@@ -81,17 +90,22 @@ export default function HomePage() {
       const sessionTeamsStr = JSON.stringify([...session.userTeams].sort());
       const currentGroupsStr = JSON.stringify([...groups].sort());
 
-      if (isCurrentlyDefault || sessionTeamsStr !== currentGroupsStr) {
+      // Only update if the session teams are different from current groups or we have default teams
+      if (isCurrentlyDefault || (sessionTeamsStr !== currentGroupsStr && !teamsManuallyUpdated)) {
         console.log('Updating groups from session:', session.userTeams);
         setGroups(session.userTeams);
         // Set the first team as selected if no group is selected yet or if current selection is not in the new teams
         if (!selectedGroup || !session.userTeams.includes(selectedGroup)) {
           setSelectedGroup(session.userTeams[0]);
         }
+      } else if (selectedGroup && !session.userTeams.includes(selectedGroup)) {
+        // Handle case where selected group is not in session teams (e.g., it was deleted)
+        console.warn('Selected group not found in session teams, switching to first available');
+        setSelectedGroup(session.userTeams[0]);
       }
     } else if (!session.userTeams || session.userTeams.length === 0) {
-      // Only set default teams if we have a session but no teams
-      if (groups.length === 0 || !teamsManuallyUpdated) {
+      // Only set default teams if we have a session but no teams and haven't manually updated
+      if ((groups.length === 0 || !teamsManuallyUpdated) && !teamsManuallyUpdated) {
         console.log('Setting default teams');
         const defaultTeams = ['Classmates', 'Colleagues', 'Friends'];
         setGroups(defaultTeams);
@@ -100,7 +114,7 @@ export default function HomePage() {
         }
       }
     }
-  }, [session, groups, selectedGroup, teamsManuallyUpdated]);
+  }, [session, session?.userTeams, groups, selectedGroup, teamsManuallyUpdated]);
 
   // Effect to handle group changes
   useEffect(() => {
@@ -310,6 +324,86 @@ export default function HomePage() {
     }
   };
 
+  const handleDeleteGroup = async (groupName: string) => {
+    // Prevent deleting if it's the only group
+    if (groups.length <= 1) {
+      showError('Cannot delete the last remaining group.');
+      return;
+    }
+
+    setDeletingGroup(groupName);
+
+    try {
+      const result = await deleteTeam(groupName);
+
+      if (Array.isArray(result)) {
+        console.log('Delete team successful, updated teams from backend:', result);
+
+        // Mark as manually updated BEFORE updating state to prevent session override
+        setTeamsManuallyUpdated(true);
+
+        // Update groups with the response from backend which contains remaining teams
+        setGroups(result);
+
+        // Reset the manual update flag after a delay to allow future session updates
+        setTimeout(() => {
+          setTeamsManuallyUpdated(false);
+          console.log('Reset teamsManuallyUpdated flag to allow future session updates');
+        }, 5000); // 5 seconds should be enough for the session to update
+
+        // If the deleted group was selected, switch to the first available group
+        if (selectedGroup === groupName) {
+          const newSelectedGroup = result[0];
+          if (newSelectedGroup) {
+            setSelectedGroup(newSelectedGroup);
+          }
+        }
+
+        // Clear the cache for the deleted group to avoid showing stale data
+        clearSuggestedUsersCache(groupName);
+        console.log('Cleared cache for deleted group:', groupName);
+
+        // Also clear current cache if we're switching away from the deleted group
+        if (clearCache && selectedGroup === groupName) {
+          clearCache();
+        }
+
+        // Force session refresh to get updated teams from backend
+        try {
+          await updateSession();
+          console.log('Session update initiated');
+
+          // Additional validation: check if session update was successful after a short delay
+          setTimeout(async () => {
+            try {
+              // Force another session refresh to ensure we get the latest data
+              await updateSession();
+              console.log('Secondary session refresh completed');
+            } catch (secondaryError) {
+              console.error('Secondary session refresh failed:', secondaryError);
+            }
+          }, 2000);
+        } catch (sessionError) {
+          console.error('Failed to refresh session:', sessionError);
+          showError('Teams updated locally. Please refresh the page to sync with server.');
+        }
+
+        showSuccess(`Group "${groupName}" deleted successfully!`);
+      } else {
+        showError('Failed to delete group. Please try again.');
+      }
+    } catch (err) {
+      let errorMessage = 'Failed to delete group. Please try again.';
+      if (err instanceof Error) {
+        errorMessage = err.message;
+      }
+      console.error('Delete group error:', err);
+      showError(errorMessage);
+    } finally {
+      setDeletingGroup(null);
+    }
+  };
+
   const handleDeleteUser = (userId: string) => {
     // Remove the user from the list and close dialog if it was open
     if (selectedUser?.id === userId) {
@@ -319,6 +413,18 @@ export default function HomePage() {
     // Remove user from the hook's state and cache
     if (removeUser) {
       removeUser(userId);
+    }
+  };
+
+  const handleRefreshUser = (refreshedUser: GithubUser) => {
+    // Update the user in the hook's state and cache
+    if (updateUser) {
+      updateUser(refreshedUser);
+    }
+
+    // If this is the currently selected user in the drawer, update it too
+    if (selectedUser && selectedUser.githubUsername === refreshedUser.githubUsername) {
+      setSelectedUser(refreshedUser);
     }
   };
 
@@ -534,21 +640,45 @@ export default function HomePage() {
               <div className="mb-6">
                 <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-3">Groups</h3>
                 <div className="flex flex-wrap items-center gap-2">
-                  {groups.map((group) => (
-                    <Button
-                      key={group}
-                      variant={selectedGroup === group ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => handleGroupSwitch(group)}
-                      className="text-sm relative"
-                      disabled={groupSwitchLoading !== null}
-                    >
-                      {group}
-                      {groupSwitchLoading === group && (
-                        <span className="ml-2 inline-block animate-spin rounded-full h-3 w-3 border-b-2 border-current"></span>
-                      )}
-                    </Button>
-                  ))}
+                  {groups.map((group) => {
+                    const canDelete = groups.length > 1; // Allow deletion of any group as long as it's not the last one
+
+                    return (
+                      <div key={group} className="relative group inline-block">
+                        <Button
+                          variant={selectedGroup === group ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => handleGroupSwitch(group)}
+                          className="text-sm relative pr-6"
+                          disabled={groupSwitchLoading !== null || deletingGroup !== null}
+                        >
+                          {group}
+                          {groupSwitchLoading === group && (
+                            <span className="ml-2 inline-block animate-spin rounded-full h-3 w-3 border-b-2 border-current"></span>
+                          )}
+                        </Button>
+                        {canDelete && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (confirm(`Are you sure you want to delete the "${group}" group? This action cannot be undone.`)) {
+                                handleDeleteGroup(group);
+                              }
+                            }}
+                            disabled={deletingGroup !== null || groupSwitchLoading !== null}
+                            className="absolute top-0 right-0 w-4 h-4 bg-red-500 hover:bg-red-600 text-white rounded-full text-xs flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 disabled:opacity-50 disabled:cursor-not-allowed z-10 transform translate-x-1 -translate-y-1"
+                            title={`Delete ${group}`}
+                          >
+                            {deletingGroup === group ? (
+                              <span className="inline-block animate-spin rounded-full h-1.5 w-1.5 border-b border-white"></span>
+                            ) : (
+                              '×'
+                            )}
+                          </button>
+                        )}
+                      </div>
+                    );
+                  })}
                   {!showCreateGroup ? (
                     <Button
                       variant="outline"
@@ -612,7 +742,9 @@ export default function HomePage() {
                       <UserCard
                         user={selectedUser && currentSection === 'suggested' && selectedUser.id === user.id ? selectedUser : user}
                         onUserNavigation={selectedUser && currentSection === 'suggested' && selectedUser.id === user.id ? handleUserNavigation : undefined}
+                        onRefresh={handleRefreshUser}
                         onDelete={handleDeleteUser}
+                        selectedGroup={selectedGroup}
                         isDialogOpen={selectedUser?.id === user.id && currentSection === 'suggested'}
                         onDialogOpenChange={(open) => {
                           if (!open) {

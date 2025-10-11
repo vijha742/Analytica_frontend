@@ -7,7 +7,6 @@ import {
   Linkedin,
   Mail,
   MapPin,
-  Phone,
   Send,
   Code,
   Database,
@@ -40,7 +39,7 @@ export default function AboutPage() {
               </span>
             </h1>
             <p className="text-xl text-slate-600 dark:text-slate-300 max-w-3xl mx-auto leading-relaxed">
-              Track the GitHub developers you want to learn from. See what they're building, what they're learning, and how they're growing - all in one place.
+              Track the GitHub developers you want to learn from. See what they&apos;re building, what they&apos;re learning, and how they&apos;re growing - all in one place.
             </p>
           </div>
 
@@ -88,12 +87,12 @@ export default function AboutPage() {
                   </div>
                   <div className="flex-1">
                     <h3 className="text-xl font-semibold text-slate-900 dark:text-white mb-2">
-                      Hi, I'm Vikas Jha
+                      Hi, I&apos;m Vikas Jha
                     </h3>
                     <p className="text-slate-600 dark:text-slate-300 leading-relaxed mb-4">
                       A 3rd year B.Tech Computer Science student from Faridabad, India.
-                      I have a lot of inertia when it comes to starting things, so I've learned to follow people who inspire me.
-                      Over the years, I've gathered information about their journeys, studied their approaches, and tried to replicate what works.
+                      I have a lot of inertia when it comes to starting things, so I&apos;ve learned to follow people who inspire me.
+                      Over the years, I&apos;ve gathered information about their journeys, studied their approaches, and tried to replicate what works.
                     </p>
                     <p className="text-slate-600 dark:text-slate-300 leading-relaxed mb-4">
                       But tracking GitHub activity manually was tedious. I wanted information, not just raw data.
@@ -101,8 +100,8 @@ export default function AboutPage() {
                     </p>
                     <p className="text-slate-600 dark:text-slate-300 leading-relaxed">
                       What started as a personal tool became something others might find useful too.
-                      If you've ever wondered <em>"What are the best developers in my network working on?"</em> or
-                      <em>"How can I find people with similar tech interests?"</em> - Analytica is for you.
+                      If you&apos;ve ever wondered <em>&quot;What are the best developers in my network working on?&quot;</em> or
+                      <em>&quot;How can I find people with similar tech interests?&quot;</em> - Analytica is for you.
                     </p>
                   </div>
                 </div>
@@ -138,7 +137,7 @@ export default function AboutPage() {
                           Tech Stack Analysis
                         </h4>
                         <p className="text-sm text-slate-600 dark:text-slate-300">
-                          Discover what languages and technologies developers use, how they've evolved over time, and where they specialize. Track lines of code, project complexity, and versatility scores.
+                          Discover what languages and technologies developers use, how they&apos;ve evolved over time, and where they specialize. Track lines of code, project complexity, and versatility scores.
                         </p>
                       </div>
                     </div>
@@ -162,7 +161,7 @@ export default function AboutPage() {
                           Developer Comparison
                         </h4>
                         <p className="text-sm text-slate-600 dark:text-slate-300">
-                          Compare any two developers side-by-side on contributions, repositories, language expertise, and activity patterns. Find out who's ahead and by how much.
+                          Compare any two developers side-by-side on contributions, repositories, language expertise, and activity patterns. Find out who&apos;s ahead and by how much.
                         </p>
                       </div>
                     </div>
@@ -184,7 +183,7 @@ export default function AboutPage() {
                           Team Organization
                         </h4>
                         <p className="text-sm text-slate-600 dark:text-slate-300">
-                          Group developers into custom teams - classmates, friends, colleagues, or any category that makes sense for you. Track each team's collective progress.
+                          Group developers into custom teams - classmates, friends, colleagues, or any category that makes sense for you. Track each team&apos;s collective progress.
                         </p>
                       </div>
                     </div>

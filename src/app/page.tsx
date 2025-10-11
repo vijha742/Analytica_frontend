@@ -44,11 +44,10 @@ export default function LandingPage() {
             style={isDark ? { filter: "invert(1)" } : {}}
             priority
           />
-        </div>
-        <div>
-          <div className="flex items-center">
-            <ThemeToggle />
-          </div>
+
+        </Link>
+        <div className="flex items-center">
+          
         </div>
       </div>
       <main className="flex-grow">

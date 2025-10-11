@@ -22,20 +22,8 @@ type ProvidersType = Record<string, Provider>;
 function SignInPage() {
   const [providers, setProviders] = useState<ProvidersType | null>(null);
   const [loading, setLoading] = useState(false);
-  const [isDark, setIsDark] = useState(false);
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get("callbackUrl") || "/home";
-
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      setIsDark(document.documentElement.classList.contains('dark'));
-    }
-    const observer = new MutationObserver(() => {
-      setIsDark(document.documentElement.classList.contains('dark'));
-    });
-    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
-    return () => observer.disconnect();
-  }, []);
 
   useEffect(() => {
     const fetchProviders = async () => {
@@ -57,7 +45,7 @@ function SignInPage() {
   };
 
   return (
-    <div className={`flex min-h-screen items-center justify-center bg-gradient-to-br from-primary/10 via-background to-secondary/10 transition-colors duration-300 ${isDark ? 'dark' : ''}`}>
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-primary/10 via-background to-secondary/10 transition-colors duration-300">
       <div className="absolute inset-0 pointer-events-none z-0">
         <div className="animate-pulse absolute top-1/4 left-1/2 -translate-x-1/2 w-72 h-72 rounded-full bg-primary/20 blur-3xl" />
         <div className="animate-pulse absolute bottom-0 right-0 w-40 h-40 rounded-full bg-secondary/20 blur-2xl" />

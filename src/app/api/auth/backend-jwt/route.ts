@@ -9,7 +9,7 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'No GitHub access token found' }, { status: 401 });
         }
 
-        const backendResponse = await fetch(`${process.env.SPRING_BOOT_BACKEND_URL}/auth/signin`, {
+        const backendResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/signin`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

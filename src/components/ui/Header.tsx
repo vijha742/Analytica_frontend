@@ -4,7 +4,7 @@ import Image from "next/image";
 import { useState, useEffect } from "react";
 import { useSession, signOut } from "next-auth/react";
 import { Button } from "@/components/ui/button";
-import ThemeToggle from "@/components/ui/ThemeToggle";
+
 import { Menu, X, User, LogOut } from "lucide-react";
 import Link from "next/link";
 
@@ -148,7 +148,7 @@ export default function Header() {
               </Button>
             </Link>
           )}
-          <ThemeToggle />
+
 
           <Button
             variant="ghost"

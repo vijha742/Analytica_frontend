@@ -41,16 +41,20 @@ export async function middleware(req: NextRequest) {
         try {
             const refreshRes = await fetch(`${req.nextUrl.origin}/api/auth/refresh-jwt`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                // cookies are sent automatically in edge runtime
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Cookie': req.headers.get('cookie') || ''
+                },
             });
             if (refreshRes.ok) {
                 // Get new cookies from response
                 const res = NextResponse.next();
-                const setCookie = refreshRes.headers.get('set-cookie');
-                if (setCookie) {
+                const setCookieHeaders = refreshRes.headers.getSetCookie();
+                if (setCookieHeaders.length > 0) {
                     // Set cookies from refresh response
-                    res.headers.set('set-cookie', setCookie);
+                    setCookieHeaders.forEach(cookie => {
+                        res.headers.append('set-cookie', cookie);
+                    });
                 }
                 return res;
             } else {

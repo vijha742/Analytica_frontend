@@ -8,13 +8,13 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'No refresh token found' }, { status: 401 });
         }
 
-        // Call backend to refresh JWT
-        const backendResponse = await fetch(`${process.env.SPRING_BOOT_BACKEND_URL}/auth/refresh-jwt`, {
+        // Call backend to refresh JWT - backend expects refreshToken as cookie
+        const backendResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/refresh-jwt`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ refreshToken }),
+                'Cookie': `refreshToken=${refreshToken}`
+            }
         });
 
         if (!backendResponse.ok) {

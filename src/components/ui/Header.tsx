@@ -6,7 +6,7 @@ import { useSession, signOut } from "next-auth/react";
 import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 
-import { Menu, X, User, LogOut } from "lucide-react";
+import { Menu, X, User, LogOut, Home as HomeIcon, LayoutDashboard, Users, Trophy, ListOrdered, Info } from "lucide-react";
 import Link from "next/link";
 
 export default function Header() {
@@ -69,57 +69,69 @@ export default function Header() {
         <nav className="hidden md:flex items-center gap-6">
           <Link
             href="/home"
-            className={`text-sm font-medium transition-colors ${isActiveLink('/home')
-              ? 'text-primary border-b-2 border-primary pb-1'
+            className={`flex flex-col items-center justify-center transition-colors ${isActiveLink('/home')
+              ? 'text-primary border-b-2 border-primary pb-2 scale-110 shadow-sm'
               : 'hover:text-primary'
               }`}
+            style={isActiveLink('/home') ? { marginBottom: '2px' } : {}}
           >
-            Home
+            <HomeIcon className={isActiveLink('/home') ? "h-5 w-5 mb-1" : "h-4 w-4 mb-1"} />
+            <span className={isActiveLink('/home') ? "text-sm font-semibold text-center" : "text-xs font-medium text-center"}>Home</span>
           </Link>
           <Link
             href="/dashboard"
-            className={`text-sm font-medium transition-colors ${isActiveLink('/dashboard')
-              ? 'text-primary border-b-2 border-primary pb-1'
+            className={`flex flex-col items-center justify-center transition-colors ${isActiveLink('/dashboard')
+              ? 'text-primary border-b-2 border-primary pb-2 scale-110 shadow-sm'
               : 'hover:text-primary'
               }`}
+            style={isActiveLink('/dashboard') ? { marginBottom: '2px' } : {}}
           >
-            Dashboard
+            <LayoutDashboard className={isActiveLink('/dashboard') ? "h-5 w-5 mb-1" : "h-4 w-4 mb-1"} />
+            <span className={isActiveLink('/dashboard') ? "text-sm font-semibold text-center" : "text-xs font-medium text-center"}>Dashboard</span>
           </Link>
           <Link
             href="/tech-matches"
-            className={`text-sm font-medium transition-colors ${isActiveLink('/tech-matches')
-              ? 'text-primary border-b-2 border-primary pb-1'
+            className={`flex flex-col items-center justify-center transition-colors ${isActiveLink('/tech-matches')
+              ? 'text-primary border-b-2 border-primary pb-2 scale-110 shadow-sm'
               : 'hover:text-primary'
               }`}
+            style={isActiveLink('/tech-matches') ? { marginBottom: '2px' } : {}}
           >
-            Tech Matches
+            <Users className={isActiveLink('/tech-matches') ? "h-5 w-5 mb-1" : "h-4 w-4 mb-1"} />
+            <span className={isActiveLink('/tech-matches') ? "text-sm font-semibold text-center" : "text-xs font-medium text-center"}>Tech Matches</span>
           </Link>
           <Link
             href="/leaderboard"
-            className={`text-sm font-medium transition-colors ${isActiveLink('/leaderboard')
-              ? 'text-primary border-b-2 border-primary pb-1'
+            className={`flex flex-col items-center justify-center transition-colors ${isActiveLink('/leaderboard')
+              ? 'text-primary border-b-2 border-primary pb-2 scale-110 shadow-sm'
               : 'hover:text-primary'
               }`}
+            style={isActiveLink('/leaderboard') ? { marginBottom: '2px' } : {}}
           >
-            Leaderboard
+            <Trophy className={isActiveLink('/leaderboard') ? "h-5 w-5 mb-1" : "h-4 w-4 mb-1"} />
+            <span className={isActiveLink('/leaderboard') ? "text-sm font-semibold text-center" : "text-xs font-medium text-center"}>Leaderboard</span>
           </Link>
           <Link
             href="/compare"
-            className={`text-sm font-medium transition-colors ${isActiveLink('/compare')
-              ? 'text-primary border-b-2 border-primary pb-1'
+            className={`flex flex-col items-center justify-center transition-colors ${isActiveLink('/compare')
+              ? 'text-primary border-b-2 border-primary pb-2 scale-110 shadow-sm'
               : 'hover:text-primary'
               }`}
+            style={isActiveLink('/compare') ? { marginBottom: '2px' } : {}}
           >
-            Compare
+            <ListOrdered className={isActiveLink('/compare') ? "h-5 w-5 mb-1" : "h-4 w-4 mb-1"} />
+            <span className={isActiveLink('/compare') ? "text-sm font-semibold text-center" : "text-xs font-medium text-center"}>Compare</span>
           </Link>
           <Link
             href="/about"
-            className={`text-sm font-medium transition-colors ${isActiveLink('/about')
-              ? 'text-primary border-b-2 border-primary pb-1'
+            className={`flex flex-col items-center justify-center transition-colors ${isActiveLink('/about')
+              ? 'text-primary border-b-2 border-primary pb-2 scale-110 shadow-sm'
               : 'hover:text-primary'
               }`}
+            style={isActiveLink('/about') ? { marginBottom: '2px' } : {}}
           >
-            About
+            <Info className={isActiveLink('/about') ? "h-5 w-5 mb-1" : "h-4 w-4 mb-1"} />
+            <span className={isActiveLink('/about') ? "text-sm font-semibold text-center" : "text-xs font-medium text-center"}>About</span>
           </Link>
         </nav>
 
@@ -192,66 +204,66 @@ export default function Header() {
       {/* Mobile menu */}
       {mobileMenuOpen && (
         <div className="md:hidden border-t border-border/40">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 space-y-3">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 space-y-3 flex flex-col items-center justify-center">
             <Link
               href="/home"
-              className={`block py-2 text-sm font-medium transition-colors ${isActiveLink('/home')
-                ? 'text-primary font-semibold'
+              className={`py-2 text-sm font-medium transition-colors flex items-center justify-center gap-2 w-full rounded-md ${isActiveLink('/home')
+                ? 'text-primary font-semibold bg-gray-900/90'
                 : 'hover:text-primary'
                 }`}
               onClick={() => setMobileMenuOpen(false)}
             >
-              Home
+              <HomeIcon className="h-4 w-4" /> Home
             </Link>
             <Link
               href="/dashboard"
-              className={`block py-2 text-sm font-medium transition-colors ${isActiveLink('/dashboard')
-                ? 'text-primary font-semibold'
+              className={`py-2 text-sm font-medium transition-colors flex items-center justify-center gap-2 w-full rounded-md ${isActiveLink('/dashboard')
+                ? 'text-primary font-semibold bg-gray-900/90'
                 : 'hover:text-primary'
                 }`}
               onClick={() => setMobileMenuOpen(false)}
             >
-              Dashboard
+              <LayoutDashboard className="h-4 w-4" /> Dashboard
             </Link>
             <Link
               href="/tech-matches"
-              className={`block py-2 text-sm font-medium transition-colors ${isActiveLink('/tech-matches')
-                ? 'text-primary font-semibold'
+              className={`py-2 text-sm font-medium transition-colors flex items-center justify-center gap-2 w-full rounded-md ${isActiveLink('/tech-matches')
+                ? 'text-primary font-semibold bg-gray-900/90'
                 : 'hover:text-primary'
                 }`}
               onClick={() => setMobileMenuOpen(false)}
             >
-              Tech Matches
+              <Users className="h-4 w-4" /> Tech Matches
             </Link>
             <Link
               href="/leaderboard"
-              className={`block py-2 text-sm font-medium transition-colors ${isActiveLink('/leaderboard')
-                ? 'text-primary font-semibold'
+              className={`py-2 text-sm font-medium transition-colors flex items-center justify-center gap-2 w-full rounded-md ${isActiveLink('/leaderboard')
+                ? 'text-primary font-semibold bg-gray-900/90'
                 : 'hover:text-primary'
                 }`}
               onClick={() => setMobileMenuOpen(false)}
             >
-              Leaderboard
+              <Trophy className="h-4 w-4" /> Leaderboard
             </Link>
             <Link
               href="/compare"
-              className={`block py-2 text-sm font-medium transition-colors ${isActiveLink('/compare')
-                ? 'text-primary font-semibold'
+              className={`py-2 text-sm font-medium transition-colors flex items-center justify-center gap-2 w-full rounded-md ${isActiveLink('/compare')
+                ? 'text-primary font-semibold bg-gray-900/90'
                 : 'hover:text-primary'
                 }`}
               onClick={() => setMobileMenuOpen(false)}
             >
-              Compare
+              <ListOrdered className="h-4 w-4" /> Compare
             </Link>
             <Link
               href="/about"
-              className={`block py-2 text-sm font-medium transition-colors ${isActiveLink('/about')
-                ? 'text-primary font-semibold'
+              className={`py-2 text-sm font-medium transition-colors flex items-center justify-center gap-2 w-full rounded-md ${isActiveLink('/about')
+                ? 'text-primary font-semibold bg-gray-900/90'
                 : 'hover:text-primary'
                 }`}
               onClick={() => setMobileMenuOpen(false)}
             >
-              About
+              <Info className="h-4 w-4" /> About
             </Link>
           </div>
         </div>

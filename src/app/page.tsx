@@ -1,6 +1,6 @@
 "use client";
-import Image from "next/image";
 
+import Image from "next/image";
 import HeroSection from "@/components/ui/HeroSection";
 import FeaturesSection from "@/components/ui/FeaturesSection";
 import AchievementsSection from "@/components/ui/AchievementsSection";
@@ -11,9 +11,13 @@ import PreviewSection from "@/components/ui/PreviewSection";
 import Footer from "@/components/ui/Footer";
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useLenis } from "@/components/ui/useLenis";
 
 export default function LandingPage() {
   const [isDark, setIsDark] = useState(false);
+
+  // Initialize Lenis
+  useLenis();
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -31,7 +35,6 @@ export default function LandingPage() {
 
   return (
     <div className="flex flex-col min-h-screen">
-      {/* <Header /> */}
       <div className="fixed top-0 left-0 w-full flex items-center justify-between bg-black p-1 z-99 ">
         <div>
           <Link href="/" className="flex items-center space-x-2">

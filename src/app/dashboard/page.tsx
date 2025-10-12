@@ -244,9 +244,6 @@ function DashboardContent() {
           <section className="flex flex-col items-center justify-center min-h-[65vh] py-12 w-full">
             {/* Modern Hero Section */}
             <div className="relative w-full max-w-2xl text-center mb-10">
-              <div className="absolute -top-10 left-1/2 -translate-x-1/2 z-0">
-                <Image src="/globe.svg" alt="Dashboard Illustration" width={112} height={112} className="opacity-90 drop-shadow-xl animate-float" />
-              </div>
               <h1 className="relative z-10 text-4xl md:text-5xl font-extrabold bg-gradient-to-r from-fuchsia-500 via-sky-400 to-emerald-400 bg-clip-text text-transparent mb-3 tracking-tight drop-shadow-lg">
                 GitHub Analytics, <span className="text-emerald-500">Reimagined</span>
               </h1>

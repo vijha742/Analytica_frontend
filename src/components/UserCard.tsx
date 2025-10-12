@@ -491,7 +491,7 @@ export default function UserCard({ user, onRefresh, onDelete, isRefreshing: exte
           {/* All Repositories */}
           {currentUser.repositories && currentUser.repositories.length > 0 ? (
             <div className="mb-6">
-              <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">All Repositories</h3>
+              <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">All Public Repositories</h3>
               <div className="grid grid-cols-1 gap-3">
                 {currentUser.repositories
                   .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())

@@ -69,7 +69,6 @@ export default function FeaturesSection() {
     };
   }, [isHovered]);
 
-  // Duplicate cards array for seamless scroll
   const duplicatedFeatures = [...features, ...features];
 
   return (

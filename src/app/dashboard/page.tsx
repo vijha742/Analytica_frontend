@@ -8,7 +8,6 @@ import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import Header from '@/components/ui/Header';
 import AuthGuard from '@/components/AuthGuard';
-import Image from 'next/image';
 import { fetchUserData, fetchCodeAnalysis, fetchReadmeAnalysis } from '@/lib/api-client';
 import {
   GithubUser,

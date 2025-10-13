@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import { searchUsers, suggestUser, createTeam, deleteTeam, fetchUserTeams } from '@/lib/api-client';
 import UserCard, { UserCardSkeleton } from '@/components/UserCard';
@@ -17,7 +17,7 @@ import { useToast, ToastContainer } from '@/components/ui/toast';
 
 
 export default function HomePage() {
-  const { data: session, update: updateSession } = useSession();
+  const { data: session } = useSession();
   const [searchQuery, setSearchQuery] = useState('');
   const [users, setUsers] = useState<GithubUser[]>([]);
   const [selectedUser, setSelectedUser] = useState<GithubUser | null>(null);
@@ -64,7 +64,7 @@ export default function HomePage() {
   };
 
   // Function to fetch teams from database
-  const fetchTeamsFromDatabase = async () => {
+  const fetchTeamsFromDatabase = useCallback(async () => {
     if (!session?.backendJWT) {
       console.log('No backend JWT available, cannot fetch teams');
       return;
@@ -99,7 +99,7 @@ export default function HomePage() {
     } finally {
       setTeamsLoading(false);
     }
-  };
+  }, [session?.backendJWT, selectedGroup]);
 
   // Initialize teams from database instead of session data
   useEffect(() => {
@@ -129,7 +129,7 @@ export default function HomePage() {
       console.log('Fetching teams from database');
       fetchTeamsFromDatabase();
     }
-  }, [session?.backendJWT]);
+  }, [session, fetchTeamsFromDatabase, groups, selectedGroup, teamsManuallyUpdated]);
 
   // Effect to monitor groups state changes
   useEffect(() => {

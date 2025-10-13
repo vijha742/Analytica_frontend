@@ -35,15 +35,16 @@ export default function HomePage() {
   const [currentSection, setCurrentSection] = useState<'search' | 'suggested'>('search');
   const [teamsLoading, setTeamsLoading] = useState(false);
   const [showSearchSection, setShowSearchSection] = useState(false);
-  const [teamsManuallyUpdated, setTeamsManuallyUpdated] = useState(false);
   const { toasts, removeToast, showSuccess, showError } = useToast();
 
   // Use refetch from hook with selected group
   const { users: suggestedUsers, isLoading: isInitialLoading, refetch: refetchSuggestedUsers, removeUser, addUser, updateUser, clearCache } = useSuggestedUsersHome(selectedGroup);
   const [isRefetchingSuggested, setIsRefetchingSuggested] = useState(false);
 
-  // Ref for scrolling to search section
+  // Refs for managing state and preventing concurrent fetches
   const searchSectionRef = useRef<HTMLFormElement>(null);
+  const isFetchingTeamsRef = useRef(false);
+  const hasInitiallyFetchedRef = useRef(false);
 
   // Handle group switching with loading state
   const handleGroupSwitch = async (newGroup: string) => {
@@ -63,28 +64,36 @@ export default function HomePage() {
     setGroupSwitchLoading(null);
   };
 
-  // Function to fetch teams from database
-  const fetchTeamsFromDatabase = useCallback(async () => {
+  // Function to fetch teams from database - only depends on session
+  const fetchTeamsFromDatabase = useCallback(async (preserveSelection = false) => {
     if (!session?.backendJWT) {
       console.log('No backend JWT available, cannot fetch teams');
       return;
     }
 
+    // Prevent concurrent fetches
+    if (isFetchingTeamsRef.current) {
+      console.log('Teams fetch already in progress, skipping');
+      return;
+    }
+
+    isFetchingTeamsRef.current = true;
     setTeamsLoading(true);
     try {
       const userTeams = await fetchUserTeams();
+      console.log('Fetched teams from database:', userTeams);
 
       if (userTeams.length > 0) {
         setGroups(userTeams);
-        // Set the first team as selected if no group is selected yet or if current selection is not in the new teams
-        if (!selectedGroup || !userTeams.includes(selectedGroup)) {
+        // Only update selection if not preserving or if current selection is invalid
+        if (!preserveSelection || !selectedGroup || !userTeams.includes(selectedGroup)) {
           setSelectedGroup(userTeams[0]);
         }
       } else {
         // If no teams found, set default teams
         const defaultTeams = ['Classmates', 'Colleagues', 'Friends'];
         setGroups(defaultTeams);
-        if (!selectedGroup) {
+        if (!preserveSelection || !selectedGroup) {
           setSelectedGroup(defaultTeams[0]);
         }
       }
@@ -93,51 +102,33 @@ export default function HomePage() {
       // Fallback to default teams on error
       const defaultTeams = ['Classmates', 'Colleagues', 'Friends'];
       setGroups(defaultTeams);
-      if (!selectedGroup) {
+      if (!preserveSelection || !selectedGroup) {
         setSelectedGroup(defaultTeams[0]);
       }
     } finally {
+      isFetchingTeamsRef.current = false;
       setTeamsLoading(false);
     }
-  }, [session?.backendJWT, selectedGroup]);
+  }, [session?.backendJWT]);
 
-  // Initialize teams from database instead of session data
+  // Initialize teams from database - only once when session becomes available
   useEffect(() => {
-    console.log('Session changed, checking if we need to fetch teams:', {
-      hasSession: !!session,
+    console.log('Session JWT status changed:', {
       hasBackendJWT: !!session?.backendJWT,
-      currentGroups: groups,
-      selectedGroup: selectedGroup,
-      teamsManuallyUpdated: teamsManuallyUpdated
+      hasInitiallyFetched: hasInitiallyFetchedRef.current
     });
 
-    if (!session?.backendJWT) {
-      // No session or backend JWT yet, don't do anything
+    if (!session?.backendJWT || hasInitiallyFetchedRef.current) {
+      // No backend JWT yet, or already fetched initially
       return;
     }
 
-    // Don't override if teams were manually updated (like after deletion) unless we have no teams
-    if (teamsManuallyUpdated && groups.length > 0) {
-      console.log('Teams were manually updated and we have groups, avoiding database fetch');
-      return;
-    }
+    console.log('Fetching teams from database for the first time');
+    hasInitiallyFetchedRef.current = true;
+    fetchTeamsFromDatabase();
+  }, [session?.backendJWT, fetchTeamsFromDatabase]);
 
-    // Only fetch from database if we don't have teams yet or if we have default teams
-    const isCurrentlyDefault = JSON.stringify([...groups].sort()) === JSON.stringify(['Classmates', 'Colleagues', 'Friends'].sort());
 
-    if (groups.length === 0 || isCurrentlyDefault) {
-      console.log('Fetching teams from database');
-      fetchTeamsFromDatabase();
-    }
-  }, [session, fetchTeamsFromDatabase, groups, selectedGroup, teamsManuallyUpdated]);
-
-  // Effect to monitor groups state changes
-  useEffect(() => {
-  }, [groups]);
-
-  // Effect to handle group changes
-  useEffect(() => {
-  }, [selectedGroup]);
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -304,20 +295,15 @@ export default function HomePage() {
     try {
       await createTeam(newGroupName.trim());
 
-      // Immediately fetch fresh teams from database instead of relying on API response
+      // Immediately fetch fresh teams from database
       const freshTeams = await fetchUserTeams();
+      console.log('Teams after creation:', freshTeams);
+
       setGroups(freshTeams);
       setSelectedGroup(newGroupName.trim());
       setNewGroupName('');
       setShowCreateGroup(false);
-      setTeamsManuallyUpdated(true); // Mark as manually updated
       showSuccess(`Group "${newGroupName.trim()}" created successfully!`);
-
-      // Reset the manual update flag after a delay to allow future database fetches
-      setTimeout(() => {
-        setTeamsManuallyUpdated(false);
-        console.log('Reset teamsManuallyUpdated flag to allow future database fetches');
-      }, 3000);
     } catch (err) {
       let errorMessage = 'Failed to create group. Please try again.';
       if (err instanceof Error) {
@@ -347,21 +333,12 @@ export default function HomePage() {
     try {
       await deleteTeam(groupName);
 
-      // Immediately fetch fresh teams from database instead of relying on API response
+      // Immediately fetch fresh teams from database
       const freshTeams = await fetchUserTeams();
-      console.log('Fetched fresh teams after deletion:', freshTeams);
-
-      // Mark as manually updated BEFORE updating state to prevent session override
-      setTeamsManuallyUpdated(true);
+      console.log('Teams after deletion:', freshTeams);
 
       // Update groups with fresh data from database
       setGroups(freshTeams);
-
-      // Reset the manual update flag after a delay to allow future database fetches
-      setTimeout(() => {
-        setTeamsManuallyUpdated(false);
-        console.log('Reset teamsManuallyUpdated flag to allow future database fetches');
-      }, 3000);
 
       // If the deleted group was selected, switch to the first available group
       if (selectedGroup === groupName) {

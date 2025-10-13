@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useSession } from 'next-auth/react';
-import { searchUsers, suggestUser, createTeam, deleteTeam } from '@/lib/api-client';
+import { searchUsers, suggestUser, createTeam, deleteTeam, fetchUserTeams } from '@/lib/api-client';
 import UserCard, { UserCardSkeleton } from '@/components/UserCard';
 import SimpleUserCard from '@/components/SimpleUserCard';
 import { GithubUser } from '@/types/github';
@@ -33,6 +33,7 @@ export default function HomePage() {
   const [deletingGroup, setDeletingGroup] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [currentSection, setCurrentSection] = useState<'search' | 'suggested'>('search');
+  const [teamsLoading, setTeamsLoading] = useState(false);
   const [showSearchSection, setShowSearchSection] = useState(false);
   const [teamsManuallyUpdated, setTeamsManuallyUpdated] = useState(false);
   const { toasts, removeToast, showSuccess, showError } = useToast();
@@ -62,59 +63,77 @@ export default function HomePage() {
     setGroupSwitchLoading(null);
   };
 
-  // Initialize teams from session data
-  useEffect(() => {
-    console.log('Session data:', {
-      userTeams: session?.userTeams,
-      hasSession: !!session,
-      currentGroups: groups,
-      selectedGroup: selectedGroup,
-      teamsManuallyUpdated: teamsManuallyUpdated
-    });
-
-    if (!session) {
-      // No session yet, don't do anything
+  // Function to fetch teams from database
+  const fetchTeamsFromDatabase = async () => {
+    if (!session?.backendJWT) {
+      console.log('No backend JWT available, cannot fetch teams');
       return;
     }
 
-    // Don't override if teams were manually updated (like after deletion) unless session has truly changed
-    if (teamsManuallyUpdated) {
-      console.log('Teams were manually updated, avoiding session override');
-      return;
-    }
+    setTeamsLoading(true);
+    try {
+      const userTeams = await fetchUserTeams();
 
-    // Check if we have session data with teams
-    if (session.userTeams && Array.isArray(session.userTeams) && session.userTeams.length > 0) {
-      // Always update from session if we have real teams (not the default ones)
-      const isCurrentlyDefault = JSON.stringify([...groups].sort()) === JSON.stringify(['Classmates', 'Colleagues', 'Friends'].sort());
-      const sessionTeamsStr = JSON.stringify([...session.userTeams].sort());
-      const currentGroupsStr = JSON.stringify([...groups].sort());
-
-      // Only update if the session teams are different from current groups or we have default teams
-      if (isCurrentlyDefault || (sessionTeamsStr !== currentGroupsStr && !teamsManuallyUpdated)) {
-        console.log('Updating groups from session:', session.userTeams);
-        setGroups(session.userTeams);
+      if (userTeams.length > 0) {
+        setGroups(userTeams);
         // Set the first team as selected if no group is selected yet or if current selection is not in the new teams
-        if (!selectedGroup || !session.userTeams.includes(selectedGroup)) {
-          setSelectedGroup(session.userTeams[0]);
+        if (!selectedGroup || !userTeams.includes(selectedGroup)) {
+          setSelectedGroup(userTeams[0]);
         }
-      } else if (selectedGroup && !session.userTeams.includes(selectedGroup)) {
-        // Handle case where selected group is not in session teams (e.g., it was deleted)
-        console.warn('Selected group not found in session teams, switching to first available');
-        setSelectedGroup(session.userTeams[0]);
-      }
-    } else if (!session.userTeams || session.userTeams.length === 0) {
-      // Only set default teams if we have a session but no teams and haven't manually updated
-      if ((groups.length === 0 || !teamsManuallyUpdated) && !teamsManuallyUpdated) {
-        console.log('Setting default teams');
+      } else {
+        // If no teams found, set default teams
         const defaultTeams = ['Classmates', 'Colleagues', 'Friends'];
         setGroups(defaultTeams);
         if (!selectedGroup) {
           setSelectedGroup(defaultTeams[0]);
         }
       }
+    } catch (error) {
+      console.error('Error fetching teams from database:', error);
+      // Fallback to default teams on error
+      const defaultTeams = ['Classmates', 'Colleagues', 'Friends'];
+      setGroups(defaultTeams);
+      if (!selectedGroup) {
+        setSelectedGroup(defaultTeams[0]);
+      }
+    } finally {
+      setTeamsLoading(false);
     }
-  }, [session, session?.userTeams, groups, selectedGroup, teamsManuallyUpdated]);
+  };
+
+  // Initialize teams from database instead of session data
+  useEffect(() => {
+    console.log('Session changed, checking if we need to fetch teams:', {
+      hasSession: !!session,
+      hasBackendJWT: !!session?.backendJWT,
+      currentGroups: groups,
+      selectedGroup: selectedGroup,
+      teamsManuallyUpdated: teamsManuallyUpdated
+    });
+
+    if (!session?.backendJWT) {
+      // No session or backend JWT yet, don't do anything
+      return;
+    }
+
+    // Don't override if teams were manually updated (like after deletion) unless we have no teams
+    if (teamsManuallyUpdated && groups.length > 0) {
+      console.log('Teams were manually updated and we have groups, avoiding database fetch');
+      return;
+    }
+
+    // Only fetch from database if we don't have teams yet or if we have default teams
+    const isCurrentlyDefault = JSON.stringify([...groups].sort()) === JSON.stringify(['Classmates', 'Colleagues', 'Friends'].sort());
+
+    if (groups.length === 0 || isCurrentlyDefault) {
+      console.log('Fetching teams from database');
+      fetchTeamsFromDatabase();
+    }
+  }, [session?.backendJWT]);
+
+  // Effect to monitor groups state changes
+  useEffect(() => {
+  }, [groups]);
 
   // Effect to handle group changes
   useEffect(() => {
@@ -194,7 +213,6 @@ export default function HomePage() {
     setError(null);
 
     try {
-      // Optimistically create a user object (this will be replaced with real data on success)
       const optimisticUser: GithubUser = {
         id: `temp-${Date.now()}`,
         githubUsername: username,
@@ -284,29 +302,22 @@ export default function HomePage() {
     setGroupLoading(true);
 
     try {
-      const result = await createTeam(newGroupName.trim());
+      await createTeam(newGroupName.trim());
 
-      if (Array.isArray(result) && result.length > 0) {
-        // Update groups with the response from backend which contains all teams
-        setGroups(result);
-        setSelectedGroup(newGroupName.trim());
-        setNewGroupName('');
-        setShowCreateGroup(false);
-        setTeamsManuallyUpdated(true); // Mark as manually updated
-        showSuccess(`Group "${newGroupName.trim()}" created successfully!`);
+      // Immediately fetch fresh teams from database instead of relying on API response
+      const freshTeams = await fetchUserTeams();
+      setGroups(freshTeams);
+      setSelectedGroup(newGroupName.trim());
+      setNewGroupName('');
+      setShowCreateGroup(false);
+      setTeamsManuallyUpdated(true); // Mark as manually updated
+      showSuccess(`Group "${newGroupName.trim()}" created successfully!`);
 
-        console.log('Updated teams from backend:', result);
-
-        // Force session refresh to get updated teams from backend
-        try {
-          await updateSession();
-          console.log('Session refreshed with new teams');
-        } catch (sessionError) {
-          console.error('Failed to refresh session:', sessionError);
-        }
-      } else {
-        showError('Failed to create group. Please try again.');
-      }
+      // Reset the manual update flag after a delay to allow future database fetches
+      setTimeout(() => {
+        setTeamsManuallyUpdated(false);
+        console.log('Reset teamsManuallyUpdated flag to allow future database fetches');
+      }, 3000);
     } catch (err) {
       let errorMessage = 'Failed to create group. Please try again.';
       if (err instanceof Error) {
@@ -334,64 +345,42 @@ export default function HomePage() {
     setDeletingGroup(groupName);
 
     try {
-      const result = await deleteTeam(groupName);
+      await deleteTeam(groupName);
 
-      if (Array.isArray(result)) {
-        console.log('Delete team successful, updated teams from backend:', result);
+      // Immediately fetch fresh teams from database instead of relying on API response
+      const freshTeams = await fetchUserTeams();
+      console.log('Fetched fresh teams after deletion:', freshTeams);
 
-        // Mark as manually updated BEFORE updating state to prevent session override
-        setTeamsManuallyUpdated(true);
+      // Mark as manually updated BEFORE updating state to prevent session override
+      setTeamsManuallyUpdated(true);
 
-        // Update groups with the response from backend which contains remaining teams
-        setGroups(result);
+      // Update groups with fresh data from database
+      setGroups(freshTeams);
 
-        // Reset the manual update flag after a delay to allow future session updates
-        setTimeout(() => {
-          setTeamsManuallyUpdated(false);
-          console.log('Reset teamsManuallyUpdated flag to allow future session updates');
-        }, 5000); // 5 seconds should be enough for the session to update
+      // Reset the manual update flag after a delay to allow future database fetches
+      setTimeout(() => {
+        setTeamsManuallyUpdated(false);
+        console.log('Reset teamsManuallyUpdated flag to allow future database fetches');
+      }, 3000);
 
-        // If the deleted group was selected, switch to the first available group
-        if (selectedGroup === groupName) {
-          const newSelectedGroup = result[0];
-          if (newSelectedGroup) {
-            setSelectedGroup(newSelectedGroup);
-          }
+      // If the deleted group was selected, switch to the first available group
+      if (selectedGroup === groupName) {
+        const newSelectedGroup = freshTeams[0];
+        if (newSelectedGroup) {
+          setSelectedGroup(newSelectedGroup);
         }
-
-        // Clear the cache for the deleted group to avoid showing stale data
-        clearSuggestedUsersCache(groupName);
-        console.log('Cleared cache for deleted group:', groupName);
-
-        // Also clear current cache if we're switching away from the deleted group
-        if (clearCache && selectedGroup === groupName) {
-          clearCache();
-        }
-
-        // Force session refresh to get updated teams from backend
-        try {
-          await updateSession();
-          console.log('Session update initiated');
-
-          // Additional validation: check if session update was successful after a short delay
-          setTimeout(async () => {
-            try {
-              // Force another session refresh to ensure we get the latest data
-              await updateSession();
-              console.log('Secondary session refresh completed');
-            } catch (secondaryError) {
-              console.error('Secondary session refresh failed:', secondaryError);
-            }
-          }, 2000);
-        } catch (sessionError) {
-          console.error('Failed to refresh session:', sessionError);
-          showError('Teams updated locally. Please refresh the page to sync with server.');
-        }
-
-        showSuccess(`Group "${groupName}" deleted successfully!`);
-      } else {
-        showError('Failed to delete group. Please try again.');
       }
+
+      // Clear the cache for the deleted group to avoid showing stale data
+      clearSuggestedUsersCache(groupName);
+      console.log('Cleared cache for deleted group:', groupName);
+
+      // Also clear current cache if we're switching away from the deleted group
+      if (clearCache && selectedGroup === groupName) {
+        clearCache();
+      }
+
+      showSuccess(`Group "${groupName}" deleted successfully!`);
     } catch (err) {
       let errorMessage = 'Failed to delete group. Please try again.';
       if (err instanceof Error) {
@@ -490,9 +479,9 @@ export default function HomePage() {
                   value={selectedGroup}
                   onChange={(e) => handleGroupSwitch(e.target.value)}
                   className="flex-1 px-4 py-2 rounded-lg border border-gray-700 bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
-                  disabled={groups.length === 0 || groupSwitchLoading !== null}
+                  disabled={teamsLoading || groups.length === 0 || groupSwitchLoading !== null}
                 >
-                  {groups.length === 0 ? (
+                  {teamsLoading || groups.length === 0 ? (
                     <option value="">Loading teams...</option>
                   ) : (
                     groups.map((group) => (
@@ -502,8 +491,8 @@ export default function HomePage() {
                     ))
                   )}
                 </select>
-                <Button type="submit" disabled={suggestLoading || groups.length === 0 || groupSwitchLoading !== null} className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 disabled:opacity-50">
-                  {suggestLoading ? 'Suggesting...' : groups.length === 0 ? 'Loading...' : 'Suggest User'}
+                <Button type="submit" disabled={suggestLoading || teamsLoading || groups.length === 0 || groupSwitchLoading !== null} className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 disabled:opacity-50">
+                  {suggestLoading ? 'Suggesting...' : teamsLoading || groups.length === 0 ? 'Loading...' : 'Suggest User'}
                 </Button>
               </div>
             </form>

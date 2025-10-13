@@ -341,23 +341,30 @@ export async function getMyData(username: string): Promise<GithubUser> {
   }
 }
 
-// export async function fetchUserTeams(): Promise<string[]> {
-//   try {
-//     const response = await makeAuthenticatedRequest(`${API_BASE_URL}/api/public/users/teams`, {
-//       method: 'GET',
-//       headers: {
-//         'Content-Type': 'application/json',
-//       }
-//     });
+export async function fetchUserTeams(): Promise<string[]> {
+  try {
+    const response = await makeAuthenticatedRequest(`${API_BASE_URL}/api/public/users/team`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      }
+    });
 
-//     if (!response.ok) {
-//       throw new Error(`API error: ${response.status}`);
-//     }
+    if (!response.ok) {
+      console.error('❌ API error response:', response.status, response.statusText);
+      throw new Error(`API error: ${response.status}`);
+    }
 
-//     const data = await response.json();
-//     return data.teams || [];
-//   } catch (error) {
-//     console.error('Error fetching user teams:', error);
-//     throw error;
-//   }
-// }
+    const data = await response.json();
+
+    // Handle both cases: array directly or wrapped in teams property
+    if (Array.isArray(data)) {
+      return data;
+    }
+    const teams = data.teams || [];
+    return teams;
+  } catch (error) {
+    console.error('❌ Error fetching user teams:', error);
+    throw error;
+  }
+}

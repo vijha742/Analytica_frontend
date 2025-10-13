@@ -59,7 +59,7 @@ export default function TechMatchesPage() {
     const currentUserMatch = matches[0];
 
     return (
-        <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-6">
+        <div className="min-h-screen bg-gray-50 dark:bg-gray-900 px-6 pb-20">
             <Header />
             <div className="max-w-7xl mx-auto">
                 {/* Header */}
@@ -195,7 +195,7 @@ export default function TechMatchesPage() {
                     </h2>
 
                     {otherMatches.length > 0 ? (
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                             {otherMatches.map((match, index) => (
                                 <Card key={match.matchedUser.id || index} className="hover:shadow-lg transition-shadow">
                                     <CardHeader>

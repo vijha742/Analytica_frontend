@@ -486,9 +486,16 @@ export default function ComparePage() {
                                             </h4>
                                             <div className="space-y-3 text-sm">
                                                 <div className="flex justify-between">
-                                                    <span className="text-muted-foreground">Primary Languages:</span>
+                                                    <span className="text-muted-foreground">Primary Language:</span>
                                                     <span className="font-medium">
-                                                        {comparisonResult.user1.technicalProfile?.primaryLanguages?.slice(0, 2).map(lang => lang.language).join(', ') || 'N/A'}
+                                                        {(() => {
+                                                            const langs = comparisonResult.user1.technicalProfile?.primaryLanguages;
+                                                            if (langs && langs.length > 0) {
+                                                                const sorted = [...langs].sort((a, b) => b.linesOfCode - a.linesOfCode);
+                                                                return sorted[0].language;
+                                                            }
+                                                            return 'N/A';
+                                                        })()}
                                                     </span>
                                                 </div>
                                                 <div className="flex justify-between">
@@ -501,8 +508,9 @@ export default function ComparePage() {
                                                 <div className="flex justify-between">
                                                     <span className="text-muted-foreground">Versatility Score:</span>
                                                     <span className="font-medium">
-                                                        {comparisonResult.user1.technicalProfile?.versatilityScore ?
-                                                            `${comparisonResult.user1.technicalProfile.versatilityScore * 10}/10` : 'N/A'}
+                                                        {typeof comparisonResult.user1.technicalProfile?.versatilityScore === 'number'
+                                                            ? `${Math.round(comparisonResult.user1.technicalProfile.versatilityScore * 10)}/10`
+                                                            : 'N/A'}
                                                     </span>
                                                 </div>
                                             </div>
@@ -514,9 +522,16 @@ export default function ComparePage() {
                                             </h4>
                                             <div className="space-y-3 text-sm">
                                                 <div className="flex justify-between">
-                                                    <span className="text-muted-foreground">Primary Languages:</span>
+                                                    <span className="text-muted-foreground">Primary Language:</span>
                                                     <span className="font-medium">
-                                                        {comparisonResult.user2.technicalProfile?.primaryLanguages?.slice(0, 2).map(lang => lang.language).join(', ') || 'N/A'}
+                                                        {(() => {
+                                                            const langs = comparisonResult.user2.technicalProfile?.primaryLanguages;
+                                                            if (langs && langs.length > 0) {
+                                                                const sorted = [...langs].sort((a, b) => b.linesOfCode - a.linesOfCode);
+                                                                return sorted[0].language;
+                                                            }
+                                                            return 'N/A';
+                                                        })()}
                                                     </span>
                                                 </div>
                                                 <div className="flex justify-between">
@@ -529,8 +544,9 @@ export default function ComparePage() {
                                                 <div className="flex justify-between">
                                                     <span className="text-muted-foreground">Versatility Score:</span>
                                                     <span className="font-medium">
-                                                        {comparisonResult.user2.technicalProfile?.versatilityScore ?
-                                                            `${comparisonResult.user2.technicalProfile.versatilityScore * 10}/10` : 'N/A'}
+                                                        {typeof comparisonResult.user2.technicalProfile?.versatilityScore === 'number'
+                                                            ? `${Math.round(comparisonResult.user2.technicalProfile.versatilityScore * 10)}/10`
+                                                            : 'N/A'}
                                                     </span>
                                                 </div>
                                             </div>

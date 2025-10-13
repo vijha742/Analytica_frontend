@@ -38,7 +38,7 @@ export default function HomePage() {
   const { toasts, removeToast, showSuccess, showError } = useToast();
 
   // Use refetch from hook with selected group
-  const { users: suggestedUsers, isLoading: isInitialLoading, refetch: refetchSuggestedUsers, removeUser, addUser, updateUser, clearCache } = useSuggestedUsersHome(selectedGroup);
+  const { users: suggestedUsers, isLoading: isInitialLoading, loadingSkeletons, refetch: refetchSuggestedUsers, removeUser, updateUser, clearCache, addLoadingSkeleton, removeLoadingSkeleton } = useSuggestedUsersHome(selectedGroup);
   const [isRefetchingSuggested, setIsRefetchingSuggested] = useState(false);
 
   // Refs for managing state and preventing concurrent fetches
@@ -203,56 +203,27 @@ export default function HomePage() {
     setSuggestLoading(true);
     setError(null);
 
-    try {
-      const optimisticUser: GithubUser = {
-        id: `temp-${Date.now()}`,
-        githubUsername: username,
-        name: username,
-        avatarUrl: `https://github.com/${username}.png`,
-        bio: undefined,
-        followersCount: 0,
-        followingCount: 0,
-        publicReposCount: 0,
-        totalContributions: 0,
-        lastUpdated: new Date().toISOString(),
-        repositories: [],
-        contributions: [],
-        technicalProfile: {
-          primaryLanguages: [],
-          frameworksUsed: [],
-          librariesUsed: [],
-          toolingPreferences: [],
-          specializationScore: 0,
-          versatilityScore: 0,
-          learningRate: 0,
-          experimentationFrequency: 0
-        },
-        userTech: {
-          projectTimeList: [],
-          technologyUsageList: []
-        }
-      };
+    // Create a unique identifier for this user suggestion
+    const skeletonId = `skeleton-${username}-${Date.now()}`;
 
-      // Add optimistic update
-      if (addUser) {
-        addUser(optimisticUser);
-      }
+    try {
+      // Add loading skeleton instead of optimistic user
+      addLoadingSkeleton(skeletonId);
       setSuggestUsername('');
       showSuccess('User suggestion in progress...');
 
       // Make the actual API call
       await suggestUser(username, selectedGroup);
 
-      // Refresh to get real data (this will replace the optimistic update)
+      // Remove skeleton and refresh to get real data
+      removeLoadingSkeleton(skeletonId);
       setIsRefetchingSuggested(true);
       await refetchSuggestedUsers();
       setIsRefetchingSuggested(false);
       showSuccess('User suggested successfully!');
     } catch (err) {
-      // Remove optimistic update on error
-      if (removeUser) {
-        removeUser(`temp-${Date.now()}`);
-      }
+      // Remove skeleton on error
+      removeLoadingSkeleton(skeletonId);
       setIsRefetchingSuggested(false);
 
       // Extract error message from the backend response
@@ -530,30 +501,25 @@ export default function HomePage() {
                         <SearchUserCard
                           user={selectedUser}
                           onSuggestUser={async (user) => {
-                            // Create a temporary ID for optimistic update
-                            const tempId = `temp-search-${Date.now()}`;
-                            const tempUser: GithubUser = {
-                              ...user,
-                              id: tempId
-                            };
+                            // Create a unique identifier for this user suggestion
+                            const skeletonId = `skeleton-search-${user.githubUsername}-${Date.now()}`;
 
                             try {
-                              // Add optimistic update
-                              if (addUser) {
-                                addUser(tempUser);
-                              }
+                              // Add loading skeleton instead of optimistic user
+                              addLoadingSkeleton(skeletonId);
                               showSuccess('User suggestion in progress...');
 
                               await suggestUser(user.githubUsername, selectedGroup);
+
+                              // Remove skeleton and refresh to get real data
+                              removeLoadingSkeleton(skeletonId);
                               setIsRefetchingSuggested(true);
                               await refetchSuggestedUsers();
                               setIsRefetchingSuggested(false);
                               showSuccess(`${user.githubUsername} suggested successfully!`);
                             } catch (err) {
-                              // Remove optimistic update on error
-                              if (removeUser) {
-                                removeUser(tempId);
-                              }
+                              // Remove skeleton on error
+                              removeLoadingSkeleton(skeletonId);
                               setIsRefetchingSuggested(false);
 
                               let errorMessage = 'Failed to suggest user. Please try again.';
@@ -702,34 +668,47 @@ export default function HomePage() {
                       <UserCardSkeleton />
                     </div>
                   ))
-                ) : suggestedUsers.length > 0 ? (
-                  suggestedUsers.map((user: GithubUser) => (
-                    <div key={user.id}>
-                      <UserCard
-                        user={selectedUser && currentSection === 'suggested' && selectedUser.id === user.id ? selectedUser : user}
-                        onUserNavigation={selectedUser && currentSection === 'suggested' && selectedUser.id === user.id ? handleUserNavigation : undefined}
-                        onRefresh={handleRefreshUser}
-                        onDelete={handleDeleteUser}
-                        selectedGroup={selectedGroup}
-                        isDialogOpen={selectedUser?.id === user.id && currentSection === 'suggested'}
-                        onDialogOpenChange={(open) => {
-                          if (!open) {
-                            setSelectedUser(null);
-                          } else {
-                            setSelectedUser(user);
-                            setCurrentSection('suggested');
-                          }
-                        }}
-                      />
-                    </div>
-                  ))
                 ) : (
-                  <div className="col-span-full">
-                    <EmptyGroupCTA
-                      groupName={selectedGroup}
-                      onScrollToSearch={scrollToSearch}
-                    />
-                  </div>
+                  <>
+                    {/* Render actual user cards */}
+                    {suggestedUsers.map((user: GithubUser) => (
+                      <div key={user.id}>
+                        <UserCard
+                          user={selectedUser && currentSection === 'suggested' && selectedUser.id === user.id ? selectedUser : user}
+                          onUserNavigation={selectedUser && currentSection === 'suggested' && selectedUser.id === user.id ? handleUserNavigation : undefined}
+                          onRefresh={handleRefreshUser}
+                          onDelete={handleDeleteUser}
+                          selectedGroup={selectedGroup}
+                          isDialogOpen={selectedUser?.id === user.id && currentSection === 'suggested'}
+                          onDialogOpenChange={(open) => {
+                            if (!open) {
+                              setSelectedUser(null);
+                            } else {
+                              setSelectedUser(user);
+                              setCurrentSection('suggested');
+                            }
+                          }}
+                        />
+                      </div>
+                    ))}
+
+                    {/* Render loading skeletons for users being suggested */}
+                    {Array.from(loadingSkeletons).map((skeletonId) => (
+                      <div key={skeletonId as string} className="w-full">
+                        <UserCardSkeleton />
+                      </div>
+                    ))}
+
+                    {/* Show empty state only when no users and no loading skeletons */}
+                    {suggestedUsers.length === 0 && loadingSkeletons.size === 0 && (
+                      <div className="col-span-full">
+                        <EmptyGroupCTA
+                          groupName={selectedGroup}
+                          onScrollToSearch={scrollToSearch}
+                        />
+                      </div>
+                    )}
+                  </>
                 )}
               </div>
             </div>

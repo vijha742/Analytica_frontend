@@ -66,6 +66,8 @@ export function useSuggestedUsersHome(group: string = 'Classmates') {
     const cached = getSuggestedUsersCache(group) || [];
     const [users, setUsers] = useState<GithubUser[]>(cached);
     const [isLoading, setIsLoading] = useState(false);
+    // Track loading skeletons for individual user suggestions
+    const [loadingSkeletons, setLoadingSkeletons] = useState<Set<string>>(new Set());
 
     // Track current request to handle race conditions
     const currentRequestRef = useRef<string | null>(null);
@@ -95,7 +97,7 @@ export function useSuggestedUsersHome(group: string = 'Classmates') {
 
         try {
             const fetchedUsers = await getSuggestedUsers(group);
-            
+
             // Only update if this is still the current request (prevents race conditions)
             if (currentRequestRef.current === requestId) {
                 if (Array.isArray(fetchedUsers)) {
@@ -176,7 +178,7 @@ export function useSuggestedUsersHome(group: string = 'Classmates') {
 
     const updateUser = useCallback((updatedUser: GithubUser) => {
         setUsers(prevUsers => {
-            const updatedUsers = prevUsers.map(user => 
+            const updatedUsers = prevUsers.map(user =>
                 user.githubUsername === updatedUser.githubUsername ? updatedUser : user
             );
             setSuggestedUsersCache(group, updatedUsers);
@@ -184,14 +186,29 @@ export function useSuggestedUsersHome(group: string = 'Classmates') {
         });
     }, [group]);
 
+    const addLoadingSkeleton = useCallback((identifier: string) => {
+        setLoadingSkeletons(prev => new Set([...prev, identifier]));
+    }, []);
+
+    const removeLoadingSkeleton = useCallback((identifier: string) => {
+        setLoadingSkeletons(prev => {
+            const newSet = new Set(prev);
+            newSet.delete(identifier);
+            return newSet;
+        });
+    }, []);
+
     return {
         users: isHomePage ? users : [],
         isLoading: isHomePage ? isLoading : false,
+        loadingSkeletons: isHomePage ? loadingSkeletons : new Set(),
         refetch,
         clearCache,
         removeUser,
         addUser,
-        updateUser
+        updateUser,
+        addLoadingSkeleton,
+        removeLoadingSkeleton
     };
 }
 

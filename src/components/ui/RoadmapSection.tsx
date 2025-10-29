@@ -78,26 +78,25 @@ export default function RoadmapSection() {
                 key={index}
                 className="bg-card-comp rounded-xl p-6 border flex flex-col md:flex-row gap-4"
               >
-                <div className="md:w-1/4 flex flex-col">
-                  <div className="text-2xl font-bold text-primary mb-1">
+                <div className="md:w-1/4 flex flex-col items-center justify-center gap-2">
+                  <div className="text-2xl font-bold text-primary">
                     {item.version}
                   </div>
-                  <div className="font-semibold mb-2">{item.title}</div>
+                  <div className="font-semibold">{item.title}</div>
                   <Badge
                     variant={
                       item.status === "completed"
                         ? "default"
                         : item.status === "in-progress"
-                        ? "secondary"
-                        : "outline"
+                          ? "secondary"
+                          : "outline"
                     }
-                    className="w-fit"
                   >
                     {item.status === "completed"
                       ? "Completed"
                       : item.status === "in-progress"
-                      ? "In Progress"
-                      : "Planned"}
+                        ? "In Progress"
+                        : "Planned"}
                   </Badge>
                 </div>
 

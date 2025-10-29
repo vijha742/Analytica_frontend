@@ -1,8 +1,9 @@
 import { useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { Activity, Code, Github } from "lucide-react";
+import { Github } from "lucide-react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/dist/ScrollTrigger";
+import Image from "next/image";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -42,7 +43,7 @@ export default function HeroSection() {
           end: "40%",
           scrub: true,
         },
-      }
+      },
     );
   }, []);
 
@@ -92,22 +93,30 @@ export default function HeroSection() {
       {/* Dashboard Overlay */}
       <div
         ref={dashboardRef}
-        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] bg-card-comp rounded-xl border p-6 z-50"
+        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2
+             rounded-xl border border-white/30 p-6 z-50
+             bg-white/15 backdrop-blur-md shadow-[0_0_40px_10px_rgba(255,255,255,0.3),_0_0_80px_20px_rgba(255,255,255,0.2)]"
         style={{
           boxShadow:
             "0 0 40px 10px rgba(255,255,255,0.3), 0 0 80px 20px rgba(255,255,255,0.2)",
         }}
       >
+        <Image
+          src="/analytica_home.png"
+          alt="Analytica Logo"
+          width={10000}
+          height={10000}
+        />
         {/* Dashboard content */}
-        <div className="space-y-4 relative z-10">
-          {/* Header */}
-          <div className="flex gap-2 items-center mb-4">
+        {/*<div className="space-y-4 relative z-10">*/}
+        {/* Header */}
+        {/*<div className="flex gap-2 items-center mb-4">
             <Activity className="h-5 w-5 text-primary" />
             <h3 className="font-semibold">Developer Dashboard</h3>
-          </div>
+          </div>*/}
 
-          {/* Chart */}
-          <div className="h-48 bg-muted rounded-lg flex flex-col items-center justify-center p-4">
+        {/* Chart */}
+        {/*<div className="h-48 bg-muted rounded-lg flex flex-col items-center justify-center p-4">
             <div className="flex w-full justify-between mb-2">
               {[0, 1, 2, 3, 4, 5, 6].map((day) => (
                 <div key={day} className="flex flex-col items-center">
@@ -126,10 +135,10 @@ export default function HeroSection() {
             <div className="text-sm text-muted-foreground mt-2">
               Weekly Contribution Activity
             </div>
-          </div>
+          </div>*/}
 
-          {/* Stats */}
-          <div className="grid grid-cols-3 gap-2">
+        {/* Stats */}
+        {/*<div className="grid grid-cols-3 gap-2">
             <div className="bg-muted p-3 rounded-lg text-center">
               <div className="text-2xl font-bold">24</div>
               <div className="text-xs text-muted-foreground">Repos</div>
@@ -142,10 +151,10 @@ export default function HeroSection() {
               <div className="text-2xl font-bold">12</div>
               <div className="text-xs text-muted-foreground">PRs</div>
             </div>
-          </div>
+          </div>*/}
 
-          {/* Code preview */}
-          <div className="rounded-lg border p-3 text-xs font-mono text-muted-foreground overflow-hidden">
+        {/* Code preview */}
+        {/*<div className="rounded-lg border p-3 text-xs font-mono text-muted-foreground overflow-hidden">
             <Code className="h-4 w-4 mb-1" />
             <pre className="overflow-x-auto">
               <span className="text-blue-500">import</span> &#123; analyzeRepo
@@ -166,8 +175,8 @@ export default function HeroSection() {
               activity, contributors &#125; = data;
               <br />
             </pre>
-          </div>
-        </div>
+          </div>*/}
+        {/*</div>*/}
       </div>
     </section>
   );

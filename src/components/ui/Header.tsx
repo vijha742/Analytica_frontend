@@ -153,7 +153,7 @@ export default function Header() {
               </button>
 
               {userMenuOpen && (
-                <div className="absolute right-0 mt-2 w-48 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60 border border-border rounded-md shadow-lg z-50">
+                <div className="absolute right-0 mt-2 w-48 bg-background backdrop-blur supports-[backdrop-filter]:bg-background/60 border border-border rounded-md shadow-lg z-50">
                   <div className="py-1">
                     <Link
                       href="/profile"

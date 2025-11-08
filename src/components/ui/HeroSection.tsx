@@ -112,6 +112,7 @@ export default function HeroSection() {
         <Image
           src="/analytica_home.png"
           alt="Analytica Logo"
+          className="rounded-md overflow:hidden"
           width={10000}
           height={10000}
         />

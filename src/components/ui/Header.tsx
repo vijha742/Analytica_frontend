@@ -1,6 +1,5 @@
 "use client";
 import Image from "next/image";
-
 import { useState, useEffect } from "react";
 import { useSession, signOut } from "next-auth/react";
 import { usePathname } from "next/navigation";
@@ -12,14 +11,11 @@ import Link from "next/link";
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isDark, setIsDark] = useState(false);
-
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const { data: session } = useSession();
   const pathname = usePathname();
 
-  const isActiveLink = (href: string) => {
-    return pathname === href;
-  };
+  const isActiveLink = (href: string) => pathname === href;
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -33,7 +29,6 @@ export default function Header() {
       attributeFilter: ["class"],
     });
 
-    // Close user menu when clicking outside
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as Element;
       if (userMenuOpen && !target.closest(".user-menu-container")) {
@@ -49,222 +44,153 @@ export default function Header() {
   }, [userMenuOpen]);
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/70 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex h-16 items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Link href="/home" className="flex items-center space-x-2">
-            <Image
-              src="/image2vector(1).svg"
-              alt="Analytica Logo"
-              className="max-h-12 w-auto"
-              style={isDark ? { filter: "invert(1)" } : {}}
-              width={48}
-              height={48}
-              priority
-            />
-          </Link>
-        </div>
-
-        {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center gap-6">
-          <Link
-            href="/home"
-            className={`flex flex-col items-center justify-center transition-colors ${isActiveLink('/home')
-              ? 'text-primary border-b-2 border-primary pb-2 scale-110 shadow-sm'
-              : 'hover:text-primary'
-              }`}
-            style={isActiveLink('/home') ? { marginBottom: '2px' } : {}}
-          >
-            <HomeIcon className={isActiveLink('/home') ? "h-5 w-5 mb-1" : "h-4 w-4 mb-1"} />
-            <span className={isActiveLink('/home') ? "text-sm font-semibold text-center" : "text-xs font-medium text-center"}>Home</span>
-          </Link>
-          <Link
-            href="/dashboard"
-            className={`flex flex-col items-center justify-center transition-colors ${isActiveLink('/dashboard')
-              ? 'text-primary border-b-2 border-primary pb-2 scale-110 shadow-sm'
-              : 'hover:text-primary'
-              }`}
-            style={isActiveLink('/dashboard') ? { marginBottom: '2px' } : {}}
-          >
-            <LayoutDashboard className={isActiveLink('/dashboard') ? "h-5 w-5 mb-1" : "h-4 w-4 mb-1"} />
-            <span className={isActiveLink('/dashboard') ? "text-sm font-semibold text-center" : "text-xs font-medium text-center"}>Dashboard</span>
-          </Link>
-          <Link
-            href="/tech-matches"
-            className={`flex flex-col items-center justify-center transition-colors ${isActiveLink('/tech-matches')
-              ? 'text-primary border-b-2 border-primary pb-2 scale-110 shadow-sm'
-              : 'hover:text-primary'
-              }`}
-            style={isActiveLink('/tech-matches') ? { marginBottom: '2px' } : {}}
-          >
-            <Users className={isActiveLink('/tech-matches') ? "h-5 w-5 mb-1" : "h-4 w-4 mb-1"} />
-            <span className={isActiveLink('/tech-matches') ? "text-sm font-semibold text-center" : "text-xs font-medium text-center"}>Tech Matches</span>
-          </Link>
-          <Link
-            href="/leaderboard"
-            className={`flex flex-col items-center justify-center transition-colors ${isActiveLink('/leaderboard')
-              ? 'text-primary border-b-2 border-primary pb-2 scale-110 shadow-sm'
-              : 'hover:text-primary'
-              }`}
-            style={isActiveLink('/leaderboard') ? { marginBottom: '2px' } : {}}
-          >
-            <Trophy className={isActiveLink('/leaderboard') ? "h-5 w-5 mb-1" : "h-4 w-4 mb-1"} />
-            <span className={isActiveLink('/leaderboard') ? "text-sm font-semibold text-center" : "text-xs font-medium text-center"}>Leaderboard</span>
-          </Link>
-          <Link
-            href="/compare"
-            className={`flex flex-col items-center justify-center transition-colors ${isActiveLink('/compare')
-              ? 'text-primary border-b-2 border-primary pb-2 scale-110 shadow-sm'
-              : 'hover:text-primary'
-              }`}
-            style={isActiveLink('/compare') ? { marginBottom: '2px' } : {}}
-          >
-            <ListOrdered className={isActiveLink('/compare') ? "h-5 w-5 mb-1" : "h-4 w-4 mb-1"} />
-            <span className={isActiveLink('/compare') ? "text-sm font-semibold text-center" : "text-xs font-medium text-center"}>Compare</span>
-          </Link>
-          <Link
-            href="/about"
-            className={`flex flex-col items-center justify-center transition-colors ${isActiveLink('/about')
-              ? 'text-primary border-b-2 border-primary pb-2 scale-110 shadow-sm'
-              : 'hover:text-primary'
-              }`}
-            style={isActiveLink('/about') ? { marginBottom: '2px' } : {}}
-          >
-            <Info className={isActiveLink('/about') ? "h-5 w-5 mb-1" : "h-4 w-4 mb-1"} />
-            <span className={isActiveLink('/about') ? "text-sm font-semibold text-center" : "text-xs font-medium text-center"}>About</span>
-          </Link>
-        </nav>
-
-        {/* Actions */}
-        <div className="flex items-center gap-2">
-          {session?.user?.image ? (
-            <div className="relative user-menu-container">
-              <button
-                onClick={() => setUserMenuOpen(!userMenuOpen)}
-                className="flex items-center"
-              >
+    <header className="sticky top-0 z-50 w-full pt-4 pb-2">
+      {/* Floating container with shadow */}
+      <div className="max-w-6xl mx-auto px-4">
+        <div className="rounded-full bg-background/30 backdrop-blur-md border border-border shadow-2xl dark:shadow-primary/10">
+          <div className="px-6 py-3 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Link href="/home" className="flex items-center space-x-2">
                 <Image
-                  src={session.user.image}
-                  alt="Profile"
-                  width={32}
-                  height={32}
-                  className="rounded-full hover:opacity-80 transition-opacity"
+                  src="/image2vector(1).svg"
+                  alt="Analytica Logo"
+                  className="max-h-10 w-auto transition-transform hover:scale-110"
+                  style={isDark ? { filter: "invert(1)" } : {}}
+                  width={40}
+                  height={40}
+                  priority
                 />
-              </button>
-
-              {userMenuOpen && (
-                <div className="absolute right-0 mt-2 w-48 bg-background backdrop-blur supports-[backdrop-filter]:bg-background/60 border border-border rounded-md shadow-lg z-50">
-                  <div className="py-1">
-                    <Link
-                      href="/profile"
-                      className="flex items-center px-4 py-2 text-sm hover:bg-accent"
-                      onClick={() => setUserMenuOpen(false)}
-                    >
-                      <User className="mr-2 h-4 w-4" />
-                      Profile
-                    </Link>
-                    <button
-                      onClick={() => {
-                        setUserMenuOpen(false);
-                        signOut({ callbackUrl: "/" });
-                      }}
-                      className="flex items-center w-full px-4 py-2 text-sm hover:bg-accent"
-                    >
-                      <LogOut className="mr-2 h-4 w-4" />
-                      Sign Out
-                    </button>
-                  </div>
-                </div>
-              )}
+              </Link>
             </div>
-          ) : (
-            <Link href="/auth/signin">
-              <Button variant="outline" size="sm">
-                Sign In
+
+            {/* Desktop Navigation */}
+            <nav className="hidden md:flex items-center gap-1">
+              {[
+                { href: "/home", icon: HomeIcon, label: "Home" },
+                {
+                  href: "/dashboard",
+                  icon: LayoutDashboard,
+                  label: "Dashboard",
+                },
+                { href: "/tech-matches", icon: Users, label: "Tech Matches" },
+                { href: "/leaderboard", icon: Trophy, label: "Leaderboard" },
+                { href: "/compare", icon: ListOrdered, label: "Compare" },
+                { href: "/about", icon: Info, label: "About" },
+              ].map(({ href, icon: Icon, label }) => (
+                <Link
+                  key={href}
+                  href={href}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-full transition-all ${
+                    isActiveLink(href)
+                      ? "bg-primary text-primary-foreground shadow-md"
+                      : "hover:bg-accent"
+                  }`}
+                >
+                  <Icon className="h-4 w-4" />
+                  <span className="text-sm font-medium">{label}</span>
+                </Link>
+              ))}
+            </nav>
+
+            {/* Actions */}
+            <div className="flex items-center gap-2">
+              {session?.user?.image ? (
+                <div className="relative user-menu-container">
+                  <button
+                    onClick={() => setUserMenuOpen(!userMenuOpen)}
+                    className="flex items-center ring-2 ring-border rounded-full hover:ring-primary transition-all"
+                  >
+                    <Image
+                      src={session.user.image}
+                      alt="Profile"
+                      width={36}
+                      height={36}
+                      className="rounded-full"
+                    />
+                  </button>
+
+                  {userMenuOpen && (
+                    <div className="absolute right-0 mt-3 w-48 bg-background border border-border rounded-2xl shadow-xl overflow-hidden">
+                      <div className="py-1">
+                        <Link
+                          href="/profile"
+                          className="flex items-center px-4 py-3 text-sm hover:bg-accent transition-colors"
+                          onClick={() => setUserMenuOpen(false)}
+                        >
+                          <User className="mr-2 h-4 w-4" />
+                          Profile
+                        </Link>
+                        <button
+                          onClick={() => {
+                            setUserMenuOpen(false);
+                            signOut({ callbackUrl: "/" });
+                          }}
+                          className="flex items-center w-full px-4 py-3 text-sm hover:bg-accent transition-colors"
+                        >
+                          <LogOut className="mr-2 h-4 w-4" />
+                          Sign Out
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <Link href="/auth/signin">
+                  <Button variant="outline" size="sm" className="rounded-full">
+                    Sign In
+                  </Button>
+                </Link>
+              )}
+
+              <Button
+                variant="ghost"
+                size="icon"
+                className="md:hidden rounded-full"
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              >
+                {mobileMenuOpen ? (
+                  <X className="h-5 w-5" />
+                ) : (
+                  <Menu className="h-5 w-5" />
+                )}
               </Button>
-            </Link>
-          )}
-
-
-          <Button
-            variant="ghost"
-            size="icon"
-            className="md:hidden"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          >
-            {mobileMenuOpen ? (
-              <X className="h-5 w-5" />
-            ) : (
-              <Menu className="h-5 w-5" />
-            )}
-          </Button>
+            </div>
+          </div>
         </div>
       </div>
 
       {/* Mobile menu */}
       {mobileMenuOpen && (
-        <div className="md:hidden border-t border-border/40">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 space-y-3 flex flex-col items-center justify-center">
-            <Link
-              href="/home"
-              className={`py-2 text-sm font-medium transition-colors flex items-center justify-center gap-2 w-full rounded-md ${isActiveLink('/home')
-                ? 'text-primary font-semibold bg-gray-900/90'
-                : 'hover:text-primary'
-                }`}
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              <HomeIcon className="h-4 w-4" /> Home
-            </Link>
-            <Link
-              href="/dashboard"
-              className={`py-2 text-sm font-medium transition-colors flex items-center justify-center gap-2 w-full rounded-md ${isActiveLink('/dashboard')
-                ? 'text-primary font-semibold bg-gray-900/90'
-                : 'hover:text-primary'
-                }`}
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              <LayoutDashboard className="h-4 w-4" /> Dashboard
-            </Link>
-            <Link
-              href="/tech-matches"
-              className={`py-2 text-sm font-medium transition-colors flex items-center justify-center gap-2 w-full rounded-md ${isActiveLink('/tech-matches')
-                ? 'text-primary font-semibold bg-gray-900/90'
-                : 'hover:text-primary'
-                }`}
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              <Users className="h-4 w-4" /> Tech Matches
-            </Link>
-            <Link
-              href="/leaderboard"
-              className={`py-2 text-sm font-medium transition-colors flex items-center justify-center gap-2 w-full rounded-md ${isActiveLink('/leaderboard')
-                ? 'text-primary font-semibold bg-gray-900/90'
-                : 'hover:text-primary'
-                }`}
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              <Trophy className="h-4 w-4" /> Leaderboard
-            </Link>
-            <Link
-              href="/compare"
-              className={`py-2 text-sm font-medium transition-colors flex items-center justify-center gap-2 w-full rounded-md ${isActiveLink('/compare')
-                ? 'text-primary font-semibold bg-gray-900/90'
-                : 'hover:text-primary'
-                }`}
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              <ListOrdered className="h-4 w-4" /> Compare
-            </Link>
-            <Link
-              href="/about"
-              className={`py-2 text-sm font-medium transition-colors flex items-center justify-center gap-2 w-full rounded-md ${isActiveLink('/about')
-                ? 'text-primary font-semibold bg-gray-900/90'
-                : 'hover:text-primary'
-                }`}
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              <Info className="h-4 w-4" /> About
-            </Link>
+        <div className="md:hidden max-w-6xl mx-auto px-4 mt-2">
+          <div className="rounded-2xl bg-background border border-border shadow-xl overflow-hidden">
+            <div className="px-4 py-4 space-y-1">
+              {[
+                { href: "/home", icon: HomeIcon, label: "Home" },
+                {
+                  href: "/dashboard",
+                  icon: LayoutDashboard,
+                  label: "Dashboard",
+                },
+                { href: "/tech-matches", icon: Users, label: "Tech Matches" },
+                { href: "/leaderboard", icon: Trophy, label: "Leaderboard" },
+                { href: "/compare", icon: ListOrdered, label: "Compare" },
+                { href: "/about", icon: Info, label: "About" },
+              ].map(({ href, icon: Icon, label }) => (
+                <Link
+                  key={href}
+                  href={href}
+                  className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
+                    isActiveLink(href)
+                      ? "bg-primary text-primary-foreground font-semibold"
+                      : "hover:bg-accent"
+                  }`}
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  <Icon className="h-4 w-4" />
+                  {label}
+                </Link>
+              ))}
+            </div>
           </div>
         </div>
       )}

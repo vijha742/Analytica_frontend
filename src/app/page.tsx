@@ -35,7 +35,7 @@ export default function LandingPage() {
 
   return (
     <div className="flex flex-col min-h-screen">
-      <div className="fixed top-0 left-0 w-full flex items-center justify-between bg-black p-1 z-99 ">
+      <div className="fixed top-0 left-0 w-full flex items-center justify-between p-1 z-99 ">
         <div>
           <Link href="/" className="flex items-center space-x-2">
             <Image

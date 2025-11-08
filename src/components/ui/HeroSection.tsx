@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { Github } from "lucide-react";
+import { Github, Clock } from "lucide-react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/dist/ScrollTrigger";
 import Image from "next/image";
@@ -87,6 +87,14 @@ export default function HeroSection() {
           <Button size="lg" variant="outline" className="gap-2">
             Learn More
           </Button>
+        </div>
+
+        {/* First Sign-up Notice */}
+        <div className="mt-6 flex items-center gap-2 text-sm text-white/80 bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg px-4 py-2 max-w-md z-10">
+          <Clock className="h-4 w-4 flex-shrink-0" />
+          <span>
+            First sign-up may take 2-3 minutes due to free-tier backend hosting
+          </span>
         </div>
       </div>
 

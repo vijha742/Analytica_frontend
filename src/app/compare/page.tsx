@@ -17,6 +17,7 @@ import {
 } from 'lucide-react'
 import AuthGuard from '@/components/AuthGuard'
 import Header from '@/components/ui/Header'
+import { sanitize } from '@/lib/sanitize'
 
 export default function ComparePage() {
     const [user1Input, setUser1Input] = useState('')
@@ -338,7 +339,7 @@ export default function ComparePage() {
                                                 </h3>
                                                 <p className="text-emerald-600 dark:text-emerald-400">@{comparisonResult.user1.githubUsername}</p>
                                                 {comparisonResult.user1.bio && (
-                                                    <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{comparisonResult.user1.bio}</p>
+                                                    <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{sanitize(comparisonResult.user1.bio)}</p>
                                                 )}
                                             </div>
                                         </div>
@@ -385,7 +386,7 @@ export default function ComparePage() {
                                                 </h3>
                                                 <p className="text-blue-600 dark:text-blue-400">@{comparisonResult.user2.githubUsername}</p>
                                                 {comparisonResult.user2.bio && (
-                                                    <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{comparisonResult.user2.bio}</p>
+                                                    <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{sanitize(comparisonResult.user2.bio)}</p>
                                                 )}
                                             </div>
                                         </div>

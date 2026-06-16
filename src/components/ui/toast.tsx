@@ -6,7 +6,7 @@ import { AlertCircle, CheckCircle, X, Info } from 'lucide-react'
 export interface Toast {
     id: string
     message: string
-    type: 'success' | 'error' | 'info'
+    type: 'success' | 'error' | 'info' | 'warning'
     duration?: number
 }
 
@@ -30,6 +30,8 @@ const ToastComponent: React.FC<ToastProps> = ({ toast, onRemove }) => {
                 return 'bg-green-50 dark:bg-green-950/50 border-green-200 dark:border-green-800 text-green-800 dark:text-green-200'
             case 'error':
                 return 'bg-red-50 dark:bg-red-950/50 border-red-200 dark:border-red-800 text-red-800 dark:text-red-200'
+            case 'warning':
+                return 'bg-amber-50 dark:bg-amber-950/50 border-amber-200 dark:border-amber-800 text-amber-800 dark:text-amber-200'
             case 'info':
                 return 'bg-blue-50 dark:bg-blue-950/50 border-blue-200 dark:border-blue-800 text-blue-800 dark:text-blue-200'
             default:
@@ -43,6 +45,8 @@ const ToastComponent: React.FC<ToastProps> = ({ toast, onRemove }) => {
                 return <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400" />
             case 'error':
                 return <AlertCircle className="h-5 w-5 text-red-600 dark:text-red-400" />
+            case 'warning':
+                return <AlertCircle className="h-5 w-5 text-amber-600 dark:text-amber-400" />
             case 'info':
                 return <Info className="h-5 w-5 text-blue-600 dark:text-blue-400" />
             default:
@@ -89,7 +93,7 @@ export const ToastContainer: React.FC<ToastContainerProps> = ({ toasts, onRemove
 export const useToast = () => {
     const [toasts, setToasts] = useState<Toast[]>([])
 
-    const addToast = (message: string, type: 'success' | 'error' | 'info' = 'info', duration?: number) => {
+    const addToast = (message: string, type: 'success' | 'error' | 'info' | 'warning' = 'info', duration?: number) => {
         const id = Math.random().toString(36).substr(2, 9)
         const newToast: Toast = { id, message, type, duration }
         setToasts(prev => [...prev, newToast])
@@ -103,6 +107,7 @@ export const useToast = () => {
     const showSuccess = (message: string, duration?: number) => addToast(message, 'success', duration)
     const showError = (message: string, duration?: number) => addToast(message, 'error', duration)
     const showInfo = (message: string, duration?: number) => addToast(message, 'info', duration)
+    const showWarning = (message: string, duration?: number) => addToast(message, 'warning', duration ?? 8000)
 
     return {
         toasts,
@@ -110,6 +115,7 @@ export const useToast = () => {
         removeToast,
         showSuccess,
         showError,
-        showInfo
+        showInfo,
+        showWarning,
     }
 }

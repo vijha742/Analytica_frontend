@@ -29,6 +29,7 @@ import { ReadmeQuality } from "@/components/dashboard/ReadmeQuality";
 import { TechStack } from "@/components/dashboard/TechStack";
 import { StatsGrid } from "@/components/dashboard/StatsGrid";
 import { TechTimeline } from "@/components/dashboard/TechTimeline";
+import { PageErrorState } from "@/components/ui/PageErrorState";
 
 type DashboardCacheType = {
   [username: string]: {
@@ -39,14 +40,12 @@ type DashboardCacheType = {
 };
 function getDashboardCache(): DashboardCacheType {
   if (typeof window !== "undefined") {
-    // @ts-expect-error: Accessing custom property on window for dashboard cache
     return window.__dashboardCache || {};
   }
   return {};
 }
 function setDashboardCache(cache: DashboardCacheType) {
   if (typeof window !== "undefined") {
-    // @ts-expect-error: Setting custom property on window for dashboard cache
     window.__dashboardCache = cache;
   }
 }
@@ -196,11 +195,12 @@ function DashboardContent() {
           </Button>
         </form>
         {error && (
-          <Card className="border-destructive">
-            <CardContent className="pt-6">
-              <p className="text-destructive">Error: {error}</p>
-            </CardContent>
-          </Card>
+          // ERR-004: Styled error card with retry action
+          <PageErrorState
+            message={error}
+            onRetry={username ? () => fetchAllData(username) : undefined}
+            className="max-w-2xl mx-auto"
+          />
         )}
         {loading && (
           <div className="space-y-6">
@@ -224,8 +224,6 @@ function DashboardContent() {
             <UserProfile user={userData} />
             <StatsGrid user={userData} codeAnalysis={codeAnalysis} />
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* <RepositoryOverview repositories={userData.repositories} /> */}
-              {/* <ContributionChart contributions={userData.contributions} /> */}
               {codeAnalysis && (
                 <LanguageDistribution codeAnalysis={codeAnalysis} />
               )}

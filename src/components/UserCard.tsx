@@ -1,12 +1,20 @@
 import { GithubUser, TimeFrame } from '@/types/github';
 import * as Dialog from '@radix-ui/react-dialog';
-import { Line } from 'react-chartjs-2';
+// PERF-003: Lazy-load Chart.js — only pulled into the bundle when the drawer is opened,
+// not on initial page load. This keeps the main bundle lean.
+import dynamic from 'next/dynamic';
+const Line = dynamic(
+  () => import('react-chartjs-2').then((mod) => mod.Line),
+  { ssr: false, loading: () => <div className="h-full flex items-center justify-center"><div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-indigo-500" /></div> }
+);
 import { Chart as ChartJS, LineElement, PointElement, LinearScale, Title, Tooltip, Legend, CategoryScale } from 'chart.js';
 import { FiUsers, FiGitBranch, FiStar, FiRefreshCcw, FiGitPullRequest, FiGitCommit, FiAlertCircle, FiChevronRight, FiCalendar, FiChevronLeft, FiX } from 'react-icons/fi';
-import { useMemo, useState, useEffect, useCallback } from 'react';
+import { memo, useMemo, useState, useEffect, useCallback } from 'react';
 import { refreshUser, fetchContributionTimeSeries, deleteSuggestedUser } from '@/lib/api-client';
 import Image from 'next/image';
 import { Skeleton } from '@/components/ui/skeleton';
+import { logger } from '@/lib/logger';
+import { sanitize } from '@/lib/sanitize';
 
 ChartJS.register(LineElement, PointElement, LinearScale, Title, Tooltip, Legend, CategoryScale);
 
@@ -29,7 +37,8 @@ function formatDate(dateStr: string | Date | null | undefined) {
 }
 
 
-export default function UserCard({ user, onRefresh, onDelete, isRefreshing: externalIsRefreshing, onUserNavigation, isDialogOpen, onDialogOpenChange, selectedGroup }: UserCardProps) {
+// PERF-001: memo — only re-renders when the user prop identity changes or dialog state changes
+const UserCard = memo(function UserCard({ user, onRefresh, onDelete, isRefreshing: externalIsRefreshing, onUserNavigation, isDialogOpen, onDialogOpenChange, selectedGroup }: UserCardProps) {
 
   const [internalOpen, setInternalOpen] = useState(false);
   const open = isDialogOpen !== undefined ? isDialogOpen : internalOpen;
@@ -70,7 +79,7 @@ export default function UserCard({ user, onRefresh, onDelete, isRefreshing: exte
       setShowNotification(true);
       setTimeout(() => setShowNotification(false), 3000);
     } catch (error) {
-      console.error('Failed to refresh user:', error);
+      logger.error('Failed to refresh user:', error);
       // Show error notification
       setNotificationMessage('Failed to refresh user data');
       setNotificationType('error');
@@ -102,7 +111,7 @@ export default function UserCard({ user, onRefresh, onDelete, isRefreshing: exte
         setTimeout(() => setShowNotification(false), 3000);
       }
     } catch (error) {
-      console.error('Failed to delete user:', error);
+      logger.error('Failed to delete user:', error);
       setNotificationMessage('Failed to remove user');
       setNotificationType('error');
       setShowNotification(true);
@@ -121,7 +130,7 @@ export default function UserCard({ user, onRefresh, onDelete, isRefreshing: exte
 
   const handleUserNavigation = useCallback((direction: 'prev' | 'next') => {
     if (onUserNavigation) {
-      console.log(`Navigating ${direction}`);
+      logger.debug(`Navigating ${direction}`);
       onUserNavigation(direction);
     }
   }, [onUserNavigation]);
@@ -157,7 +166,7 @@ export default function UserCard({ user, onRefresh, onDelete, isRefreshing: exte
         })
         .catch((err: Error) => {
           setTimeSeriesData(null);
-          console.error("Error fetching contribution time series:", err);
+          logger.error('Error fetching contribution time series:', err);
         })
         .finally(() => setIsLoadingChart(false));
     } else {
@@ -277,6 +286,7 @@ export default function UserCard({ user, onRefresh, onDelete, isRefreshing: exte
                 width={64}
                 height={64}
                 className="w-16 h-16 rounded-full object-cover border-2 border-indigo-800"
+                loading="lazy"
               />
             </div>
           ) : (
@@ -286,12 +296,12 @@ export default function UserCard({ user, onRefresh, onDelete, isRefreshing: exte
           )}
           <div className="flex-1 min-w-0">
             <h2 className="text-xl font-bold text-white truncate">
-              {currentUser.name || currentUser.githubUsername}
+              {sanitize(currentUser.name || currentUser.githubUsername)}
             </h2>
-            <p className="text-indigo-400 font-medium truncate">@{currentUser.githubUsername}</p>
+            <p className="text-indigo-400 font-medium truncate">@{sanitize(currentUser.githubUsername)}</p>
             {currentUser.bio ? (
               <p className="mt-1 text-gray-300 text-sm line-clamp-2 min-h-[2.5rem]">
-                {currentUser.bio}
+                {sanitize(currentUser.bio)}
               </p>
             ) : (
               <p className="mt-1 text-gray-300 text-sm min-h-[2.5rem]">
@@ -369,7 +379,7 @@ export default function UserCard({ user, onRefresh, onDelete, isRefreshing: exte
               )}
               {recentRepo.description ? (
                 <p className="text-xs text-gray-300 mt-1 line-clamp-2 min-h-[2.5rem]">
-                  {recentRepo.description}
+                  {sanitize(recentRepo.description)}
                 </p>
               ) : (
                 <p className="text-xs text-gray-300 mt-1 min-h-[2.5rem]">
@@ -413,7 +423,7 @@ export default function UserCard({ user, onRefresh, onDelete, isRefreshing: exte
           </div>
 
 
-          {currentUser.bio && <p className="mb-2 text-gray-300">{currentUser.bio}</p>}
+          {currentUser.bio && <p className="mb-2 text-gray-300">{sanitize(currentUser.bio)}</p>}
           <div className="mb-4 flex flex-wrap gap-2">
             {languageStats.map(([lang, count]) => (
               <span key={lang} className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-indigo-100 dark:bg-indigo-900 text-indigo-800 dark:text-indigo-200">
@@ -505,7 +515,7 @@ export default function UserCard({ user, onRefresh, onDelete, isRefreshing: exte
                           <h4 className="font-semibold text-gray-900 dark:text-white text-sm truncate">{repo.name}</h4>
                           {repo.description && (
                             <p className="text-xs text-gray-300 mt-1 line-clamp-2">
-                              {repo.description}
+                              {sanitize(repo.description)}
                             </p>
                           )}
                         </div>
@@ -584,7 +594,21 @@ export default function UserCard({ user, onRefresh, onDelete, isRefreshing: exte
       </Dialog.Portal>
     </Dialog.Root>
   );
-}
+},
+// PERF-001: custom equality — skip re-render if the displayed user data and dialog state are unchanged
+(prev, next) =>
+  prev.user.id === next.user.id &&
+  prev.user.githubUsername === next.user.githubUsername &&
+  prev.user.avatarUrl === next.user.avatarUrl &&
+  prev.user.totalContributions === next.user.totalContributions &&
+  prev.isDialogOpen === next.isDialogOpen &&
+  prev.selectedGroup === next.selectedGroup &&
+  prev.onRefresh === next.onRefresh &&
+  prev.onDelete === next.onDelete &&
+  prev.onUserNavigation === next.onUserNavigation
+);
+
+export default UserCard;
 
 export function UserCardSkeleton() {
   return (

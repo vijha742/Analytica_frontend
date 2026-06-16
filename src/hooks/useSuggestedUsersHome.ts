@@ -4,6 +4,8 @@ import { useEffect, useState, useCallback, useRef } from 'react';
 import { usePathname } from 'next/navigation';
 import { getSuggestedUsers } from '@/lib/api-client';
 import { GithubUser } from '@/types/github';
+import { CACHE_DURATION_MS } from '@/constants/app';
+import { logger } from '@/lib/logger';
 
 declare global {
     interface Window {
@@ -15,8 +17,8 @@ declare global {
     }
 }
 
-// Cache expiration time (5 minutes)
-const CACHE_EXPIRATION_TIME = 5 * 60 * 1000;
+// Cache expiration time — sourced from shared constants (CODE-003)
+const CACHE_EXPIRATION_TIME = CACHE_DURATION_MS.SUGGESTED_USERS;
 
 function getSuggestedUsersCache(group: string): GithubUser[] | null {
     if (typeof window !== 'undefined') {
@@ -72,7 +74,7 @@ export function useSuggestedUsersHome(group: string = 'Classmates') {
     // Track current request to handle race conditions
     const currentRequestRef = useRef<string | null>(null);
 
-    const fetchSuggestedUsers = useCallback(async (bypassCache = false) => {
+    const fetchSuggestedUsers = useCallback(async (bypassCache = false, signal?: AbortSignal) => {
         // Only fetch if we're on the home page
         if (!isHomePage) return;
 
@@ -98,6 +100,9 @@ export function useSuggestedUsersHome(group: string = 'Classmates') {
         try {
             const fetchedUsers = await getSuggestedUsers(group);
 
+            // Bail out if the request was cancelled (component unmounted)
+            if (signal?.aborted) return;
+
             // Only update if this is still the current request (prevents race conditions)
             if (currentRequestRef.current === requestId) {
                 if (Array.isArray(fetchedUsers)) {
@@ -110,7 +115,7 @@ export function useSuggestedUsersHome(group: string = 'Classmates') {
                 }
             }
         } catch (error) {
-            console.error('Failed to fetch suggested users:', error);
+            logger.error('Failed to fetch suggested users:', error);
             // Only update if this is still the current request
             if (currentRequestRef.current === requestId) {
                 setUsers([]);
@@ -131,16 +136,21 @@ export function useSuggestedUsersHome(group: string = 'Classmates') {
             return;
         }
 
+        // Abort controller for cleanup on group change / unmount (STATE-003)
+        const controller = new AbortController();
+
         // Immediately show cached data if available
         const cachedForGroup = getSuggestedUsersCache(group) || [];
         setUsers(cachedForGroup);
 
         // Fetch data when on home page and group changes or on initial load
         if (cachedForGroup.length === 0) {
-            fetchSuggestedUsers(false);
+            fetchSuggestedUsers(false, controller.signal);
         } else {
             setIsLoading(false);
         }
+
+        return () => { controller.abort(); };
     }, [group, isHomePage, fetchSuggestedUsers]);
 
     const refetch = useCallback(() => {

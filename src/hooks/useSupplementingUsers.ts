@@ -201,7 +201,9 @@ export function useSupplementingUsers() {
     };
 
     useEffect(() => {
+        const controller = new AbortController();
         fetchMatches();
+        return () => { controller.abort(); };
     }, []);
 
     return {

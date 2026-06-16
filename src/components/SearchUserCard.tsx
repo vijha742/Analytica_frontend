@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { memo, useCallback } from 'react';
 import { GithubUser } from '@/types/github';
 import Image from 'next/image';
 import { FiUsers } from 'react-icons/fi';
+import { sanitize } from '@/lib/sanitize';
 
 interface SearchUserCardProps {
     user: GithubUser;
@@ -9,12 +10,13 @@ interface SearchUserCardProps {
     onSuggestUser?: (user: GithubUser) => void;
 }
 
-export default function SearchUserCard({ user, onSuggestUser }: SearchUserCardProps) {
-    const handleSuggest = () => {
-        if (onSuggestUser) {
-            onSuggestUser(user);
-        }
-    };
+// PERF-001: memo prevents unnecessary re-renders in the search results panel
+const SearchUserCard = memo(function SearchUserCard({ user, onSuggestUser }: SearchUserCardProps) {
+    // PERF-002: stable handler reference
+    const handleSuggest = useCallback(() => {
+        onSuggestUser?.(user);
+    }, [onSuggestUser, user]);
+
     return (
         <div className="space-y-4 max-w-xl mx-auto bg-gray-900 absolute rounded-xl shadow-lg p-4 border border-gray-800 flex flex-col relative transition-colors">
             {/* Basic Info */}
@@ -27,6 +29,7 @@ export default function SearchUserCard({ user, onSuggestUser }: SearchUserCardPr
                             width={64}
                             height={64}
                             className="w-16 h-16 rounded-full object-cover border-2 border-indigo-800"
+                            loading="lazy"
                         />
                     </div>
                 ) : (
@@ -36,12 +39,12 @@ export default function SearchUserCard({ user, onSuggestUser }: SearchUserCardPr
                 )}
                 <div className="flex-1 min-w-0">
                     <h2 className="text-xl font-bold text-white truncate">
-                        {user.name || user.githubUsername}
+                        {sanitize(user.name || user.githubUsername)}
                     </h2>
-                    <p className="text-indigo-400 font-medium truncate">@{user.githubUsername}</p>
+                    <p className="text-indigo-400 font-medium truncate">@{sanitize(user.githubUsername)}</p>
                     {user.bio ? (
                         <p className="mt-1 text-gray-300 text-sm line-clamp-2 min-h-[2.5rem]">
-                            {user.bio}
+                            {sanitize(user.bio)}
                         </p>
                     ) : (
                         <p className="mt-1 text-gray-300 text-sm min-h-[2.5rem]">
@@ -83,4 +86,14 @@ export default function SearchUserCard({ user, onSuggestUser }: SearchUserCardPr
             </div>
         </div>
     );
-}
+},
+// Custom equality: only re-render when the displayed user data or callback changes
+(prev, next) =>
+    prev.user.id === next.user.id &&
+    prev.user.githubUsername === next.user.githubUsername &&
+    prev.user.avatarUrl === next.user.avatarUrl &&
+    prev.user.bio === next.user.bio &&
+    prev.onSuggestUser === next.onSuggestUser
+);
+
+export default SearchUserCard;

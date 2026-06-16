@@ -1,3 +1,4 @@
+import React, { memo, useCallback } from 'react';
 import { GithubUser } from '@/types/github';
 import Image from 'next/image';
 import { FiExternalLink } from 'react-icons/fi';
@@ -7,11 +8,16 @@ interface SimpleUserCardProps {
   onSelect?: (user: GithubUser) => void;
 }
 
-export default function SimpleUserCard({ user, onSelect }: SimpleUserCardProps) {
+// PERF-001: memo prevents re-renders when parent re-renders but this user hasn't changed
+const SimpleUserCard = memo(function SimpleUserCard({ user, onSelect }: SimpleUserCardProps) {
+  // PERF-002: stable callback — doesn't create a new fn reference on every render
+  const handleClick = useCallback(() => onSelect?.(user), [user, onSelect]);
+  const handleLinkClick = useCallback((e: React.MouseEvent) => e.stopPropagation(), []);
+
   return (
     <div
       className="flex items-center p-4 bg-white dark:bg-gray-800 rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer"
-      onClick={() => onSelect?.(user)}
+      onClick={handleClick}
     >
       {user.avatarUrl ? (
         <Image
@@ -20,6 +26,7 @@ export default function SimpleUserCard({ user, onSelect }: SimpleUserCardProps) 
           width={48}
           height={48}
           className="w-12 h-12 rounded-full object-cover border-2 border-indigo-200 dark:border-indigo-800"
+          loading="lazy"
         />
       ) : (
         <div className="w-12 h-12 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
@@ -39,10 +46,19 @@ export default function SimpleUserCard({ user, onSelect }: SimpleUserCardProps) 
         target="_blank"
         rel="noopener noreferrer"
         className="ml-4 text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300"
-        onClick={(e) => e.stopPropagation()} // Prevent the parent onClick from firing
+        onClick={handleLinkClick}
       >
         <FiExternalLink className="w-5 h-5" />
       </a>
     </div>
   );
-}
+},
+// Custom equality: only re-render when the user's identity-relevant fields change
+(prev, next) =>
+  prev.user.id === next.user.id &&
+  prev.user.githubUsername === next.user.githubUsername &&
+  prev.user.avatarUrl === next.user.avatarUrl &&
+  prev.onSelect === next.onSelect
+);
+
+export default SimpleUserCard;

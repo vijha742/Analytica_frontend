@@ -14,6 +14,8 @@ import Header from '@/components/ui/Header';
 import SearchUserCard from '@/components/SearchUserCard';
 import { EmptyGroupCTA } from '@/components/ui/EmptyGroupCTA';
 import { useToast, ToastContainer } from '@/components/ui/toast';
+import { logger } from '@/lib/logger';
+import { validateSearchQuery, validateUsername, validateGroupName } from '@/lib/validation';
 
 
 export default function HomePage() {
@@ -52,7 +54,7 @@ export default function HomePage() {
 
     // Validate that the group still exists
     if (!groups.includes(newGroup)) {
-      console.warn(`Attempted to switch to non-existent group: ${newGroup}`);
+      logger.warn(`Attempted to switch to non-existent group: ${newGroup}`);
       showError('Selected group no longer exists. Please select another group.');
       return;
     }
@@ -67,13 +69,13 @@ export default function HomePage() {
   // Function to fetch teams from database - only depends on session
   const fetchTeamsFromDatabase = useCallback(async (preserveSelection = false) => {
     if (!session?.backendJWT) {
-      console.log('No backend JWT available, cannot fetch teams');
+      // No JWT yet — silently return
       return;
     }
 
     // Prevent concurrent fetches
     if (isFetchingTeamsRef.current) {
-      console.log('Teams fetch already in progress, skipping');
+      // Prevent concurrent fetches
       return;
     }
 
@@ -81,7 +83,7 @@ export default function HomePage() {
     setTeamsLoading(true);
     try {
       const userTeams = await fetchUserTeams();
-      console.log('Fetched teams from database:', userTeams);
+      logger.info('Teams loaded', { count: userTeams.length });
 
       if (userTeams.length > 0) {
         setGroups(userTeams);
@@ -98,7 +100,7 @@ export default function HomePage() {
         }
       }
     } catch (error) {
-      console.error('Error fetching teams from database:', error);
+      logger.error('Error fetching teams from database:', error);
       // Fallback to default teams on error
       const defaultTeams = ['Classmates', 'Colleagues', 'Friends'];
       setGroups(defaultTeams);
@@ -113,17 +115,14 @@ export default function HomePage() {
 
   // Initialize teams from database - only once when session becomes available
   useEffect(() => {
-    console.log('Session JWT status changed:', {
+    logger.debug('Session JWT status changed:', {
       hasBackendJWT: !!session?.backendJWT,
       hasInitiallyFetched: hasInitiallyFetchedRef.current
     });
 
     if (!session?.backendJWT || hasInitiallyFetchedRef.current) {
-      // No backend JWT yet, or already fetched initially
       return;
     }
-
-    console.log('Fetching teams from database for the first time');
     hasInitiallyFetchedRef.current = true;
     fetchTeamsFromDatabase();
   }, [session?.backendJWT, fetchTeamsFromDatabase]);
@@ -132,8 +131,11 @@ export default function HomePage() {
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!searchQuery.trim()) {
-      setError('Please enter a search query');
+
+    // SEC-003: Validate search input before making API call
+    const validation = validateSearchQuery(searchQuery);
+    if (!validation.valid) {
+      setError(validation.error || 'Invalid search query');
       return;
     }
 
@@ -143,7 +145,7 @@ export default function HomePage() {
     setShowSearchSection(true);
 
     try {
-      const searchResults = await searchUsers(searchQuery);
+      const searchResults = await searchUsers(validation.sanitized!);
 
       if (!Array.isArray(searchResults)) {
         throw new Error('Invalid response from server');
@@ -157,7 +159,7 @@ export default function HomePage() {
         setShowSearchSection(true); // Show search section when results are found
       }
     } catch (err) {
-      console.error('Search error:', err);
+      logger.error('Search error:', err);
       setError('Unable to perform search. Please check your connection and try again.');
       setShowSearchSection(true); // Show search section even when there's an error so user can see the error message
     } finally {
@@ -197,8 +199,15 @@ export default function HomePage() {
 
   const handleSuggestUser = async (e: React.FormEvent) => {
     e.preventDefault();
-    const username = suggestUsername.trim();
-    if (!username) return;
+
+    // SEC-003: Validate GitHub username before API call
+    const validation = validateUsername(suggestUsername);
+    if (!validation.valid) {
+      showError(validation.error || 'Invalid username');
+      setError(validation.error || 'Invalid username');
+      return;
+    }
+    const username = validation.sanitized!;
 
     setSuggestLoading(true);
     setError(null);
@@ -254,9 +263,16 @@ export default function HomePage() {
 
   const handleCreateGroup = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newGroupName.trim()) return;
 
-    if (groups.includes(newGroupName.trim())) {
+    // SEC-003: Validate group name before API call
+    const validation = validateGroupName(newGroupName);
+    if (!validation.valid) {
+      showError(validation.error || 'Invalid group name');
+      return;
+    }
+    const groupName = validation.sanitized!;
+
+    if (groups.includes(groupName)) {
       showError('Group name already exists. Please choose a different name.');
       return;
     }
@@ -264,17 +280,16 @@ export default function HomePage() {
     setGroupLoading(true);
 
     try {
-      await createTeam(newGroupName.trim());
+      await createTeam(groupName);
 
       // Immediately fetch fresh teams from database
       const freshTeams = await fetchUserTeams();
-      console.log('Teams after creation:', freshTeams);
 
       setGroups(freshTeams);
-      setSelectedGroup(newGroupName.trim());
+      setSelectedGroup(groupName);
       setNewGroupName('');
       setShowCreateGroup(false);
-      showSuccess(`Group "${newGroupName.trim()}" created successfully!`);
+      showSuccess(`Group "${groupName}" created successfully!`);
     } catch (err) {
       let errorMessage = 'Failed to create group. Please try again.';
       if (err instanceof Error) {
@@ -306,7 +321,6 @@ export default function HomePage() {
 
       // Immediately fetch fresh teams from database
       const freshTeams = await fetchUserTeams();
-      console.log('Teams after deletion:', freshTeams);
 
       // Update groups with fresh data from database
       setGroups(freshTeams);
@@ -321,7 +335,6 @@ export default function HomePage() {
 
       // Clear the cache for the deleted group to avoid showing stale data
       clearSuggestedUsersCache(groupName);
-      console.log('Cleared cache for deleted group:', groupName);
 
       // Also clear current cache if we're switching away from the deleted group
       if (clearCache && selectedGroup === groupName) {
@@ -334,14 +347,15 @@ export default function HomePage() {
       if (err instanceof Error) {
         errorMessage = err.message;
       }
-      console.error('Delete group error:', err);
+      logger.error('Delete group error:', err);
       showError(errorMessage);
     } finally {
       setDeletingGroup(null);
     }
   };
 
-  const handleDeleteUser = (userId: string) => {
+  // PERF-002: stable handler — passed as prop to memoized UserCard; must not change on every render
+  const handleDeleteUser = useCallback((userId: string) => {
     // Remove the user from the list and close dialog if it was open
     if (selectedUser?.id === userId) {
       setSelectedUser(null);
@@ -351,9 +365,10 @@ export default function HomePage() {
     if (removeUser) {
       removeUser(userId);
     }
-  };
+  }, [selectedUser, removeUser]);
 
-  const handleRefreshUser = (refreshedUser: GithubUser) => {
+  // PERF-002: stable handler — passed as prop to memoized UserCard
+  const handleRefreshUser = useCallback((refreshedUser: GithubUser) => {
     // Update the user in the hook's state and cache
     if (updateUser) {
       updateUser(refreshedUser);
@@ -363,22 +378,22 @@ export default function HomePage() {
     if (selectedUser && selectedUser.githubUsername === refreshedUser.githubUsername) {
       setSelectedUser(refreshedUser);
     }
-  };
+  }, [selectedUser, updateUser]);
 
-  const handleCloseSearchSection = () => {
+  const handleCloseSearchSection = useCallback(() => {
     setShowSearchSection(false);
     setSelectedUser(null);
     setUsers([]);
     setError(null);
     setSearchQuery('');
-  };
+  }, []);
 
-  const scrollToSearch = () => {
+  const scrollToSearch = useCallback(() => {
     searchSectionRef.current?.scrollIntoView({
       behavior: 'smooth',
       block: 'start'
     });
-  };
+  }, []);
 
   return (
     <AuthGuard>

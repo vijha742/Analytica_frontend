@@ -11,6 +11,7 @@ import LoadingSpinner from '@/components/ui/LoadingSpinner'
 import { Trophy, Medal, Award, Users, GitBranch, Star } from 'lucide-react'
 import AuthGuard from '@/components/AuthGuard'
 import Header from '@/components/ui/Header'
+import { sanitize } from '@/lib/sanitize'
 
 // interface LeaderboardProps {unknown}
 
@@ -68,7 +69,6 @@ export default function LeaderboardPage() {
 
     const formatNumber = (num: number) => {
         if (num != null) {
-            console.log(num)
             if (num >= 1000000) {
                 return (num / 1000000).toFixed(1) + 'M'
             }
@@ -233,16 +233,16 @@ export default function LeaderboardPage() {
                                                 {/* User Info */}
                                                 <div className="flex-grow min-w-0">
                                                     <div className="flex items-center gap-2 mb-1">
-                                                        <h3 className="font-semibold truncate text-white text-lg">{user.name || user.githubUsername}</h3>
+                                                        <h3 className="font-semibold truncate text-white text-lg">{sanitize(user.name || user.githubUsername)}</h3>
                                                         {user.team && (
                                                             <Badge variant="secondary" className="text-xs bg-blue-500/20 text-blue-300 border-blue-500/30">
                                                                 {user.team}
                                                             </Badge>
                                                         )}
                                                     </div>
-                                                    <p className="text-sm text-blue-400 font-medium">@{user.githubUsername}</p>
+                                                    <p className="text-sm text-blue-400 font-medium">@{sanitize(user.githubUsername)}</p>
                                                     {user.bio && (
-                                                        <p className="text-sm text-gray-300 mt-2 line-clamp-2">{user.bio}</p>
+                                                        <p className="text-sm text-gray-300 mt-2 line-clamp-2">{sanitize(user.bio)}</p>
                                                     )}
                                                 </div>
 

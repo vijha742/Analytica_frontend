@@ -20,6 +20,8 @@ import { TechStack } from '@/components/dashboard/TechStack';
 import { StatsGrid } from '@/components/dashboard/StatsGrid';
 import { TechTimeline } from '@/components/dashboard/TechTimeline';
 import { RefreshCw } from 'lucide-react';
+import { logger } from '@/lib/logger';
+import { PageErrorState } from '@/components/ui/PageErrorState';
 
 type ProfileCacheType = {
     [username: string]: {
@@ -31,7 +33,6 @@ type ProfileCacheType = {
 
 function getProfileCache(): ProfileCacheType {
     if (typeof window !== 'undefined') {
-        // @ts-expect-error: Accessing custom property on window for profile cache
         return window.__profileCache || {};
     }
     return {};
@@ -39,7 +40,6 @@ function getProfileCache(): ProfileCacheType {
 
 function setProfileCache(cache: ProfileCacheType) {
     if (typeof window !== 'undefined') {
-        // @ts-expect-error: Setting custom property on window for profile cache
         window.__profileCache = cache;
     }
 }
@@ -77,7 +77,7 @@ function ProfileContent() {
                 return userData.login;
             }
         } catch (error) {
-            console.error('Failed to fetch GitHub username:', error);
+            logger.error('Failed to fetch GitHub username:', error);
         }
         return null;
     };
@@ -85,11 +85,9 @@ function ProfileContent() {
     useEffect(() => {
         const username = session?.githubUsername;
         if (!username && session?.githubAccessToken) {
-            console.log('No githubUsername found, trying to fetch from GitHub API...');
+            // No githubUsername in session — fall back to GitHub API lookup
             fetchGitHubUsername(session.githubAccessToken).then((fetchedUsername) => {
                 if (fetchedUsername) {
-                    console.log('Fetched username from GitHub API:', fetchedUsername);
-                    // We could update the session here, but for now just use it directly
                     fetchAllData(fetchedUsername);
                 }
             });
@@ -210,11 +208,12 @@ function ProfileContent() {
                 </div>
 
                 {error && (
-                    <Card className="border-destructive">
-                        <CardContent className="pt-6">
-                            <p className="text-destructive">Error: {error}</p>
-                        </CardContent>
-                    </Card>
+                    // ERR-004: Styled error card with retry action
+                    <PageErrorState
+                        message={error}
+                        onRetry={session?.githubUsername ? () => fetchAllData(session.githubUsername!) : undefined}
+                        className="max-w-2xl mx-auto"
+                    />
                 )}
 
                 {loading && (

@@ -2,6 +2,7 @@
 
 # dependencies
 /node_modules
+/.idea
 /.pnp
 .pnp.*
 .yarn/*
@@ -39,3 +40,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+AUTH*
+QUICK*
+REVIEW*
+TODO*
+UPDA*

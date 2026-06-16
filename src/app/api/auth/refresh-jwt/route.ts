@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { TOKEN_TTL_SECONDS } from '@/constants/app';
+import { logger } from '@/lib/logger';
 
 export async function POST(request: NextRequest) {
     try {
@@ -30,7 +32,7 @@ export async function POST(request: NextRequest) {
                 httpOnly: true,
                 secure: process.env.NODE_ENV === 'production',
                 sameSite: 'lax',
-                maxAge: 24 * 60 * 60 * 1000,
+                maxAge: TOKEN_TTL_SECONDS.JWT,
                 path: '/'
             });
         }
@@ -39,14 +41,14 @@ export async function POST(request: NextRequest) {
                 httpOnly: true,
                 secure: process.env.NODE_ENV === 'production',
                 sameSite: 'lax',
-                maxAge: 7 * 24 * 60 * 60 * 1000,
+                maxAge: TOKEN_TTL_SECONDS.REFRESH_TOKEN,
                 path: '/'
             });
         }
 
         return response;
     } catch (error) {
-        console.error('Error refreshing JWT:', error);
+        logger.error('Error refreshing JWT:', error);
         return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
 }

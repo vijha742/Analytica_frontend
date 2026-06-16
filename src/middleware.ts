@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { jwtDecode } from 'jwt-decode';
+import { logger } from '@/lib/logger';
 
-const PUBLIC_PATHS = ['/', '/about', '/api/auth', '/_next', '/favicon.ico', '/auth'];
+const PUBLIC_PATHS = ['/', '/home','/about', '/api/auth', '/_next', '/favicon.ico', '/auth'];
 
 
 type decodedJwt = {
@@ -32,7 +33,8 @@ export async function middleware(req: NextRequest) {
                 isJwtValid = true;
             }
         } catch (e) {
-            console.log("Invalid JWT" + e)
+            // AUTH-002: Do not log the raw token error in production
+            logger.warn('JWT validation failed — treating as invalid', e);
         }
     }
 
@@ -65,7 +67,7 @@ export async function middleware(req: NextRequest) {
             }
         } catch (e) {
             // Error during refresh, redirect to sign-in
-            console.log("Redirecting to sign-in, error log: " + e)
+            logger.warn('Token refresh failed, redirecting to sign-in');
             const signInUrl = new URL('/api/auth/signin', req.url);
             signInUrl.searchParams.set('callbackUrl', req.url);
             return NextResponse.redirect(signInUrl);

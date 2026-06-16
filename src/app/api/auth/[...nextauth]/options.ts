@@ -1,5 +1,6 @@
 import { NextAuthOptions } from "next-auth";
 import GitHubProvider from "next-auth/providers/github";
+import { logger } from "@/lib/logger";
 
 export const authOptions: NextAuthOptions = {
 	providers: [
@@ -58,7 +59,7 @@ export const authOptions: NextAuthOptions = {
 						}
 					}
 				} catch (error) {
-					console.error('Error refreshing JWT in NextAuth callback:', error);
+					logger.error('Error refreshing JWT in NextAuth callback:', error);
 				}
 			}
 
@@ -102,7 +103,7 @@ export const authOptions: NextAuthOptions = {
 
 					if (backendResponse.ok) {
 						const backendData = await backendResponse.json();
-						console.log('Backend response data:', {
+						logger.debug('Backend sign-in response', {
 							hasJWT: !!backendData.jwtToken,
 							hasRefresh: !!backendData.refreshToken,
 							githubUsername: backendData.githubUsername,
@@ -116,15 +117,15 @@ export const authOptions: NextAuthOptions = {
 						// Extract teams from userData
 						if (backendData.userData && backendData.userData.teams) {
 							user.userTeams = backendData.userData.teams;
-							console.log('Stored user teams:', user.userTeams);
+							logger.debug('Stored user teams', { count: user.userTeams?.length });
 						}
 						return true;
 					} else {
-						console.error('Backend authentication failed:', backendResponse.status, await backendResponse.text());
+						logger.error('Backend authentication failed', { status: backendResponse.status });
 						return false;
 					}
 				} catch (error) {
-					console.error('Error during backend authentication:', error);
+					logger.error('Error during backend authentication:', error);
 					return false;
 				}
 			}

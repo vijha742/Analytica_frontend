@@ -9,7 +9,6 @@ import TechStackSection from "@/components/ui/TechStackSection";
 import RoadmapSection from "@/components/ui/RoadmapSection";
 import PreviewSection from "@/components/ui/PreviewSection";
 import Footer from "@/components/ui/Footer";
-import ThemeToggle from "@/components/ui/ThemeToggle";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 
@@ -35,31 +34,31 @@ export default function LandingPage() {
       {/* <Header /> */}
       <div className="fixed top-0 left-0 w-full flex items-center justify-between bg-black p-1 z-99 ">
         <div>
-          <Image
-            src="/image2vector(1).svg"
-            alt="Analytica Logo"
-            width={48}
-            height={48}
-            className="max-h-12 w-auto"
-            style={isDark ? { filter: "invert(1)" } : {}}
-            priority
-          />
-
-        </Link>
-        <div className="flex items-center">
-          
+          <Link href="/">
+            <Image
+              src="/image2vector(1).svg"
+              alt="Analytica Logo"
+              width={48}
+              height={48}
+              className="max-h-12 w-auto"
+              style={isDark ? { filter: "invert(1)" } : {}}
+              priority
+            />
+          </Link>
+          <div className="flex items-center">
+          </div>
         </div>
+        <main className="flex-grow">
+          <HeroSection />
+          <FeaturesSection />
+          <AchievementsSection />
+          <HowItWorksSection />
+          <TechStackSection />
+          <RoadmapSection />
+          <PreviewSection />
+        </main>
+        <Footer />
       </div>
-      <main className="flex-grow">
-        <HeroSection />
-        <FeaturesSection />
-        <AchievementsSection />
-        <HowItWorksSection />
-        <TechStackSection />
-        <RoadmapSection />
-        <PreviewSection />
-      </main>
-      <Footer />
     </div>
   );
 }
